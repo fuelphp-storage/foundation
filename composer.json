@@ -1,0 +1,25 @@
+{
+	"name": "fuelphp/foundation",
+	"type": "library",
+	"description": "FuelPHP request/response handling.",
+	"keywords": ["Request", "Response"],
+	"homepage": "https://github.com/fuelphp/foundation",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "FuelPHP Development Team",
+			"email": "team@fuelphp.com"
+		}
+	],
+	"require": {
+		"php": ">=5.3.3",
+		"fuelphp/common": "dev-master"
+	},
+	"require-dev": {
+		"mockery/mockery": "0.7.*"
+	},
+	"autoload": {
+		"psr-0": { "FuelPHP\\Foundation": "src/" }
+	},
+	"minimum-stability": "dev"
+}
