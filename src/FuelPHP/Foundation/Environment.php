@@ -31,6 +31,24 @@ class Environment
 	const VERSION = '2.0-dev';
 
 	/**
+	 * @var  Environment  environment instance
+	 *
+	 * @since  2.0.0
+	 */
+	protected static $_instance = null;
+
+	/**
+	 * Return the singleton instance of the Environment class
+	 *
+	 * @since  2.0.0
+	 */
+	public static function singleton()
+	{
+		static::$_instance or static::$_instance = new static;
+		return static::$_instance;
+	}
+
+	/**
 	 * @var  string  name of the current environment
 	 *
 	 * @since  2.0.0
@@ -94,6 +112,13 @@ class Environment
 	public $indexFile = null;
 
 	/**
+	 * @var  bool  flag to indicate we're initialized
+	 *
+	 * @since  2.0.0
+	 */
+	protected $initialized = false;
+
+	/**
 	 * @var  array  container for environment variables
 	 *
 	 * @since  2.0.0
@@ -101,11 +126,18 @@ class Environment
 	protected $vars = array();
 
 	/**
-	 * @var  string  $appPath  path the the application folder
+	 * @var  array  paths registered in the global environment
 	 *
 	 * @since  2.0.0
 	 */
-	protected $appPath = null;
+	protected $paths = array();
+
+	/**
+	 * @var  FuelPHP\Foundation\Application  $application  The main application container
+	 *
+	 * @since  2.0.0
+	 */
+	protected $application = null;
 
 	/**
 	 * @var  FuelPHP\DependencyInjection\Container  $dic  global Dependency Injection container
@@ -113,6 +145,13 @@ class Environment
 	 * @since  2.0.0
 	 */
 	protected $dic = null;
+
+	/**
+	 * @var  FuelPHP\Alias\Manager  $alias  global class alias manager
+	 *
+	 * @since  2.0.0
+	 */
+	protected $alias = null;
 
 	/**
 	 * @var  \FuelPHP\Foundation\Input  the input container
@@ -130,11 +169,145 @@ class Environment
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct()
+	protected function __construct()
 	{
 		// store some initial environment values
 		$this->vars['initTime'] = defined('FUEL_INIT_TIME') ? FUEL_INIT_TIME : microtime(true);
 		$this->vars['initMem']  = defined('FUEL_INIT_MEM') ? FUEL_INIT_MEM : memory_get_usage();
+
+		// create our instance of the alias manager
+		$this->alias = new \FuelPHP\Alias\Manager;
+
+		// and our instance of the DiC
+		$this->dic = new \FuelPHP\DependencyInjection\Container;
+	}
+
+	/**
+	 * Start an application
+	 *
+	 * @return  $this
+	 */
+	public function start()
+	{
+		// create the main application container
+		$this->application = $this->forge('FuelPHP\Foundation\Application', $this->application, $this->getPath($this->application).$this->application);
+
+
+var_dump($this->application);
+die('and off we go!');
+		return $this;
+	}
+
+	/**
+	 * Allows the overwriting of the environment settings, should only be run once
+	 *
+	 * @param   array  $config
+	 * @return  Environment  to allow method chaining
+	 * @throws  \RuntimeException
+	 *
+	 * @since  2.0.0
+	 */
+	public function init(array $config = array())
+	{
+		if ($this->initialized)
+		{
+			throw new \RuntimeException('Environment config shouldn\'t be initiated more than once.', E_USER_ERROR);
+		}
+
+		// application path must be given
+		if ( ! isset($config['path']))
+		{
+			throw new \RuntimeException('The application path must be provided to Environment.', E_USER_ERROR);
+		}
+
+		$config['path'] = realpath($config['path']);
+		// make sure it exists
+		if (empty($config['path']) or ! is_dir($config['path']))
+		{
+			throw new \InvalidArgumentException('The application path does not exist. Can not initialize the application.');
+		}
+
+		// application path must be given
+		if ( ! isset($config['application']))
+		{
+			throw new \RuntimeException('The name of the application package must be provided to the Environment.', E_USER_ERROR);
+		}
+
+		// store the application path
+		$this->addPath($config['application'], $config['path'].'/');
+
+		// store the application path
+		$this->application = $config['application'];
+
+		// make sure it exists
+		if (empty($this->application) or ! is_dir($config['path'].'/'.$this->application))
+		{
+			throw new \InvalidArgumentException('The application can not be found in the path given. Can not initialize the application.');
+		}
+
+		// set (if array) or load (when empty/string) environments
+		$environments = isset($config['environments'])
+			? $config['environments']
+			: $config['path'].'/'.$this->application.'/environments.php';
+
+		is_string($environments) and $environments = require $environments;
+
+		unset($config['environments']);
+
+		// run default environment
+		$finishCallbacks = array();
+		if (isset($environments['__default']))
+		{
+			$finishCallbacks[] = call_user_func($environments['__default'], $this);
+		}
+
+		// run specific environment config when given
+		$config['name'] = isset($config['name']) ? $config['name'] : 'development';
+		if (isset($environments[$config['name']]))
+		{
+			$finishCallbacks[] = call_user_func($environments[$config['name']], $this);
+		}
+
+		// set any other configuration values passed, may overwrite environment settings!
+		foreach ($config as $key => $val)
+		{
+			property_exists($this, $key) and $this->{$key} = $val;
+		}
+
+		// load the input container if not yet set
+		is_null($this->input) and $this->input = $this->forge('FuelPHP\\Foundation\\Input');
+
+		// and import the globals
+		$this->input->fromGlobals();
+
+		// configure the localization options for PHP
+		$this->setLocale($this->locale);
+		$this->setTimezone($this->timezone);
+
+		// detects and configures the PHP Environment
+		$this->setPhpEnv();
+
+		// run environment callbacks to finish up
+		foreach ($finishCallbacks as $cb)
+		{
+			is_callable($cb) and call_user_func($cb, $this);
+		}
+
+		// we're done
+		$this->initialized = true;
+
+		return $this;
+	}
+
+	/**
+	 * Forge an instance of an object. Shortcut for $this->dic->resolve()
+	 *
+	 * @since  2.0.0
+	 */
+	public function forge()
+	{
+		// store the variable passed
+		return call_user_func_array(array($this->dic, 'resolve'), func_get_args());
 	}
 
 	/**
@@ -181,21 +354,83 @@ class Environment
 	}
 
 	/**
-	 * Return the environmental Input object
+	 * Fetch the full path for a given pathname
 	 *
-	 * @return  FuelPHP\Foundation\Input
+	 * @param   string  $name
+	 * @return  string
+	 * @throws  \OutOfBoundsException
 	 *
 	 * @since  2.0.0
 	 */
-	public function getInput()
+	public function getPath($name)
 	{
-		return $this->input;
+		if ( ! isset($this->paths[$name]))
+		{
+			throw new \OutOfBoundsException('Unknown path requested: '.$name);
+		}
+
+		return $this->paths[$name];
 	}
 
 	/**
-	 * Return the environmental DiC
+	 * Attempt make the path relative to a registered path
 	 *
-	 * @return  \Fuel\DiC\Base
+	 * @param   string  $path
+	 * @return  string
+	 *
+	 * @since  1.0.0
+	 */
+	public function cleanPath($path)
+	{
+		$path = str_replace('\\', '/', $path);
+		foreach ($this->paths as $name => $p)
+		{
+			if (strpos($path, $p) === 0)
+			{
+				return $name.'::'.substr(str_replace('\\', '/', $path), strlen($p));
+			}
+		}
+		return $path;
+	}
+
+	/**
+	 * Register a new named path
+	 *
+	 * @param   string       $name       name for the path
+	 * @param   string       $path       the full path
+	 * @param   bool         $overwrite  whether or not overwriting existing name is allowed
+	 * @return  Environment  to allow method chaining
+	 * @throws  \OutOfBoundsException
+	 *
+	 * @since  2.0.0
+	 */
+	public function addPath($name, $path, $overwrite = false)
+	{
+		if ( ! $overwrite and isset($this->paths[$name]))
+		{
+			throw new \OutOfBoundsException('Already a path registered for name: '.$name);
+		}
+
+		$this->paths[$name] = rtrim(str_replace('\\', '/', $path), '/\\').'/';
+		return $this;
+	}
+
+	/**
+	 * Return the Alias manager
+	 *
+	 * @return  FuelPHP\Alias\Manager
+	 *
+	 * @since  2.0.0
+	 */
+	public function getAlias()
+	{
+		return $this->alias;
+	}
+
+	/**
+	 * Return the DiC
+	 *
+	 * @return  FuelPHP\DependencyInjection\Container
 	 *
 	 * @since  2.0.0
 	 */
@@ -205,40 +440,27 @@ class Environment
 	}
 
 	/**
-	 * Set the environmental DiC
+	 * Return the main application object
 	 *
-	 * @param   Container  $dic
-	 * @return  Environment  to allow method chaining
+	 * @return  FuelPHP\Foundation\Application
 	 *
 	 * @since  2.0.0
 	 */
-	public function setDiC(Container $dic)
+	public function getApplication()
 	{
-		$this->dic = $dic;
-
-		return $this;
+		return $this->application;
 	}
 
 	/**
-	 * Set the path to the application folder, and verify it
+	 * Return the global Input container object
 	 *
-	 * @param  string  $appPath  path where the application to be launched can be found
+	 * @return  FuelPHP\Foundation\Input
 	 *
-	 * @throws  InvalidArgumentException  if the path passed does not exist
-	 * @return  $this
+	 * @since  2.0.0
 	 */
-	public function setApp($appPath)
+	public function getInput()
 	{
-		// store the application path
-		$this->appPath = realpath($appPath);
-
-		// make sure it exists
-		if (empty($this->appPath) or ! is_dir($this->appPath))
-		{
-			throw new \InvalidArgumentException('Application path given does not exist');
-		}
-
-		return $this;
+		return $this->input;
 	}
 
 	/**
@@ -288,31 +510,6 @@ class Environment
 	{
 		$this->timezone = $timezone;
 		$this->timezone and date_default_timezone_set($this->timezone);
-
-		return $this;
-	}
-
-	/**
-	 * Allows the overwriting of the default environment settings
-	 *
-	 * @param   array  $config
-	 * @return  Environment  to allow method chaining
-	 * @throws  \RuntimeException
-	 *
-	 * @since  2.0.0
-	 */
-	public function setConfig(array $config)
-	{
-		// configure the localization options for PHP
-		$this->setLocale($this->locale);
-		$this->setTimezone($this->timezone);
-
-		// detects and configures the PHP Environment
-		$this->setPhpEnv();
-
-		// load the input container if not yet set
-// CHECKME
-		is_null($this->input) and $this->input = $this->dic->resolve('FuelPHP\\Foundation\\Input', false);
 
 		return $this;
 	}

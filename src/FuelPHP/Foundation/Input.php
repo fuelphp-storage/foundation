@@ -115,8 +115,12 @@ class Input
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct(array $inputVars = array(), self $parent = null)
+	public function __construct(array $inputVars = array(), $parent = null)
 	{
+		// get us a copy of the environment
+		$this->env = \FuelPHP\Foundation\Environment::singleton();
+
+		// pre-process any input vars given to us
 		isset($inputVars['server'])
 			and $this->server = $inputVars['server'];
 
@@ -144,26 +148,13 @@ class Input
 			and $this->requestBody = $inputVars['requestBody'];
 
 		$this->parent = $parent instanceof self ? $parent : null;
-	}
 
-	/**
-	 * Magic Fuel method that is the setter for the current Environment
-	 *
-	 * @param   Environment  $env
-	 * @return  void
-	 *
-	 * @since  2.0.0
-	 */
-	public function _setEnv(Environment $env)
-	{
-		$this->env = $env;
-
-		$this->server  = $env->forge('Input\ParamBag', $this->server ?: array());
-		$this->param   = $env->forge('Input\ParamBag', $this->param ?: array());
-		$this->query   = $env->forge('Input\ParamBag', $this->query ?: array());
-		$this->cookie  = $env->forge('Input\ParamBag', $this->cookie ?: array());
-		$this->files   = $env->forge('Input\ParamBag', $this->files ?: array());
-		is_array($this->cli) and $this->cli = $env->forge('Input\ParamBag', $this->cli ?: array());
+		$this->server  = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->server ?: array());
+		$this->param   = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->param ?: array());
+		$this->query   = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->query ?: array());
+		$this->cookie  = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->cookie ?: array());
+		$this->files   = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->files ?: array());
+		is_array($this->cli) and $this->cli = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->cli ?: array());
 	}
 
 	/**
@@ -568,7 +559,7 @@ class Input
 				$cli[ltrim(reset($arg), '-')] = isset($arg[1]) ? $arg[1] : true;
 			}
 		}
-		$this->cli = $this->env->forge('Input\ParamBag', $cli);
+		$this->cli = $this->env->forge('FuelPHP\Common\Data\Container', $cli);
 	}
 
 	/**
