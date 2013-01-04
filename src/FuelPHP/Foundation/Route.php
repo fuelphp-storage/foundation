@@ -26,7 +26,7 @@ class Route
 	 *
 	 * @since  2.0.0
 	 */
-	public $env;
+	protected $env;
 
 	/**
 	 * @var  \FuelPHP\Foundation\Application
@@ -34,6 +34,13 @@ class Route
 	 * @since  2.0.0
 	 */
 	protected $app;
+
+	/**
+	 * @var  string  name of this route
+	 *
+	 * @since  1.1.0
+	 */
+	protected $name = '';
 
 	/**
 	 * @var  array  HTTP methods
@@ -90,49 +97,78 @@ class Route
 	/**
 	 * Constructor
 	 *
-	 * @param  string|\Closure       $search
-	 * @param  null|string|\Closure  $translation
-	 * @param  array                 $methods
+	 * @param  string       $name
 	 *
 	 * @since  1.0.0
 	 */
-	public function __construct($search, $translation = null, array $methods = array())
+	public function __construct($name)
 	{
+		// set the environment variable necessary for the package loader object
 		$this->env = \FuelPHP\Foundation\Environment::singleton();
 		$this->app = $this->env->getActiveApplication();
 
-		$this->methods = $methods;
+		$this->name = $name;
+	}
 
+	/**
+	 * Get the name of this route
+	 *
+	 * @return  string
+	 *
+	 * @since  1.0.0
+	 */
+	public function getName()
+	{
+		return $this->name;
+	}
+
+	/**
+	 * Define the search string to be matched for this route
+	 *
+	 * @return  Route
+	 *
+	 * @since  1.0.0
+	 */
+	public function match($search)
+	{
+		// store the search string
 		$this->search = $search;
-		if (is_string($this->search))
-		{
-			// The search uri may start with allowed methods 'DELETE ' or multiple 'GET|POST|PUT '
-			if (preg_match('#^(GET\\|?|POST\\|?|PUT\\|?|DELETE\\|?)+ #uD', $this->search, $matches))
-			{
-				$this->search   = ltrim(substr($this->search, strlen($matches[0])), '/ ');
-				$this->methods  = array_unique(
-					array_merge($this->methods, explode('|', trim($matches[0])))
-				);
-			}
-			$this->search = '/'.trim($this->search, '/ ');
-		}
+		is_string($this->search) and $this->search = '/'.trim($this->search, '/ ');
 
+		// if no translation is present, default to the search string
+		empty($this->translation) and $this->to($this->search);
+
+		return $this;
+	}
+
+	/**
+	 * Define the translated route to return on a match
+	 *
+	 * @return  Route
+	 *
+	 * @since  1.0.0
+	 */
+	public function to($translation)
+	{
+		// store the translation string
 		$this->translation = is_null($translation) ? $this->search : $translation;
 		if (is_string($this->translation))
 		{
 			$this->translation = '/'.trim($this->translation, '/ ');
 		}
+
+		return $this;
 	}
 
 	/**
-	 * Overwrite the methods this route acts on
+	 * Set the methods this route acts on
 	 *
 	 * @param   array|string  $method
-	 * @return  Fuel
+	 * @return  Route
 	 *
 	 * @since  2.0.0
 	 */
-	public function setMethod($method = array())
+	public function methods($method = array())
 	{
 		$this->methods = (array) $method;
 		return $this;
@@ -239,6 +275,19 @@ class Route
 	}
 
 	/**
+	 * Return an array with 1. callable to be the controller and 2. additional params array
+	 * and 3. associative array with the named parameters
+	 *
+	 * @return  array  callback, segments, named_segments
+	 *
+	 * @since  2.0.0
+	 */
+	public function getMatch()
+	{
+		return array($this->match, $this->segments, $this->namedSegments);
+	}
+
+	/**
 	 * Adds in the regexes for URI variables
 	 *
 	 * @param   string  $uri  for finding the uri params
@@ -315,18 +364,5 @@ class Route
 			array_unshift($this->segments, array_pop($uriArray));
 		}
 		return false;
-	}
-
-	/**
-	 * Return an array with 1. callable to be the controller and 2. additional params array
-	 * and 3. associative array with the named parameters
-	 *
-	 * @return  array  callback, segments, named_segments
-	 *
-	 * @since  2.0.0
-	 */
-	public function getMatch()
-	{
-		return array($this->match, $this->segments, $this->namedSegments);
 	}
 }

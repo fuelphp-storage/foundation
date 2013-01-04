@@ -115,7 +115,7 @@ class Request
 	{
 		$this->activate();
 
-		list($this->controller, $this->controllerParams, $this->params) = $this->app->route($this->requestUri);
+		list($this->controller, $this->controllerParams, $this->params) = $this->app->getRouter()->route($this->requestUri);
 
 		try
 		{

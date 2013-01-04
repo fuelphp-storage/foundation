@@ -50,6 +50,13 @@ class Application
 	protected $env;
 
 	/**
+	 * @var  \FuelPHP\Foundation\Router  this applications router object once created
+	 *
+	 * @since  2.0.0
+	 */
+	protected $router;
+
+	/**
 	 * @var  \FuelPHP\Foundation\Request  contains the app main request object once created
 	 *
 	 * @since  2.0.0
@@ -62,13 +69,6 @@ class Application
 	 * @since  2.0.0
 	 */
 	protected $activeRequest;
-
-	/**
-	 * @var  array  route objects
-	 *
-	 * @since  2.0.0
-	 */
-	protected $routes = array();
 
 	/**
 	 * @var  array  active loaders in a prioritized list
@@ -99,7 +99,7 @@ class Application
 		$this->env = \FuelPHP\Foundation\Environment::singleton();
 
 		// load the application package
-		$this->loadPackage(array($appName, $appPath.$appName), Application::TYPE_APPLICATION);
+		$this->loadPackage(array($appName, $appPath), Application::TYPE_APPLICATION);
 
 		// load main Application config
 // CHECKME
@@ -120,8 +120,9 @@ class Application
 	{
 		$this->activate();
 
-		// set the default route(s)
-		$this->setRoutes();
+		// create a router object
+		$this->router = $this->env->forge('\FuelPHP\Foundation\Router');
+
 		// Start output buffer
 // CHECKME
 //		ob_start($this->config->get('obCallback', null));
@@ -197,6 +198,18 @@ class Application
 	public function getResponse()
 	{
 		return $this->request->getResponse();
+	}
+
+	/**
+	 * Return the router object
+	 *
+	 * @return  \FuelPHP\Foundation\Router
+	 *
+	 * @since  2.0.0
+	 */
+	public function getRouter()
+	{
+		return $this->router;
 	}
 
 	/**
@@ -296,8 +309,17 @@ class Application
 				throw new \RuntimeException('Package already loaded, can\'t be loaded twice.');
 			}
 
-			// fetch the Package loader
+			// deal with paths to the package folder instead of the package
 			$path = rtrim($path, '\/').'/';
+			is_dir($path.$name) and $path = $path.$name.'/';
+
+			// check if we have a package loader
+			if ( ! file_exists($path.'loader.php'))
+			{
+				throw new \RuntimeException('No Package loader could be found in '.$path);
+			}
+
+			// fetch the Package loader
 			$package = require $path.'loader.php';
 			if ( ! $package instanceof Package)
 			{
@@ -376,134 +398,6 @@ class Application
 		}
 
 		return $this->packages[$type];
-	}
-
-	/**
-	 * Attempts to route a given URI to a controller (class, Closure or callback)
-	 *
-	 * @param   string  $uri
-	 *
-	 * @throws  \FuelPHP\Foundation\Exception\NotFound
-	 *
-	 * @return  array
-	 *
-	 * @since  2.0.0
-	 */
-	public function route($uri)
-	{
-		// Attempt other routes
-		foreach ($this->routes as $route)
-		{
-			if ($route->matches($uri))
-			{
-				return $route->getMatch();
-			}
-		}
-
-		throw new Exception\NotFound($uri);
-	}
-
-	/**
-	 * Define the routes for this application
-	 *
-	 * @return  void
-	 *
-	 * @since  2.0.0
-	 */
-	protected function setRoutes()
-	{
-		// and finish off with a default route
-		$this->addRoute('__default', array('(.*)', '$1'));
-
-// CHECKME temporary until the route engine has been sorted out!
-		$this->addRoute('root', array('/', 'Welcome/Index'));
-	}
-
-	/**
-	 * Add a route to the Application
-	 *
-	 * @param   string           $name
-	 * @param   string|array     $route
-	 * @param   null|int|string  $offset  null for at the end, int for position, or string for insert before named route
-	 *
-	 * @return  \FuelPHP\Foundation\Route
-	 *
-	 * @since  2.0.0
-	 */
-	public function addRoute($name, $route, $offset = null)
-	{
-		if ( ! $route instanceof Route)
-		{
-			if (is_array($route))
-			{
-				array_unshift($route, null);
-				array_unshift($route, 'FuelPHP\Foundation\Route');
-				$route = call_user_func_array(array($this->env, 'forge'), $route);
-			}
-			else
-			{
-				$route = $this->env->forge('FuelPHP\Foundation\Route', null, $name, $route);
-			}
-		}
-
-		// Allow to insert into route stack at location of existing named route
-		if (is_string($offset))
-		{
-			$offset = array_search($offset, array_keys($this->routes));
-			! is_int($offset) and $offset = null;
-		}
-
-		if (isset($offset))
-		{
-			$this->routes = array_slice($this->routes, 0, $offset)
-				+ array($name => $route)
-				+ array_slice($this->routes, $offset);
-		}
-		else
-		{
-			$this->routes[$name] = $route;
-		}
-
-		return $this->routes[$name];
-	}
-
-	/**
-	 * Add multiple routes
-	 *
-	 * @param   array  $routes
-	 *
-	 * @return  Application
-	 *
-	 * @since  2.0.0
-	 */
-	public function addRoutes(array $routes)
-	{
-		foreach ($routes as $name => $route)
-		{
-			$this->addRoute($name, $route);
-		}
-		return $this;
-	}
-
-	/**
-	 * Reverse routing
-	 *
-	 * @param   string  $name
-	 * @param   array   $vars
-	 *
-	 * @throws  \OutOfBoundsException
-	 *
-	 * @return  string
-	 *
-	 * @since  2.0.0
-	 */
-	public function getRoute($name, array $vars = array())
-	{
-		if ( ! isset($this->routes[$name]))
-		{
-			throw new \OutOfBoundsException('Requesting an unregistered route.');
-		}
-		return $this->routes[$name]->get($vars);
 	}
 
 	/**
