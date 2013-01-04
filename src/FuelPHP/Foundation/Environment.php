@@ -133,6 +133,13 @@ class Environment
 	protected $paths = array();
 
 	/**
+	 * @var  array  appnames and their classnames
+	 *
+	 * @since  2.0.0
+	 */
+	protected $apps = array();
+
+	/**
 	 * @var  FuelPHP\Foundation\Application  $application  The main application container
 	 *
 	 * @since  2.0.0
@@ -161,6 +168,13 @@ class Environment
 	protected $input = null;
 
 	/**
+	 * @var  \FuelPHP\Foundation\Application
+	 *
+	 * @since  2.0.0
+	 */
+	protected $activeApp;
+
+	/**
 	 * Setup the framework environment. This will include all required global
 	 * classes, paths, and other configuration required to start the app.
 	 *
@@ -180,22 +194,6 @@ class Environment
 
 		// and our instance of the DiC
 		$this->dic = new \FuelPHP\DependencyInjection\Container;
-	}
-
-	/**
-	 * Start an application
-	 *
-	 * @return  $this
-	 */
-	public function start()
-	{
-		// create the main application container
-		$this->application = $this->forge('FuelPHP\Foundation\Application', $this->application, $this->getPath($this->application).$this->application);
-
-
-var_dump($this->application);
-die('and off we go!');
-		return $this;
 	}
 
 	/**
@@ -297,6 +295,58 @@ die('and off we go!');
 		$this->initialized = true;
 
 		return $this;
+	}
+
+	/**
+	 * Load application and return instantiated
+	 *
+	 * @param   string    $appName
+	 * @param   \Closure  $config
+	 * @return  Application\Base
+	 * @throws  \OutOfBoundsException
+	 *
+	 * @since  2.0.0
+	 */
+	public function loadApplication($appName = null, $appPath = null, Closure $config = null)
+	{
+		is_null($appName) and $appName = $this->application;
+		is_null($appPath) and $appPath = $this->getPath($appName);
+
+		$application = $this->forge('FuelPHP\Foundation\Application', null, $appName, $appPath);
+
+		$this->apps[$appName] = $application;
+
+		is_null($this->activeApp) and $this->activeApp = $application;
+
+		return $application;
+	}
+
+	/**
+	 * Sets the current active Application
+	 *
+	 * @param   Application  $app
+	 *
+	 * @return  Environment
+	 *
+	 * @since  2.0.0
+	 */
+	public function setActiveApplication(Application $app = null)
+	{
+		$this->activeApp = $app;
+
+		return $this;
+	}
+
+	/**
+	 * Fetches the current active Application
+	 *
+	 * @return  Application
+	 *
+	 * @since  2.0.0
+	 */
+	public function getActiveApplication()
+	{
+		return $this->activeApp;
 	}
 
 	/**
@@ -412,6 +462,7 @@ die('and off we go!');
 		}
 
 		$this->paths[$name] = rtrim(str_replace('\\', '/', $path), '/\\').'/';
+
 		return $this;
 	}
 
@@ -599,6 +650,29 @@ die('and off we go!');
 	}
 
 	/**
+	 * Convert a classname to a path as per PSR-0 rules
+	 *
+	 * @param   $class
+	 *
+	 * @return  string
+	 *
+	 * @since  2.0.0
+	 */
+	public function psrClassToPath($class)
+	{
+		$file  = '';
+		if ($last_ns_pos = strripos($class, '\\'))
+		{
+			$namespace = substr($class, 0, $last_ns_pos);
+			$class = substr($class, $last_ns_pos + 1);
+			$file = str_replace('\\', '/', $namespace).'/';
+		}
+		$file .= str_replace('_', '/', $class).'.php';
+
+		return $file;
+	}
+
+	/**
 	 * Generates a base url.
 	 *
 	 * @return  string  the base url
@@ -619,6 +693,7 @@ die('and off we go!');
 			// Add a slash if it is missing
 			$baseUrl = rtrim($baseUrl, '/').'/';
 		}
+
 		return $baseUrl;
 	}
 
