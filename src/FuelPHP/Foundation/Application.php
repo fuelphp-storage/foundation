@@ -414,6 +414,9 @@ class Application
 	{
 		// and finish off with a default route
 		$this->addRoute('__default', array('(.*)', '$1'));
+
+// CHECKME temporary until the route engine has been sorted out!
+		$this->addRoute('root', array('/', 'Welcome/Index'));
 	}
 
 	/**
