@@ -31,24 +31,6 @@ class Environment
 	const VERSION = '2.0-dev';
 
 	/**
-	 * @var  Environment  environment instance
-	 *
-	 * @since  2.0.0
-	 */
-	protected static $_instance = null;
-
-	/**
-	 * Return the singleton instance of the Environment class
-	 *
-	 * @since  2.0.0
-	 */
-	public static function singleton()
-	{
-		static::$_instance or static::$_instance = new static;
-		return static::$_instance;
-	}
-
-	/**
 	 * @var  string  name of the current environment
 	 *
 	 * @since  2.0.0
@@ -140,7 +122,7 @@ class Environment
 	protected $apps = array();
 
 	/**
-	 * @var  FuelPHP\Foundation\Application  $application  The main application container
+	 * @var  Application  $application  The main application container
 	 *
 	 * @since  2.0.0
 	 */
@@ -161,14 +143,14 @@ class Environment
 	protected $alias = null;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Input  the input container
+	 * @var  Input  the input container
 	 *
 	 * @since  2.0.0
 	 */
 	protected $input = null;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Application
+	 * @var  Application
 	 *
 	 * @since  2.0.0
 	 */
@@ -183,7 +165,7 @@ class Environment
 	 *
 	 * @since  2.0.0
 	 */
-	protected function __construct()
+	public function __construct()
 	{
 		// store some initial environment values
 		$this->vars['initTime'] = defined('FUEL_INIT_TIME') ? FUEL_INIT_TIME : microtime(true);
@@ -273,7 +255,7 @@ class Environment
 		}
 
 		// load the input container if not yet set
-		is_null($this->input) and $this->input = $this->forge('FuelPHP\\Foundation\\Input');
+		is_null($this->input) and $this->input = \FuelPHP::resolve('Input');
 
 		// and import the globals
 		$this->input->fromGlobals();
@@ -312,7 +294,7 @@ class Environment
 		is_null($appName) and $appName = $this->application;
 		is_null($appPath) and $appPath = $this->getPath($appName);
 
-		$application = $this->forge('FuelPHP\Foundation\Application', null, $appName, $appPath);
+		$application = \FuelPHP::resolve('Application', null, $appName, $appPath);
 
 		$this->apps[$appName] = $application;
 
@@ -347,17 +329,6 @@ class Environment
 	public function getActiveApplication()
 	{
 		return $this->activeApp;
-	}
-
-	/**
-	 * Forge an instance of an object. Shortcut for $this->dic->resolve()
-	 *
-	 * @since  2.0.0
-	 */
-	public function forge()
-	{
-		// store the variable passed
-		return call_user_func_array(array($this->dic, 'resolve'), func_get_args());
 	}
 
 	/**
@@ -479,6 +450,20 @@ class Environment
 	}
 
 	/**
+	 * sets the Alias manager
+	 *
+	 * @return  Environment
+	 *
+	 * @since  2.0.0
+	 */
+	public function setAlias($alias)
+	{
+		$this->alias = $alias;
+
+		return $this;
+	}
+
+	/**
 	 * Return the DiC
 	 *
 	 * @return  FuelPHP\DependencyInjection\Container
@@ -491,21 +476,35 @@ class Environment
 	}
 
 	/**
+	 * sets the DiC
+	 *
+	 * @return  Environment
+	 *
+	 * @since  2.0.0
+	 */
+	public function setDic($dic)
+	{
+		$this->dic = $dic;
+
+		return $this;
+	}
+
+	/**
 	 * Return the Profiler
 	 *
-	 * @return  FuelPHP\Foundation\Profiler
+	 * @return  Profiler
 	 *
 	 * @since  2.0.0
 	 */
 	public function getProfiler()
 	{
-		return $this->forge('FuelPHP\Foundation\Profiler');
+		return \FuelPHP::resolve('Profiler');
 	}
 
 	/**
 	 * Return the main application object
 	 *
-	 * @return  FuelPHP\Foundation\Application
+	 * @return  Application
 	 *
 	 * @since  2.0.0
 	 */
@@ -517,7 +516,7 @@ class Environment
 	/**
 	 * Return the global Input container object
 	 *
-	 * @return  FuelPHP\Foundation\Input
+	 * @return  Input
 	 *
 	 * @since  2.0.0
 	 */

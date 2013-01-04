@@ -20,6 +20,7 @@
 	},
 	"autoload": {
 		"psr-0": { "FuelPHP\\Foundation": "src/" }
+		"files": ["src/kickstart.php"]
 	},
 	"minimum-stability": "dev"
 }

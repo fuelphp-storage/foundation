@@ -10,16 +10,16 @@
 
 namespace FuelPHP\Foundation\Controller;
 
-use FuelPHP\Foundation\View;
-use FuelPHP\Foundation\Response;
-use FuelPHP\Foundation\Exception\NotFound;
+use View;
+use Response;
+use Exception\NotFound;
 
 /**
  * Controller Base class
  *
  * Default controller class that takes action based on the input it gets.
  *
- * @package  Fuel\Kernel
+ * @package  FuelPHP\Foundation
  *
  * @since  1.0.0
  */
@@ -40,21 +40,21 @@ abstract class Base
 	protected $actionPrefix = 'action';
 
 	/**
-	 * @var  \FuelPHP\Foundation\Environment
+	 * @var  Environment
 	 *
 	 * @since  2.0.0
 	 */
 	public $env;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Application  app that created this request
+	 * @var  Application  app that created this request
 	 *
 	 * @since  2.0.0
 	 */
 	public $app;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Request
+	 * @var  Request
 	 *
 	 * @since  1.0.0
 	 */
@@ -66,7 +66,7 @@ abstract class Base
 	 * @param   \ReflectionMethod|string  $method
 	 * @param   array  $args
 	 *
-	 * @return  \FuelPHP\Foundation\Response
+	 * @return  \Response
 	 *
 	 * @since  2.0.0
 	 */
@@ -95,7 +95,7 @@ abstract class Base
 	 *
 	 * @param   mixed  $response
 	 *
-	 * @return  \FuelPHP\Foundation\Response
+	 * @return  Response
 	 *
 	 * @since  1.0.0
 	 */
@@ -103,7 +103,7 @@ abstract class Base
 	{
 		if ( ! $response instanceof Response)
 		{
-			$response = $this->env->forge('\FuelPHP\Foundation\Response', null, $response);
+			$response = \FuelPHP::resolve('Response', null, $response);
 		}
 
 		return $response;
@@ -114,15 +114,15 @@ abstract class Base
 	 *
 	 * @param    array  $args
 	 *
-	 * @throws  \FuelPHP\Foundation\Request\Exception\NotFound
+	 * @throws  Request\Exception\NotFound
 	 *
-	 * @return  \FuelPHP\Foundation\Response
+	 * @return  Response
 	 *
 	 * @since  2.0.0
 	 */
 	public function __invoke(array $args)
 	{
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 		$this->app = $this->env->getActiveApplication();
 		$this->request = $this->app->getActiveRequest();
 

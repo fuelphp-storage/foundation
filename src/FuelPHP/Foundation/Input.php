@@ -10,7 +10,7 @@
 
 namespace FuelPHP\Foundation;
 
-use FuelPHP\Common\Data\Container;
+use Data\Container;
 
 /**
  * Input
@@ -118,7 +118,7 @@ class Input
 	public function __construct(array $inputVars = array(), $parent = null)
 	{
 		// get us a copy of the environment
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 
 		// pre-process any input vars given to us
 		isset($inputVars['server'])
@@ -149,12 +149,12 @@ class Input
 
 		$this->parent = $parent instanceof self ? $parent : null;
 
-		$this->server  = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->server ?: array());
-		$this->param   = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->param ?: array());
-		$this->query   = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->query ?: array());
-		$this->cookie  = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->cookie ?: array());
-		$this->files   = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->files ?: array());
-		is_array($this->cli) and $this->cli = $this->env->forge('FuelPHP\\Common\\Data\\Container', $this->cli ?: array());
+		$this->server  = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->server ?: array());
+		$this->param   = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->param ?: array());
+		$this->query   = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->query ?: array());
+		$this->cookie  = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->cookie ?: array());
+		$this->files   = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->files ?: array());
+		is_array($this->cli) and $this->cli = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->cli ?: array());
 	}
 
 	/**
@@ -559,7 +559,7 @@ class Input
 				$cli[ltrim(reset($arg), '-')] = isset($arg[1]) ? $arg[1] : true;
 			}
 		}
-		$this->cli = $this->env->forge('FuelPHP\Common\Data\Container', $cli);
+		$this->cli = \FuelPHP::resolve('FuelPHP\Common\Data\Container', $cli);
 	}
 
 	/**

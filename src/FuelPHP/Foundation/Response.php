@@ -10,8 +10,6 @@
 
 namespace FuelPHP\Foundation;
 
-use FuelPHP\Foundation\Request;
-
 /**
  * FuelPHP Response class
  *
@@ -24,14 +22,14 @@ use FuelPHP\Foundation\Request;
 class Response
 {
 	/**
-	 * @var  \FuelPHP\Foundation\Environment
+	 * @var  Environment
 	 *
 	 * @since  2.0.0
 	 */
 	protected $env;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Application  app that created this request
+	 * @var  Application  app that created this request
 	 *
 	 * @since  2.0.0
 	 */
@@ -156,7 +154,7 @@ class Response
 	 */
 	public function __construct($content = '', $status = 200, array $headers = array())
 	{
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 		$this->app = $this->env->getActiveApplication();
 		$this->request = $this->app->getActiveRequest();
 

@@ -22,14 +22,14 @@ namespace FuelPHP\Foundation;
 class Route
 {
 	/**
-	 * @var  \FuelPHP\Foundation\Environment
+	 * @var  Environment
 	 *
 	 * @since  2.0.0
 	 */
 	protected $env;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Application
+	 * @var  Application
 	 *
 	 * @since  2.0.0
 	 */
@@ -104,7 +104,7 @@ class Route
 	public function __construct($name)
 	{
 		// set the environment variable necessary for the package loader object
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 		$this->app = $this->env->getActiveApplication();
 
 		$this->name = $name;
@@ -350,7 +350,7 @@ class Route
 		// Return Controller when found
 		if (is_string($translation) and ($controller = $this->findClass($translation)))
 		{
-			$this->match = $this->env->forge($controller);
+			$this->match = \FuelPHP::resolve($controller);
 			return true;
 		}
 

@@ -22,26 +22,26 @@ namespace FuelPHP\Foundation;
 class Security
 {
 	/**
-	 * @var  \FuelPHP\Foundation\Environment
+	 * @var  Environment
 	 */
 	protected $env;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Security\Crypt
+	 * @var  Security\Crypt
 	 *
 	 * @since  2.0.0
 	 */
 	protected $crypt;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Security\Csrf
+	 * @var  Security\Csrf
 	 *
 	 * @since  2.0.0
 	 */
 	protected $csrf;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Security\String
+	 * @var  Security\String
 	 *
 	 * @since  2.0.0
 	 */
@@ -55,7 +55,7 @@ class Security
 	public function __construct()
 	{
 		// set the environment variable necessary for the package loader object
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 	}
 
 	/**
@@ -67,7 +67,7 @@ class Security
 	 */
 	public function getCrypt()
 	{
-		! isset($this->crypt) and $this->crypt = $this->env->forge('FuelPHP\Foundation\Security\Crypt');
+		! isset($this->crypt) and $this->crypt = \FuelPHP::resolve('Security\Crypt');
 		return $this->crypt;
 	}
 
@@ -80,7 +80,7 @@ class Security
 	 */
 	public function getCsrf()
 	{
-		! isset($this->csrf) and $this->csrf = $this->env->forge('FuelPHP\Foundation\Security\Csrf');
+		! isset($this->csrf) and $this->csrf = \FuelPHP::resolve('Security\Csrf');
 		return $this->csrf;
 	}
 
@@ -93,7 +93,7 @@ class Security
 	 */
 	public function getStringCleaner()
 	{
-		! isset($this->string) and $this->string = $this->env->forge('FuelPHP\Foundation\Security\String\Htmlentities');
+		! isset($this->string) and $this->string = \FuelPHP::resolve('Security\String\Htmlentities');
 		return $this->string;
 	}
 
@@ -116,7 +116,7 @@ class Security
 		$filter === true and $filter = $this->getStringCleaner();
 
 		// When string is passed try to fetch special filter from DiC
-		is_string($filter) and $filter = $this->env->forge('FuelPHP\\Foundation\\Security\\String\\'.$filter);
+		is_string($filter) and $filter = \FuelPHP::resolve('Security\String\\'.$filter);
 
 		// Whatever is left is either boolean false or a String Security object
 		return $filter ? $filter->clean($uri) : $uri;

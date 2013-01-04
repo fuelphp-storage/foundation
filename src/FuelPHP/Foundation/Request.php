@@ -22,14 +22,14 @@ namespace FuelPHP\Foundation;
 class Request
 {
 	/**
-	 * @var  \FuelPHP\Foundation\Environment
+	 * @var  Environment
 	 *
 	 * @since  2.0.0
 	 */
 	protected $env;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Application  app that created this request
+	 * @var  Application  app that created this request
 	 *
 	 * @since  2.0.0
 	 */
@@ -57,7 +57,7 @@ class Request
 	protected $params;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Response  Response after execution
+	 * @var  Response  Response after execution
 	 *
 	 * @since  1.0.0
 	 */
@@ -74,13 +74,13 @@ class Request
 	 * Constructor
 	 *
 	 * @param  string  $resource
-	 * @param  array|\FuelPHP\Foundation\Input  $input
+	 * @param  array|Input  $input
 	 *
 	 * @since  1.0.0
 	 */
 	public function __construct($resource = '', $input = null)
 	{
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 		$this->app = $this->env->getActiveApplication();
 
 		$this->requestUri  = '/'.trim(strval($resource), '/');
@@ -88,9 +88,7 @@ class Request
 		// Create the new Input object when an array was passed
 		if (is_array($input))
 		{
-			array_unshift($input, null);
-			array_unshift($input, 'FuelPHP\Foundation\Input');
-			$this->input = call_user_func_array(array($this->env, 'forge'), $input);
+			$this->input = \FuelPHP::resolve('Input', null, $input);
 		}
 
 		// If there's no input object: default to environment input
@@ -105,7 +103,7 @@ class Request
 	 *
 	 * Must use $this->activate() as the first statement and $this->deactivate() as the last one
 	 *
-	 * @return  \FuelPHP\Foundation\Request
+	 * @return  Request
 	 * @throws  \Fuel\Kernel\Response\Exception\Redirect|\Exception
 	 * @throws  \DomainException
 	 *
@@ -140,7 +138,7 @@ class Request
 			}
 
 			if ( ! is_object($this->getResponse()) or array_diff(
-					get_class_methods('FuelPHP\Foundation\Response'),
+					get_class_methods('Response'),
 					get_class_methods($this->getResponse())
 				) != array())
 			{

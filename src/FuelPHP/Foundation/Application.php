@@ -50,21 +50,21 @@ class Application
 	protected $env;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Router  this applications router object once created
+	 * @var  Router  this applications router object once created
 	 *
 	 * @since  2.0.0
 	 */
 	protected $router;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Request  contains the app main request object once created
+	 * @var  Request  contains the app main request object once created
 	 *
 	 * @since  2.0.0
 	 */
 	protected $request;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Request  current active Request, not necessarily the main request
+	 * @var  Request  current active Request, not necessarily the main request
 	 *
 	 * @since  2.0.0
 	 */
@@ -96,7 +96,7 @@ class Application
 	public function __construct($appName, $appPath)
 	{
 		// set the environment variable necessary for the package loader object
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 
 		// load the application package
 		$this->loadPackage(array($appName, $appPath), Application::TYPE_APPLICATION);
@@ -105,14 +105,15 @@ class Application
 // CHECKME
 
 		// load the Security class
-		$this->security = $this->env->forge('FuelPHP\Foundation\Security');
+		$this->security = \FuelPHP::resolve('Security');
 	}
 
 	/**
 	 * Execute the application main request
 	 *
+	 * @throws  \Exception|\Exception|\Exception\NotFound
+	 *
 	 * @return  Application
-	 * @throws  \Exception|\FuelPHP\Foundation\Request\Exception|\FuelPHP\Foundation\Request\Exception\NotFound
 	 *
 	 * @since  2.0.0
 	 */
@@ -121,7 +122,7 @@ class Application
 		$this->activate();
 
 		// create a router object
-		$this->router = $this->env->forge('\FuelPHP\Foundation\Router');
+		$this->router = \FuelPHP::resolve('Router');
 
 		// Start output buffer
 // CHECKME
@@ -159,22 +160,25 @@ class Application
 	 * Create the application main request
 	 *
 	 * @param   string  $uri
-	 * @param   array|\FuelPHP\Foundation\Input  $input
+	 * @param   array|Input  $input
+	 *
 	 * @return  Base
 	 *
 	 * @since  2.0.0
 	 */
 	public function request($uri, $input = array())
 	{
-		$this->request = $this->env->forge('FuelPHP\Foundation\Request', null, $this->security->cleanUri($uri), $input);
+		$this->request = \FuelPHP::resolve('Request', null, $this->security->cleanUri($uri), $input);
+
 		return $this;
 	}
 
 	/**
 	 * Fetch the Request object
 	 *
-	 * @return  \FuelPHP\Foundation\Request
 	 * @throws  \RuntimeException
+	 *
+	 * @return  Request
 	 *
 	 * @since  2.0.0
 	 */
@@ -191,7 +195,7 @@ class Application
 	/**
 	 * Return the response object
 	 *
-	 * @return  \FuelPHP\Foundation\Response
+	 * @return  Response
 	 *
 	 * @since  2.0.0
 	 */
@@ -203,7 +207,7 @@ class Application
 	/**
 	 * Return the router object
 	 *
-	 * @return  \FuelPHP\Foundation\Router
+	 * @return  Router
 	 *
 	 * @since  2.0.0
 	 */
@@ -215,7 +219,8 @@ class Application
 	/**
 	 * Sets the current active request
 	 *
-	 * @param   \FuelPHP\Foundation\Request  $request
+	 * @param   Request  $request
+	 *
 	 * @return  Base
 	 *
 	 * @since  2.0.0
@@ -229,7 +234,7 @@ class Application
 	/**
 	 * Returns current active Request
 	 *
-	 * @return  \FuelPHP\Foundation\Request
+	 * @return  Request
 	 *
 	 * @since  2.0.0
 	 */
@@ -433,9 +438,11 @@ class Application
 	/**
 	 * Allows setting a response object for NotFound errors or executing a fallback
 	 *
-	 * @param   \FuelPHP\Foundation\Request\Exception\NotFound  $e
-	 * @return  \FuelPHP\Foundation\Response\Base
-	 * @throws  \FuelPHP\Foundation\Request\Exception\NotFound
+	 * @param   Exception\NotFound  $e
+	 *
+	 * @throws  Exception\NotFound
+	 *
+	 * @return  Response\Base
 	 */
 	protected function notFoundResponse(Exception\NotFound $e)
 	{
@@ -445,9 +452,11 @@ class Application
 	/**
 	 * Allows setting a response object for errors or executing a fallback
 	 *
-	 * @param   \FuelPHP\Foundation\Request\Exception\Base  $e
-	 * @return  \FuelPHP\Foundation\Response\Base
-	 * @throws  \FuelPHP\Foundation\Request\Exception\Base
+	 * @param   Exception\Base  $e
+	 *
+	 * @throws  Exception\Base
+	 *
+	 * @return  Response\Base
 	 */
 	protected function errorResponse(Exception\Base $e)
 	{

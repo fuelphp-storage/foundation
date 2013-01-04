@@ -22,7 +22,7 @@ namespace FuelPHP\Foundation;
 class Profiler
 {
 	/**
-	 * @var  FuelPHP\Foundation\Environment
+	 * @var  Environment
 	 *
 	 * @since  2.0.0
 	 */
@@ -36,7 +36,7 @@ class Profiler
 	public function __construct()
 	{
 		// set the environment variable necessary for the package loader object
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 	}
 
 	/**

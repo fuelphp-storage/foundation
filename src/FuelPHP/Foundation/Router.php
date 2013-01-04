@@ -22,14 +22,14 @@ namespace FuelPHP\Foundation;
 class Router
 {
 	/**
-	 * @var  \FuelPHP\Foundation\Environment
+	 * @var  Environment
 	 *
 	 * @since  2.0.0
 	 */
 	protected $env;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Application  app that created this request
+	 * @var  Application  app that created this request
 	 *
 	 * @since  2.0.0
 	 */
@@ -50,7 +50,7 @@ class Router
 	public function __construct()
 	{
 		// set the environment variable necessary for the package loader object
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 		$this->app = $this->env->getActiveApplication();
 
 		// load the routes
@@ -74,7 +74,7 @@ class Router
 	 *
 	 * @param   string  $uri
 	 *
-	 * @throws  \FuelPHP\Foundation\Exception\NotFound
+	 * @throws  Exception\NotFound
 	 *
 	 * @return  array
 	 *
@@ -100,7 +100,7 @@ class Router
 	 * @param   string\Route     $name
 	 * @param   null|int|string  $offset  null for at the end, int for position, or string for insert before named route
 	 *
-	 * @return  \FuelPHP\Foundation\Route
+	 * @return  Route
 	 *
 	 * @since  2.0.0
 	 */
@@ -109,7 +109,7 @@ class Router
 		if ( ! $name instanceof Route)
 		{
 			is_null($name) and $name = sha1(time());
-			$route = $this->env->forge('FuelPHP\Foundation\Route', null, $name);
+			$route = \FuelPHP::resolve('Route', null, $name);
 		}
 		else
 		{

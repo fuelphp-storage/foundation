@@ -22,14 +22,14 @@ namespace FuelPHP\Foundation\Security\String;
 abstract class Base
 {
 	/**
-	 * @var  \FuelPHP\Foundation\Environment
+	 * @var  Environment
 	 *
 	 * @since  2.0.0
 	 */
 	public $env;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Application
+	 * @var  Application
 	 *
 	 * @since  2.0.0
 	 */
@@ -43,7 +43,7 @@ abstract class Base
 	public function __construct()
 	{
 		// set the environment variable necessary for the package loader object
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 
 		$this->app = $this->env->getActiveApplication();
 	}

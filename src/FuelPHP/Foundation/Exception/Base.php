@@ -10,7 +10,7 @@
 
 namespace FuelPHP\Foundation\Exception;
 
-use FuelPHP\Foundation\Application;
+use Application;
 use Exception;
 
 /**

@@ -22,12 +22,12 @@ namespace FuelPHP\Foundation;
 class Package
 {
 	/**
-	 * @var  \FuelPHP\Foundation\Environment
+	 * @var  Environment
 	 */
 	protected $env;
 
 	/**
-	 * @var  \FuelPHP\Foundation\Application
+	 * @var  Application
 	 */
 	protected $app;
 	/**
@@ -114,7 +114,7 @@ class Package
 	public function __construct()
 	{
 		// set the environment variable necessary for the package loader object
-		$this->env = \FuelPHP\Foundation\Environment::singleton();
+		$this->env = \FuelPHP::resolve('Environment');
 	}
 
 	/**
