@@ -57,6 +57,13 @@ class Request
 	public $params;
 
 	/**
+	 * @var  \FuelPHP\Foundation\Response  Response after execution
+	 *
+	 * @since  1.0.0
+	 */
+	public $response;
+
+	/**
 	 * @var  array  active Request stack before activation of this one
 	 *
 	 * @since  2.0.0
@@ -133,12 +140,12 @@ class Request
 			}
 
 			if ( ! is_object($this->getResponse()) or array_diff(
-					get_class_methods('Fuel\Kernel\Response\Responsible'),
+					get_class_methods('FuelPHP\Foundation\Response'),
 					get_class_methods($this->getResponse())
 				) != array())
 			{
 				throw new \DomainException('Result object from a Controller must'.
-					' implement all methods from Responsible.');
+					' implement all methods from Response.');
 			}
 
 			// Render body before finishing the Request when a Viewable was returned
@@ -155,7 +162,6 @@ class Request
 		}
 
 		$this->deactivate();
-		$this->app->notify('requestFinished', $this, __METHOD__);
 
 		return $this;
 	}
@@ -206,6 +212,18 @@ class Request
 		$this->app->setActiveRequest(array_pop($this->activeRequests));
 
 		return $this;
+	}
+
+	/**
+	 * Fetch the request response after execution
+	 *
+	 * @return  \Fuel\Kernel\Response\Base
+	 *
+	 * @since  1.0.0
+	 */
+	public function getResponse()
+	{
+		return $this->response;
 	}
 
 	/**

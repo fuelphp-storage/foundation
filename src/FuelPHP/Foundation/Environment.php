@@ -491,6 +491,18 @@ class Environment
 	}
 
 	/**
+	 * Return the Profiler
+	 *
+	 * @return  FuelPHP\Foundation\Profiler
+	 *
+	 * @since  2.0.0
+	 */
+	public function getProfiler()
+	{
+		return $this->forge('FuelPHP\Foundation\Profiler');
+	}
+
+	/**
 	 * Return the main application object
 	 *
 	 * @return  FuelPHP\Foundation\Application

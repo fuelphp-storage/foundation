@@ -188,6 +188,18 @@ class Application
 	}
 
 	/**
+	 * Return the response object
+	 *
+	 * @return  \FuelPHP\Foundation\Response
+	 *
+	 * @since  2.0.0
+	 */
+	public function getResponse()
+	{
+		return $this->request->getResponse();
+	}
+
+	/**
 	 * Sets the current active request
 	 *
 	 * @param   \FuelPHP\Foundation\Request  $request
