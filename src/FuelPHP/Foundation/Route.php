@@ -163,14 +163,29 @@ class Route
 	/**
 	 * Set the methods this route acts on
 	 *
-	 * @param   array|string  $method
+	 * @param   array|string|...  $method
 	 * @return  Route
 	 *
 	 * @since  2.0.0
 	 */
-	public function methods($method = array())
+	public function methods()
 	{
-		$this->methods = (array) $method;
+		// reset the methods defined
+		$this->methods = array();
+
+		// loop over the methods passed
+		foreach (func_get_args() as $method)
+		{
+			if (is_array($method))
+			{
+				$this->methods = array_merge($this->methods, $method);
+			}
+			else
+			{
+				$this->methods[] = $method;
+			}
+		}
+
 		return $this;
 	}
 
