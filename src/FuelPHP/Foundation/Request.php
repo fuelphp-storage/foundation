@@ -26,42 +26,42 @@ class Request
 	 *
 	 * @since  2.0.0
 	 */
-	public $env;
+	protected $env;
 
 	/**
 	 * @var  \FuelPHP\Foundation\Application  app that created this request
 	 *
 	 * @since  2.0.0
 	 */
-	public $app;
+	protected $app;
 
 	/**
 	 * @var  string
 	 *
 	 * @since  2.0.0
 	 */
-	public $requestUri = '';
+	protected $requestUri = '';
 
 	/**
 	 * @var  \Fuel\Kernel\Request\Input\Base
 	 *
 	 * @since  2.0.0
 	 */
-	public $input;
+	protected $input;
 
 	/**
 	 * @var  array  associative array of named params in the URI
 	 *
 	 * @since  1.0.0
 	 */
-	public $params;
+	protected $params;
 
 	/**
 	 * @var  \FuelPHP\Foundation\Response  Response after execution
 	 *
 	 * @since  1.0.0
 	 */
-	public $response;
+	protected $response;
 
 	/**
 	 * @var  array  active Request stack before activation of this one
@@ -227,6 +227,18 @@ class Request
 	}
 
 	/**
+	 * Returns this requests Input instance
+	 *
+	 * @return  Base
+	 *
+	 * @since  1.1.0
+	 */
+	public function getInput()
+	{
+		return $this->input;
+	}
+
+	/**
 	 * Returns the request that created this one
 	 *
 	 * @return  Base
@@ -237,5 +249,4 @@ class Request
 	{
 		return $this->parent;
 	}
-
 }

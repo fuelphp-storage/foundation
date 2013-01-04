@@ -31,21 +31,21 @@ class Security
 	 *
 	 * @since  2.0.0
 	 */
-	public $crypt;
+	protected $crypt;
 
 	/**
 	 * @var  \FuelPHP\Foundation\Security\Csrf
 	 *
 	 * @since  2.0.0
 	 */
-	public $csrf;
+	protected $csrf;
 
 	/**
 	 * @var  \FuelPHP\Foundation\Security\String
 	 *
 	 * @since  2.0.0
 	 */
-	public $string;
+	protected $string;
 
 	/**
 	 * Constructor

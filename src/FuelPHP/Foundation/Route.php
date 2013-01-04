@@ -258,7 +258,7 @@ class Route
 	{
 		$request = $this->app->getActiveRequest();
 		if ( ! empty($this->methods)
-			and ! in_array(strtoupper($request->input->getMethod()), $this->methods))
+			and ! in_array(strtoupper($request->getInput()->getMethod()), $this->methods))
 		{
 			return false;
 		}

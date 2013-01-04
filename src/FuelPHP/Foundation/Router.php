@@ -26,14 +26,14 @@ class Router
 	 *
 	 * @since  2.0.0
 	 */
-	public $env;
+	protected $env;
 
 	/**
 	 * @var  \FuelPHP\Foundation\Application  app that created this request
 	 *
 	 * @since  2.0.0
 	 */
-	public $app;
+	protected $app;
 
 	/**
 	 * @var  array  route objects

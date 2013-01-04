@@ -28,14 +28,14 @@ class Response
 	 *
 	 * @since  2.0.0
 	 */
-	public $env;
+	protected $env;
 
 	/**
 	 * @var  \FuelPHP\Foundation\Application  app that created this request
 	 *
 	 * @since  2.0.0
 	 */
-	public $app;
+	protected $app;
 
 	/**
 	 * @var  array  An array of status codes and messages
@@ -363,7 +363,8 @@ class Response
 	 */
 	public function sendHeaders()
 	{
-		$input = isset($this->request->input) ? $this->request->input : $this->app->env->input;
+		$input = $this->request->getInput();
+		$input = isset($input) ? $input : $this->env->input;
 
 		if (headers_sent())
 		{

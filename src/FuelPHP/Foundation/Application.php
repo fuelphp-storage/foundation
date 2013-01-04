@@ -148,8 +148,8 @@ class Application
 		}
 
 		// Check if request needs to be assigned an deactivate
-		method_exists($this->request->response, '_setRequest')
-			and $this->request->response->_setRequest($this->request);
+		method_exists($this->request->getResponse(), '_setRequest')
+			and $this->request->getResponse()->_setRequest($this->request);
 		$this->deactivate();
 
 		return $this;
