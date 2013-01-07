@@ -13,7 +13,8 @@
 	],
 	"require": {
 		"php": ">=5.3.3",
-		"fuelphp/common": "dev-develop"
+		"fuelphp/common": "dev-develop",
+		"fuelphp/dependency-injection": "dev-master"
 	},
 	"require-dev": {
 		"mockery/mockery": "0.7.*"
