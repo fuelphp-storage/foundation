@@ -14,6 +14,7 @@
 	"require": {
 		"php": ">=5.3.3",
 		"fuelphp/common": "dev-develop",
+		"fuelphp/alias": "dev-master",
 		"fuelphp/dependency-injection": "dev-master"
 	},
 	"require-dev": {
