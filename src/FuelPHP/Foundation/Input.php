@@ -10,7 +10,7 @@
 
 namespace FuelPHP\Foundation;
 
-use Data\Container;
+use FuelPHP\Common\DataContainer;
 
 /**
  * Input
@@ -59,42 +59,42 @@ class Input
 	protected $httpMethod = null;
 
 	/**
-	 * @var  FuelPHP\Common\Data\Container  server variables
+	 * @var  FuelPHP\Common\DataContainer  server variables
 	 *
 	 * @since  2.0.0
 	 */
 	protected $server;
 
 	/**
-	 * @var  FuelPHP\Common\Data\Container  The vars from the HTTP method (GET, POST, PUT, DELETE)
+	 * @var  FuelPHP\Common\DataContainer  The vars from the HTTP method (GET, POST, PUT, DELETE)
 	 *
 	 * @since  2.0.0
 	 */
 	protected $param;
 
 	/**
-	 * @var  FuelPHP\Common\Data\Container  All of the variables from the URL (= GET when input method is GET)
+	 * @var  FuelPHP\Common\DataContainer  All of the variables from the URL (= GET when input method is GET)
 	 *
 	 * @since  2.0.0
 	 */
 	protected $query;
 
 	/**
-	 * @var  FuelPHP\Common\Data\Container  All of the variables from the CLI
+	 * @var  FuelPHP\Common\DataContainer  All of the variables from the CLI
 	 *
 	 * @since  2.0.0
 	 */
 	protected $cli;
 
 	/**
-	 * @var  FuelPHP\Common\Data\Container  Cookie
+	 * @var  FuelPHP\Common\DataContainer  Cookie
 	 *
 	 * @since  2.0.0
 	 */
 	protected $cookie;
 
 	/**
-	 * @var  FuelPHP\Common\Data\Container
+	 * @var  FuelPHP\Common\DataContainer
 	 *
 	 * @since  2.0.0
 	 */
@@ -171,7 +171,7 @@ class Input
 		$vars = ! $include ? $vars : array_intersect($include, $vars);
 
 		in_array('server', $vars)
-			and $this->server->_add($_SERVER);
+			and $this->server->setContents($_SERVER);
 
 		if ( ! isset($this->httpMethod))
 		{
@@ -192,14 +192,14 @@ class Input
 				case 'DELETE':
 				case 'PUT':
 					parse_str($this->requestBody(), $param);
-					$this->param->_add($param);
+					$this->param->setContents($param);
 					break;
 				case 'POST':
-					$this->param->_add($_POST);
+					$this->param->setContents($_POST);
 					break;
 				case 'GET':
 				default:
-					$this->param->_add($_GET);
+					$this->param->setContents($_GET);
 					break;
 			}
 		}
@@ -559,7 +559,7 @@ class Input
 				$cli[ltrim(reset($arg), '-')] = isset($arg[1]) ? $arg[1] : true;
 			}
 		}
-		$this->cli = \FuelPHP::resolve('FuelPHP\Common\Data\Container', $cli);
+		$this->cli = \FuelPHP::resolve('FuelPHP\Common\DataContainer', $cli);
 	}
 
 	/**
