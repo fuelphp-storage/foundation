@@ -13,5 +13,4 @@
  *
  * Define the class aliases for this library
  */
-
-\FuelPHP::alias('*', 'FuelPHP\Foundation\$1');
+\FuelPHP::aliasNamespace('FuelPHP\Foundation', '');

@@ -120,6 +120,16 @@ class FuelPHP
 		return call_user_func_array(array(static::$alias, 'alias'), func_get_args());
 	}
 
+		/**
+	 * Facade for Alias::alias()
+	 *
+	 * @since  2.0.0
+	 */
+	public static function aliasNamespace($args)
+	{
+		return call_user_func_array(array(static::$alias, 'aliasNamespace'), func_get_args());
+	}
+
 	/**
 	 * Facade on the framework core classes
 	 *
