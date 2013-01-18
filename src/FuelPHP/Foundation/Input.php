@@ -361,7 +361,7 @@ class Input
 		}
 
 		// detection failed, return the default
-		return __val($default);
+		return result($default);
 	}
 
 	/**
@@ -392,7 +392,7 @@ class Input
 		}
 
 		// detection failed, return the default
-		return __val($default);
+		return result($default);
 	}
 
 	/**
@@ -481,7 +481,7 @@ class Input
 		}
 		elseif ( ! isset($this->files[$index]))
 		{
-			return $this->parent ? $this->parent->getFile($index, $default) : __val($default);
+			return $this->parent ? $this->parent->getFile($index, $default) : result($default);
 		}
 
 		return $this->files[$index];
@@ -504,7 +504,7 @@ class Input
 		}
 		elseif ( ! isset($this->query[$index]))
 		{
-			return $this->parent ? $this->parent->getQuery($index, $default) : __val($default);
+			return $this->parent ? $this->parent->getQuery($index, $default) : result($default);
 		}
 
 		return $this->query[$index];
@@ -533,7 +533,7 @@ class Input
 		}
 		elseif ( ! isset($this->cli[$index]))
 		{
-			return $this->parent ? $this->parent->getCli($index, $default) : __val($default);
+			return $this->parent ? $this->parent->getCli($index, $default) : result($default);
 		}
 
 		return $this->cli[$index];
@@ -579,7 +579,7 @@ class Input
 		}
 		elseif ( ! isset($this->param[$index]))
 		{
-			return $this->parent ? $this->parent->getParam($index, $default) : __val($default);
+			return $this->parent ? $this->parent->getParam($index, $default) : result($default);
 		}
 
 		return $this->param[$index];
@@ -624,7 +624,7 @@ class Input
 		}
 		elseif ( ! isset($this->cookie[$index]))
 		{
-			return $this->parent ? $this->parent->getCookie($index, $default) : __val($default);
+			return $this->parent ? $this->parent->getCookie($index, $default) : result($default);
 		}
 
 		return $this->cookie[$index];
@@ -651,7 +651,7 @@ class Input
 		}
 		elseif ( ! isset($this->server[strtoupper($index)]))
 		{
-			return $this->parent ? $this->parent->getServer($index, $default) : __val($default);
+			return $this->parent ? $this->parent->getServer($index, $default) : result($default);
 		}
 
 		return $this->server[strtoupper($index)];
