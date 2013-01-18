@@ -207,7 +207,7 @@ class Input
 		// Support JSON & simpleXML through CONTENT_TYPE header, any others are considered application logic
 		if ($this->getServer('CONTENT_TYPE') == 'application/json')
 		{
-			$this->param->_add(((array) json_decode($this->requestBody(), true)));
+			$this->param->setContents(((array) json_decode($this->requestBody(), true)));
 		}
 		elseif ($this->getServer('CONTENT_TYPE') == 'text/xml')
 		{
@@ -221,17 +221,17 @@ class Input
 				}
 				return $arr;
 			};
-			$this->param->_add($toArr($xmlObj, $toArr));
+			$this->param->setContents($toArr($xmlObj, $toArr));
 		}
 
 		in_array('uriVars', $vars)
-			and $this->query->_add($_GET);
+			and $this->query->setContents($_GET);
 
 		in_array('cookie', $vars)
-			and $this->cookie->_add($_COOKIE);
+			and $this->cookie->setContents($_COOKIE);
 
 		in_array('files', $vars)
-			and $this->files->_add($_FILES);
+			and $this->files->setContents($_FILES);
 
 		return $this;
 	}
@@ -314,9 +314,9 @@ class Input
 			if ( ! empty($matches))
 			{
 				$uri = $matches[1];
-				$this->server->_add(array('QUERY_STRING' => $matches[2]), true);
+				$this->server->setContents(array('QUERY_STRING' => $matches[2]), true);
 				parse_str($matches[2], $query);
-				$this->query->_add($query, true);
+				$this->query->setContents($query, true);
 			}
 		}
 
