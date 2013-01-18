@@ -149,12 +149,12 @@ class Input
 
 		$this->parent = $parent instanceof self ? $parent : null;
 
-		$this->server  = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->server ?: array());
-		$this->param   = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->param ?: array());
-		$this->query   = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->query ?: array());
-		$this->cookie  = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->cookie ?: array());
-		$this->files   = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->files ?: array());
-		is_array($this->cli) and $this->cli = \FuelPHP::resolve('FuelPHP\\Common\\Data\\Container', $this->cli ?: array());
+		$this->server  = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->server ?: array());
+		$this->param   = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->param ?: array());
+		$this->query   = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->query ?: array());
+		$this->cookie  = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->cookie ?: array());
+		$this->files   = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->files ?: array());
+		is_array($this->cli) and $this->cli = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->cli ?: array());
 	}
 
 	/**
