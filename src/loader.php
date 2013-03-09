@@ -8,9 +8,13 @@
  * @copyright  2010 - 2013 Fuel Development Team
  */
 
-/*
- * FuelPHP Foundation library loader
- *
- * Define the class aliases for this library
- */
-\FuelPHP::aliasNamespace('FuelPHP\Foundation', '');
+// kickstart the framework
+\FuelPHP\Foundation\FuelPHP::kickstart();
+
+// alias the class to global for easier access
+\FuelPHP\Foundation\FuelPHP::aliasNamespace('FuelPHP\Foundation', '');
+
+// setup the FuelPHP environment
+\FuelPHP::register('Environment', 'Environment', function ($entry) {
+	$entry->preferSingleton();
+});
