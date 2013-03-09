@@ -14,15 +14,15 @@
 	"require": {
 		"php": ">=5.3.3",
 		"fuelphp/common": "dev-develop",
-		"fuelphp/alias": "dev-master",
-		"fuelphp/dependency-injection": "dev-master"
+		"fuelphp/alias": "dev-develop",
+		"fuelphp/dependency-injection": "dev-develop"
 	},
 	"require-dev": {
 		"mockery/mockery": "0.7.*"
 	},
 	"autoload": {
 		"psr-0": { "FuelPHP\\Foundation": "src/" },
-		"files": ["src/kickstart.php"]
+		"files": ["src/loader.php"]
 	},
 	"minimum-stability": "dev"
 }
