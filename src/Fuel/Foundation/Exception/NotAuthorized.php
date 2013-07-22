@@ -1,27 +1,27 @@
 <?php
 /**
- * Part of the FuelPHP framework.
- *
- * @package    FuelPHP\Foundation
+ * @package    Fuel\Foundation
  * @version    2.0
+ * @author     Fuel Development Team
  * @license    MIT License
  * @copyright  2010 - 2013 Fuel Development Team
+ * @link       http://fuelphp.com
  */
 
-namespace FuelPHP\Foundation\Exception;
+namespace Fuel\Foundation\Exception;
 
 use Exception;
 
 /**
- * Server Error Exception
+ * Not Authorized Exception
  *
- * Exception thrown when an unrecoverable error occurred during the Request.
+ * Exception thrown when current user isn't authorized for Requested resource.
  *
- * @package  FuelPHP\Foundation
+ * @package  Fuel\Foundation
  *
- * @since  1.1.0
+ * @since  2.0.0
  */
-class ServerError extends Base
+class NotAuthorized extends Base
 {
 	/**
 	 * Extend constructor to default error code to HTTP code
@@ -32,7 +32,7 @@ class ServerError extends Base
 	 */
 	public function __construct($message = '', $code = 0, Exception $previous = null)
 	{
-		$code === 0 and $code = 500;
+		$code === 0 and $code = 401;
 		parent::__construct($message, $code, $previous);
 	}
 }

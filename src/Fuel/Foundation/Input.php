@@ -1,23 +1,23 @@
 <?php
 /**
- * Part of the FuelPHP framework.
- *
- * @package    FuelPHP\Foundation
+ * @package    Fuel\Foundation
  * @version    2.0
+ * @author     Fuel Development Team
  * @license    MIT License
  * @copyright  2010 - 2013 Fuel Development Team
+ * @link       http://fuelphp.com
  */
 
-namespace FuelPHP\Foundation;
+namespace Fuel\Foundation;
 
-use FuelPHP\Common\DataContainer;
+use Fuel\Common\DataContainer;
 
 /**
  * Input
  *
  * Keeps the HTTP input for a request or the environment as a whole.
  *
- * @package  FuelPHP\Foundation
+ * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
@@ -59,42 +59,42 @@ class Input
 	protected $httpMethod = null;
 
 	/**
-	 * @var  FuelPHP\Common\DataContainer  server variables
+	 * @var  Fuel\Common\DataContainer  server variables
 	 *
 	 * @since  2.0.0
 	 */
 	protected $server;
 
 	/**
-	 * @var  FuelPHP\Common\DataContainer  The vars from the HTTP method (GET, POST, PUT, DELETE)
+	 * @var  Fuel\Common\DataContainer  The vars from the HTTP method (GET, POST, PUT, DELETE)
 	 *
 	 * @since  2.0.0
 	 */
 	protected $param;
 
 	/**
-	 * @var  FuelPHP\Common\DataContainer  All of the variables from the URL (= GET when input method is GET)
+	 * @var  Fuel\Common\DataContainer  All of the variables from the URL (= GET when input method is GET)
 	 *
 	 * @since  2.0.0
 	 */
 	protected $query;
 
 	/**
-	 * @var  FuelPHP\Common\DataContainer  All of the variables from the CLI
+	 * @var  Fuel\Common\DataContainer  All of the variables from the CLI
 	 *
 	 * @since  2.0.0
 	 */
 	protected $cli;
 
 	/**
-	 * @var  FuelPHP\Common\DataContainer  Cookie
+	 * @var  Fuel\Common\DataContainer  Cookie
 	 *
 	 * @since  2.0.0
 	 */
 	protected $cookie;
 
 	/**
-	 * @var  FuelPHP\Common\DataContainer
+	 * @var  Fuel\Common\DataContainer
 	 *
 	 * @since  2.0.0
 	 */
@@ -117,17 +117,9 @@ class Input
 	 */
 	public function __construct(array $inputVars = array(), $parent = null)
 	{
-		// get us a copy of the environment
-		$this->env = \FuelPHP::resolve('Environment');
-
 		// pre-process any input vars given to us
 		isset($inputVars['server'])
 			and $this->server = $inputVars['server'];
-
-		isset($inputVars['method'])
-			? $this->httpMethod = $inputVars['method']
-			: $this->httpMethod = $this->getServer('HTTP_X_HTTP_METHOD_OVERRIDE', $this->getServer('REQUEST_METHOD')) ?: null;
-		$this->httpMethod and $this->httpMethod = strtoupper($this->httpMethod);
 
 		isset($inputVars['param'])
 			and $this->param = $inputVars['param'];
@@ -147,14 +139,29 @@ class Input
 		isset($inputVars['requestBody'])
 			and $this->requestBody = $inputVars['requestBody'];
 
+		$this->server  = \Fuel::resolve('Fuel\\Common\\DataContainer', $this->server ?: array());
+		$this->param   = \Fuel::resolve('Fuel\\Common\\DataContainer', $this->param ?: array());
+		$this->query   = \Fuel::resolve('Fuel\\Common\\DataContainer', $this->query ?: array());
+		$this->cookie  = \Fuel::resolve('Fuel\\Common\\DataContainer', $this->cookie ?: array());
+		$this->files   = \Fuel::resolve('Fuel\\Common\\DataContainer', $this->files ?: array());
+		$this->cli     = \Fuel::resolve('Fuel\\Common\\DataContainer', $this->cli ?: array());
+
 		$this->parent = $parent instanceof self ? $parent : null;
 
-		$this->server  = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->server ?: array());
-		$this->param   = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->param ?: array());
-		$this->query   = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->query ?: array());
-		$this->cookie  = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->cookie ?: array());
-		$this->files   = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->files ?: array());
-		is_array($this->cli) and $this->cli = \FuelPHP::resolve('FuelPHP\\Common\\DataContainer', $this->cli ?: array());
+		if ($this->parent)
+		{
+			$this->server->setParent($this->parent->getServer());
+			$this->param->setParent($this->parent->getParam());
+			$this->query->setParent($this->parent->getQuery());
+			$this->cookie->setParent($this->parent->getCookie());
+			$this->files->setParent($this->parent->getFile());
+			$this->cli->setParent($this->parent->getCli());
+		}
+
+		isset($inputVars['method'])
+			? $this->httpMethod = $inputVars['method']
+			: $this->httpMethod = $this->getServer('HTTP_X_HTTP_METHOD_OVERRIDE', $this->getServer('REQUEST_METHOD')) ?: null;
+		$this->httpMethod and $this->httpMethod = strtoupper($this->httpMethod);
 	}
 
 	/**
@@ -239,10 +246,10 @@ class Input
 	/**
 	 * Sets a parent Input object to fall back on
 	 *
-	 * @param   Base  $parent
-	 * @return  Base
+	 * @param   Input  $parent
+	 * @return  Input
 	 */
-	public function setParent(Base $parent)
+	public function setParent(Input $parent)
 	{
 		$this->parent = $parent;
 		return $this;
@@ -269,6 +276,7 @@ class Input
 		{
 			$uri = $this->server['PATH_INFO'];
 		}
+
 		// Only use ORIG_PATH_INFO if it contains the path
 		elseif (isset($this->server['ORIG_PATH_INFO'])
 			and ($path = str_replace($this->server['SCRIPT_NAME'], '', $this->server['ORIG_PATH_INFO'])) != '')
@@ -278,21 +286,24 @@ class Input
 		else
 		{
 			// Fall back to parsing the REQUEST URI
-			$uri = $this->server['REQUEST_URI'];
-			if (is_null($uri))
+			if (isset($this->server['REQUEST_URI']))
 			{
-				throw new \RuntimeException('Unable to detect the URI.');
+				$uri = strpos($this->server['SCRIPT_NAME'], $this->server['REQUEST_URI']) !== 0 ? $this->server['REQUEST_URI'] : '';
+			}
+			else
+			{
+				throw new \FuelException('Unable to detect the URI.');
 			}
 
 			// Remove the base URL from the URI
-			$base_url = parse_url($this->env->baseUrl, PHP_URL_PATH);
+			$base_url = parse_url(\Fuel::getBaseUrl(), PHP_URL_PATH);
 			if ($uri != '' and strncmp($uri, $base_url, strlen($base_url)) === 0)
 			{
 				$uri = substr($uri, strlen($base_url));
 			}
 
 			// If we are using an index file (not mod_rewrite) then remove it
-			$index_file = $this->env->indexFile;
+			$index_file = ''; //\Config::get('index_file');
 			if ($index_file and strncmp($uri, $index_file, strlen($index_file)) === 0)
 			{
 				$uri = substr($uri, strlen($index_file));
@@ -320,13 +331,26 @@ class Input
 			}
 		}
 
-		// Strip the defined url suffix from the uri if needed
-		$uriInfo = pathinfo($uri);
-		if ( ! empty($uriInfo['extension']))
+		// Deal with any trailing dots
+		$uri = rtrim($uri, '.');
+
+		// Do we have a URI and does it not end on a slash?
+		if ($uri and substr($uri, -1) !== '/')
 		{
-			$this->detectedExt = $uriInfo['extension'];
-			$uri  = ($uriInfo['dirname'] !== '.' ? rtrim($uriInfo['dirname'], DIRECTORY_SEPARATOR).'/' : '');
-			$uri .= $uriInfo['filename'];
+			// Strip the defined url suffix from the uri if needed
+			$ext = strrchr($uri, '.');
+			$path = $ext === false ? $uri : substr($uri, 0, -strlen($ext));
+
+			// Did we detect something that looks like an extension?
+			if ( ! empty($ext))
+			{
+				// if it has a slash in it, it's a URI segment with a dot in it
+				if (strpos($ext,'/') === false)
+				{
+					$this->detectedExt = ltrim($ext, '.');
+// TODO: strip extension?
+				}
+			}
 		}
 
 		return ($this->detectedUri = $uri);
@@ -465,81 +489,6 @@ class Input
 	}
 
 	/**
-	 * Fetch an item from the FILE array
-	 *
-	 * @param   string  $index    The index key
-	 * @param   mixed   $default  The default value
-	 * @return  string|array
-	 *
-	 * @since  1.0.0
-	 */
-	public function getFile($index = null, $default = null)
-	{
-		if (is_null($index) and func_num_args() === 0)
-		{
-			return $this->files;
-		}
-		elseif ( ! isset($this->files[$index]))
-		{
-			return $this->parent ? $this->parent->getFile($index, $default) : result($default);
-		}
-
-		return $this->files[$index];
-	}
-
-	/**
-	 * Fetch an item from the URI query string
-	 *
-	 * @param   string  $index    The index key
-	 * @param   mixed   $default  The default value
-	 * @return  string|array
-	 *
-	 * @since  2.0.0
-	 */
-	public function getQuery($index = null, $default = null)
-	{
-		if (is_null($index) and func_num_args() === 0)
-		{
-			return $this->query;
-		}
-		elseif ( ! isset($this->query[$index]))
-		{
-			return $this->parent ? $this->parent->getQuery($index, $default) : result($default);
-		}
-
-		return $this->query[$index];
-	}
-
-	/**
-	 * Fetch a param from the CLI input
-	 *
-	 * @param   string  $index    The index key
-	 * @param   mixed   $default  The default value
-	 * @return  string|array
-	 *
-	 * @since  2.0.0
-	 */
-	public function getCli($index = null, $default = null)
-	{
-		// First parse them if necessary
-		if (is_null($this->cli))
-		{
-			$this->parseCli();
-		}
-
-		if (is_null($index) and func_num_args() === 0)
-		{
-			return $this->cli;
-		}
-		elseif ( ! isset($this->cli[$index]))
-		{
-			return $this->parent ? $this->parent->getCli($index, $default) : result($default);
-		}
-
-		return $this->cli[$index];
-	}
-
-	/**
 	 * Parses the CLI parameters from $_SERVER['argv']
 	 *
 	 * @return  void
@@ -559,30 +508,7 @@ class Input
 				$cli[ltrim(reset($arg), '-')] = isset($arg[1]) ? $arg[1] : true;
 			}
 		}
-		$this->cli = \FuelPHP::resolve('FuelPHP\Common\DataContainer', $cli);
-	}
-
-	/**
-	 * Fetch an item from the input
-	 *
-	 * @param   string  $index    The index key
-	 * @param   mixed   $default  The default value
-	 * @return  string|array
-	 *
-	 * @since  1.1.0
-	 */
-	public function getParam($index = null, $default = null)
-	{
-		if (is_null($index) and func_num_args() === 0)
-		{
-			return $this->param;
-		}
-		elseif ( ! isset($this->param[$index]))
-		{
-			return $this->parent ? $this->parent->getParam($index, $default) : result($default);
-		}
-
-		return $this->param[$index];
+		$this->cli->merge($cli);
 	}
 
 	/**
@@ -608,6 +534,88 @@ class Input
 	}
 
 	/**
+	 * Fetch an item from the FILE array
+	 *
+	 * @param   string  $index    The index key
+	 * @param   mixed   $default  The default value
+	 * @return  string|array
+	 *
+	 * @since  1.0.0
+	 */
+	public function getFile($index = null, $default = null)
+	{
+		if (func_num_args() === 0)
+		{
+			return $this->files;
+		}
+
+		return $this->files->get($index, $default);
+	}
+
+	/**
+	 * Fetch an item from the URI query string
+	 *
+	 * @param   string  $index    The index key
+	 * @param   mixed   $default  The default value
+	 * @return  string|array
+	 *
+	 * @since  2.0.0
+	 */
+	public function getQuery($index = null, $default = null)
+	{
+		if (func_num_args() === 0)
+		{
+			return $this->query;
+		}
+
+		return $this->query->get($index, $default);
+	}
+
+	/**
+	 * Fetch a param from the CLI input
+	 *
+	 * @param   string  $index    The index key
+	 * @param   mixed   $default  The default value
+	 * @return  string|array
+	 *
+	 * @since  2.0.0
+	 */
+	public function getCli($index = null, $default = null)
+	{
+		// First parse them if necessary
+		if ( ! $this->cli->count())
+		{
+			$this->parseCli();
+		}
+
+		if (func_num_args() === 0)
+		{
+			return $this->cli;
+		}
+
+		return $this->cli->get($index, $default);
+	}
+
+	/**
+	 * Fetch an item from the input
+	 *
+	 * @param   string  $index    The index key
+	 * @param   mixed   $default  The default value
+	 * @return  string|array
+	 *
+	 * @since  1.1.0
+	 */
+	public function getParam($index = null, $default = null)
+	{
+		if (func_num_args() === 0)
+		{
+			return $this->param;
+		}
+
+		return $this->param->get($index, $default);
+	}
+
+	/**
 	 * Fetch an item from the COOKIE array
 	 *
 	 * @param    string  $index    The index key
@@ -618,16 +626,12 @@ class Input
 	 */
 	public function getCookie($index = null, $default = null)
 	{
-		if (is_null($index) and func_num_args() === 0)
+		if (func_num_args() === 0)
 		{
 			return $this->cookie;
 		}
-		elseif ( ! isset($this->cookie[$index]))
-		{
-			return $this->parent ? $this->parent->getCookie($index, $default) : result($default);
-		}
 
-		return $this->cookie[$index];
+		return $this->cookie->get($index, $default);
 	}
 
 	/**
@@ -641,20 +645,12 @@ class Input
 	 */
 	public function getServer($index = null, $default = null)
 	{
-		if (is_null($index) and func_num_args() === 0)
+		if (func_num_args() === 0)
 		{
 			return $this->server;
 		}
-		elseif (isset($this->server[$index]))
-		{
-			return $this->server[$index];
-		}
-		elseif ( ! isset($this->server[strtoupper($index)]))
-		{
-			return $this->parent ? $this->parent->getServer($index, $default) : result($default);
-		}
 
-		return $this->server[strtoupper($index)];
+		return $this->server->get(strtoupper($index), $default);
 	}
 
 	/**

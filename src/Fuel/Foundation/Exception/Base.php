@@ -8,5 +8,17 @@
  * @link       http://fuelphp.com
  */
 
-// init the framework
-\Fuel\Foundation\Fuel::init();
+namespace Fuel\Foundation\Exception;
+
+use Exception;
+
+/**
+ * Base Exception to throw when a Request fails.
+ *
+ * @package  Fuel\Foundation
+ *
+ * @since  2.0.0
+ */
+class Base extends \RuntimeException
+{
+}

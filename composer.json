@@ -1,8 +1,7 @@
 {
 	"name": "fuelphp/foundation",
 	"type": "library",
-	"description": "FuelPHP request/response handling.",
-	"keywords": ["Request", "Response"],
+	"description": "FuelPHP Framework foundation library.",
 	"homepage": "https://github.com/fuelphp/foundation",
 	"license": "MIT",
 	"authors": [
@@ -12,16 +11,13 @@
 		}
 	],
 	"require": {
-		"php": ">=5.3.3",
-		"fuelphp/common": "dev-develop",
-		"fuelphp/alias": "dev-develop",
-		"fuelphp/dependency-injection": "dev-develop"
+		"php": ">=5.4"
 	},
 	"require-dev": {
 		"mockery/mockery": "0.7.*"
 	},
 	"autoload": {
-		"psr-0": { "FuelPHP\\Foundation": "src/" },
+		"psr-0": { "Fuel\\Foundation": "src/" },
 		"files": ["src/loader.php"]
 	},
 	"minimum-stability": "dev"
