@@ -23,17 +23,11 @@ namespace Fuel\Foundation;
 class Environment
 {
 	/**
-	 * @var  string  application name
+	 * @var  string  application
 	 *
 	 * @since  2.0.0
 	 */
-	protected $appName;
-	/**
-	 * @var  string  path to the application
-	 *
-	 * @since  2.0.0
-	 */
-	protected $appPath;
+	protected $app;
 
 	/**
 	 * @var  string  name of the current environment
@@ -120,13 +114,6 @@ class Environment
 	protected $paths = array();
 
 	/**
-	 * @var  Application  $application  The main application container
-	 *
-	 * @since  2.0.0
-	 */
-	protected $application = null;
-
-	/**
 	 * Setup the framework environment. This will include all required global
 	 * classes, paths, and other configuration required to start the app.
 	 *
@@ -135,61 +122,24 @@ class Environment
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct()
+	public function __construct($app, $environment, $config)
 	{
+		$this->app = $app;
+
 		// store some initial environment values
 		$this->vars['initTime'] = defined('FUEL_INIT_TIME') ? FUEL_INIT_TIME : microtime(true);
 		$this->vars['initMem']  = defined('FUEL_INIT_MEM') ? FUEL_INIT_MEM : memory_get_usage();
-	}
 
-	/**
-	 * Get a property that is available through a getter
-	 *
-	 * @param   string  $property
-	 * @return  mixed
-	 * @throws  \OutOfBoundsException
-	 *
-	 * @since  2.0.0
-	 */
-	public function __get($property)
-	{
-		if (method_exists($this, $method = 'get'.ucfirst($property)))
-		{
-			return $this->{$method}();
-		}
-
-		throw new \OutOfBoundsException('Property "'.$property.'" not available on the environment.');
-	}
-
-	/**
-	 * Initialize the environment
-	 *
-	 * @param   string  path to the application
-	 * @return  Environment  to allow method chaining
-	 * @throws  \RuntimeException
-	 *
-	 * @since  2.0.0
-	 */
-	public function init($name, $path, $environment, $config)
-	{
-		if ($this->initialized)
-		{
-			throw new \RuntimeException('Environment config shouldn\'t be initiated more than once.', E_USER_ERROR);
-		}
-
-		// store the arguments passed
-		$this->appName = $name;
-		$this->appPath = $path;
 
 		// fetch URL data from the config
 		$this->baseUrl = $config->baseUrl;
 		$this->indexFile = $config->indexFile;
 
 		// store the application path
-		$this->addPath($this->appName, $this->appPath);
+		$this->addPath($this->app->getName(), $this->app->getPath());
 
 		// load the defined environments
-		$environments = $path.'/environments.php';
+		$environments = $this->app->getPath().DS.'environments.php';
 		if (file_exists($environments))
 		{
 			$environments = require $environments;
@@ -201,9 +151,9 @@ class Environment
 
 		// run default environment
 		$finishCallbacks = array();
-		if (isset($environments['__default']))
+		if (isset($environments['default']))
 		{
-			$finishCallbacks[] = call_user_func($environments['__default'], $this);
+			$finishCallbacks[] = call_user_func($environments['default'], $this);
 		}
 
 		// run specific environment config when given
@@ -224,11 +174,25 @@ class Environment
 		{
 			is_callable($cb) and call_user_func($cb, $this);
 		}
+	}
 
-		// we're done
-		$this->initialized = true;
+	/**
+	 * Get a property that is available through a getter
+	 *
+	 * @param   string  $property
+	 * @return  mixed
+	 * @throws  \OutOfBoundsException
+	 *
+	 * @since  2.0.0
+	 */
+	public function __get($property)
+	{
+		if (method_exists($this, $method = 'get'.ucfirst($property)))
+		{
+			return $this->{$method}();
+		}
 
-		return $this;
+		throw new \OutOfBoundsException('Property "'.$property.'" not available on the environment.');
 	}
 
 	/**

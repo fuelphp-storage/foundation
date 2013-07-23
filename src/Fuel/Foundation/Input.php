@@ -24,11 +24,11 @@ use Fuel\Common\DataContainer;
 class Input
 {
 	/**
-	 * @var  Environment
+	 * @var  Application
 	 *
 	 * @since  2.0.0
 	 */
-	protected $env;
+	protected $app;
 
 	/**
 	 * @var  Input  parent Input object to fall back on
@@ -115,8 +115,10 @@ class Input
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct(array $inputVars = array(), $parent = null)
+	public function __construct($app, array $inputVars = array(), $parent = null)
 	{
+		$this->app = $app;
+
 		// pre-process any input vars given to us
 		isset($inputVars['server'])
 			and $this->server = $inputVars['server'];

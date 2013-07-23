@@ -100,8 +100,7 @@ class Application
 		$this->config->setParent(\Fuel::getConfig());
 
 		// create the environment for this application
-		$this->environment = \Fuel::resolve('Environment');
-		$this->environment->init($this->appName, $this->appPath, $environment, $this->config);
+		$this->environment = \Fuel::resolve('Environment', array($this, $environment, $this->config));
 
 		// create the security container for this application
 		$this->security = \Fuel::resolve('Security', array($this));
@@ -252,6 +251,30 @@ class Application
 	public function getRouter()
 	{
 		return $this->router;
+	}
+
+	/**
+	 * Return the application name
+	 *
+	 * @return  string
+	 *
+	 * @since  2.0.0
+	 */
+	public function getName()
+	{
+		return $this->appName;
+	}
+
+	/**
+	 * Return the application root path
+	 *
+	 * @return  string
+	 *
+	 * @since  2.0.0
+	 */
+	public function getPath()
+	{
+		return $this->appPath;
 	}
 
 	/**

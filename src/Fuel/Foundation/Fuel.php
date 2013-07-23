@@ -127,7 +127,7 @@ class Fuel
 			static::aliasNamespace('Fuel\Foundation', '');
 
 			// initialize the global input container
-			static::$input = static::$dic->resolve('Input');
+			static::$input = static::$dic->resolve('Input', array(null));
 			static::$input->fromGlobals();
 
 			// initialize the global config container
