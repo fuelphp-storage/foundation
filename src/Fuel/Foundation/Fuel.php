@@ -133,6 +133,10 @@ class Fuel
 			// initialize the global config container
 			static::$config = static::$dic->resolve('Fuel\Config\Container');
 
+			// load the global default config
+			static::$config->addPath(APPSPATH);
+			static::$config->load('config', null);
+
 			// run the applications bootstrap if present
 			if (file_exists(APPSPATH.'bootstrap.php'))
 			{
