@@ -36,6 +36,13 @@ class Application
 	protected $appPath;
 
 	/**
+	 * @var  Fuel\Config  this applications config container
+	 *
+	 * @since  2.0.0
+	 */
+	protected $config;
+
+	/**
 	 * @var  Environment  this applications environment
 	 *
 	 * @since  2.0.0
@@ -43,11 +50,11 @@ class Application
 	protected $environment;
 
 	/**
-	 * @var  Fuel\Config  this applications config container
+	 * @var  Security  this applications security container
 	 *
 	 * @since  2.0.0
 	 */
-	protected $config;
+	protected $security;
 
 	/**
 	 * @var  Router  this applications router object
@@ -93,8 +100,78 @@ class Application
 		$this->config->setParent(\Fuel::getConfig());
 
 		// create the environment for this application
-		$this->environment = \Fuel::resolve('Fuel\Foundation\Environment');
+		$this->environment = \Fuel::resolve('Environment');
 		$this->environment->init($this->appName, $this->appPath, $environment, $this->config);
+
+		// create the security container for this application
+		$this->security = \Fuel::resolve('Security', array($this));
+
+		// create a router object
+		$this->router = \Fuel::resolve('Router', array($this));
+	}
+
+	/**
+	 * Get a property that is available through a getter
+	 *
+	 * @param   string  $property
+	 * @return  mixed
+	 * @throws  \OutOfBoundsException
+	 *
+	 * @since  2.0.0
+	 */
+	public function __get($property)
+	{
+		if (method_exists($this, $method = 'get'.ucfirst($property)))
+		{
+			return $this->{$method}();
+		}
+
+		throw new \OutOfBoundsException('Property "'.$property.'" not available on the application.');
+	}
+
+	/**
+	 * Returns the applications config object
+	 *
+	 * @return  Fuel\Config\Datacontainer
+	 *
+	 * @since  2.0.0
+	 */
+	public function getConfig()
+	{
+		return $this->config;
+	}
+
+	/**
+	 * Returns the applications environment object
+	 *
+	 * @return  Fuel\Config\Datacontainer
+	 *
+	 * @since  2.0.0
+	 */
+	public function getEnvironment()
+	{
+		return $this->environment;
+	}
+
+
+	/**
+	 * Construct an application request
+	 *
+	 * @param   string  $uri
+	 * @param   array|Input  $input
+	 *
+	 * @return  Request
+	 *
+	 * @since  2.0.0
+	 */
+	public function request($uri = null, Array $input = array())
+	{
+		// if no uri is given, fetch the global one
+		$uri === null and $uri = \Fuel::getInput()->getPathInfo($this->environment->baseUrl);
+
+		$this->request = \Fuel::resolve('Request', array($this, $this->security->cleanUri($uri), $input));
+
+		return $this;
 	}
 
 	/**
@@ -108,9 +185,6 @@ class Application
 	 */
 	public function execute()
 	{
-		// create a router object
-		$this->router = \Fuel::resolve('Router');
-
 		try
 		{
 			// Execute the request
@@ -133,26 +207,6 @@ class Application
 		// Check if request needs to be assigned
 		method_exists($this->request->getResponse(), '_setRequest')
 			and $this->request->getResponse()->_setRequest($this->request);
-
-		return $this;
-	}
-
-	/**
-	 * Construct an application request
-	 *
-	 * @param   string  $uri
-	 * @param   array|Input  $input
-	 *
-	 * @return  Base
-	 *
-	 * @since  2.0.0
-	 */
-	public function request($uri = null, Array $input = array())
-	{
-		// if no uri is given, fetch the global one
-		$uri === null and $uri = \Fuel::getInput()->getPathInfo();
-
-		$this->request = \Fuel::resolve('Request', null, $this->security->cleanUri($uri), $input);
 
 		return $this;
 	}

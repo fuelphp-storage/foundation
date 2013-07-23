@@ -37,6 +37,13 @@ class Fuel
 	protected static $errorHandler;
 
 	/**
+	 * @var  Composer\Autoload\ClassLoader
+	 *
+	 * @since  2.0.0
+	 */
+	protected static $loader;
+
+	/**
 	 * @var  Fuel\Dependency\Container
 	 *
 	 * @since  2.0.0
@@ -120,7 +127,7 @@ class Fuel
 			static::aliasNamespace('Fuel\Foundation', '');
 
 			// initialize the global input container
-			static::$input = static::$dic->resolve('Fuel\Foundation\Input');
+			static::$input = static::$dic->resolve('Input');
 			static::$input->fromGlobals();
 
 			// initialize the global config container
@@ -147,7 +154,7 @@ class Fuel
 	 * @param  $config  array with application configuration information
 	 * @since  2.0.0
 	 */
-	public static function setApp($app, $env)
+	public static function setApp($app, $namespace, $env)
 	{
 		// create application object
 		if (is_array($app))
@@ -159,6 +166,9 @@ class Fuel
 		{
 			$path = APPSPATH.$app;
 		}
+
+		// add the root namespace for this application to composer
+		static::$loader->add($namespace, $path.DS.'classes', true);
 
 		return static::$applications[$app] = static::$dic->resolve('Application', array($app, $path, $env));
 	}
@@ -185,6 +195,26 @@ class Fuel
 	}
 
 	/**
+	 * Set the Composer autoloader instance
+	 *
+	 * @since  2.0.0
+	 */
+	public static function setLoader($autoloader)
+	{
+		$autoloader instanceOf \Composer\Autoload\ClassLoader and static::$loader = $autoloader;
+	}
+
+	/**
+	 * Get the global DiC
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getLoader()
+	{
+		return static::$loader;
+	}
+
+	/**
 	 * Set the global DiC
 	 *
 	 * @since  2.0.0
@@ -192,6 +222,16 @@ class Fuel
 	public static function setDic($dic)
 	{
 		$dic instanceOf \Fuel\Dependency\Container and static::$dic = $dic;
+	}
+
+	/**
+	 * Get the global DiC
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getDic()
+	{
+		return static::$dic;
 	}
 
 	/**

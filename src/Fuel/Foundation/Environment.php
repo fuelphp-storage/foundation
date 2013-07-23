@@ -357,6 +357,18 @@ class Environment
 	}
 
 	/**
+	 * Get the character encoding
+	 *
+	 * @return  string|null  $encoding  encoding name
+	 *
+	 * @since  2.0.0
+	 */
+	public function getEncoding()
+	{
+		return $this->encoding;
+	}
+
+	/**
 	 * Set the locale
 	 *
 	 * @param   string|null  $locale  locale name (OS dependent)
@@ -370,6 +382,18 @@ class Environment
 		is_null($this->locale) or setlocale(LC_ALL, $this->locale);
 
 		return $this;
+	}
+
+	/**
+	 * Get the locale
+	 *
+	 * @return  string|null  locale name (OS dependent)
+	 *
+	 * @since  2.0.0
+	 */
+	public function getLocale()
+	{
+		return $this->locale;
 	}
 
 	/**
@@ -389,6 +413,31 @@ class Environment
 	}
 
 	/**
+	 * Get the timezone
+	 *
+	 * @return  string|null  timezone name (http://php.net/timezones)
+	 *
+	 * @since  2.0.0
+	 */
+	public function getTimezone()
+	{
+		return $this->timezone;
+	}
+
+	/**
+	 * Get the baseUrl
+	 *
+	 * @return  string|null  determined base url
+	 *
+	 * @since  2.0.0
+	 */
+	public function getBaseUrl()
+	{
+		return $this->baseUrl;
+	}
+
+
+	/**
 	 * Detects and configures the PHP Environment
 	 *
 	 * @return  void
@@ -401,39 +450,14 @@ class Environment
 		$this->isCli = (bool) defined('STDIN');
 		$this->isCli and $this->readlineSupport = extension_loaded('readline');
 
-		// detect the base URL when not given
+		// detect the base URL from global when not given
 		if (is_null($this->baseUrl) and ! $this->isCli)
 		{
-			$this->baseUrl = $this->detectBaseUrl();
+			$this->baseUrl = \Fuel::getInput()->getBaseUrl();
 		}
 
 		// when mbstring setting was not given default to availability
 		! is_bool($this->mbstring) and $this->mbstring = function_exists('mb_get_info');
 		$this->setEncoding($this->encoding);
-	}
-
-	/**
-	 * Generates a base url.
-	 *
-	 * @return  string  the base url
-	 *
-	 * @since  2.0.0
-	 */
-	protected function detectBaseUrl()
-	{
-		$baseUrl = '';
-		if (isset(\Fuel::getInput()->server['HTTP_HOST']))
-		{
-			$baseUrl .= \Fuel::getInput()->getScheme().'://'.\Fuel::getInput()->server['HTTP_HOST'];
-		}
-		if (isset(\Fuel::getInput()->server['SCRIPT_NAME']))
-		{
-			$baseUrl .= str_replace('\\', '/', dirname(\Fuel::getInput()->server['SCRIPT_NAME']));
-
-			// Add a slash if it is missing
-			$baseUrl = rtrim($baseUrl, '/').'/';
-		}
-
-		return $baseUrl;
 	}
 }

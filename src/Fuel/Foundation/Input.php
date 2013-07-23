@@ -296,7 +296,7 @@ class Input
 			}
 
 			// Remove the base URL from the URI
-			$base_url = parse_url(\Fuel::getBaseUrl(), PHP_URL_PATH);
+			$base_url = parse_url($this->getBaseUrl(), PHP_URL_PATH);
 			if ($uri != '' and strncmp($uri, $base_url, strlen($base_url)) === 0)
 			{
 				$uri = substr($uri, strlen($base_url));
@@ -670,5 +670,30 @@ class Input
 		}
 
 		throw new \OutOfBoundsException('Property "'.$prop.'" not set on Input.');
+	}
+
+	/**
+	 * Generates a base url.
+	 *
+	 * @return  string  the base url
+	 *
+	 * @since  2.0.0
+	 */
+	public function getBaseUrl()
+	{
+		$baseUrl = '';
+		if (isset($this->server['HTTP_HOST']))
+		{
+			$baseUrl .= $this->getScheme().'://'.$this->server['HTTP_HOST'];
+		}
+		if (isset($this->server['SCRIPT_NAME']))
+		{
+			$baseUrl .= str_replace('\\', '/', dirname($this->server['SCRIPT_NAME']));
+
+			// Add a slash if it is missing
+			$baseUrl = rtrim($baseUrl, '/').'/';
+		}
+
+		return $baseUrl;
 	}
 }
