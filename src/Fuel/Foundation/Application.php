@@ -36,6 +36,13 @@ class Application
 	protected $appPath;
 
 	/**
+	 * @var  string  base namespace for this application
+	 *
+	 * @since  2.0.0
+	 */
+	protected $appNamespace;
+
+	/**
 	 * @var  Fuel\Config  this applications config container
 	 *
 	 * @since  2.0.0
@@ -82,10 +89,13 @@ class Application
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct($appName, $appPath, $environment)
+	public function __construct($appName, $appPath, $namespace, $environment)
 	{
 		// store the application name
 		$this->appName = $appName;
+
+		// and it's base namespace
+		$this->appNamespace = $namespace;
 
 		// check if the path is valid, and if so, store it
 		if ( ! is_dir($appPath))

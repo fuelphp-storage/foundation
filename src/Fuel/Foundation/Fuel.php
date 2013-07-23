@@ -174,7 +174,7 @@ class Fuel
 		// add the root namespace for this application to composer
 		static::$loader->add($namespace, $path.DS.'classes', true);
 
-		return static::$applications[$app] = static::$dic->resolve('Application', array($app, $path, $env));
+		return static::$applications[$app] = static::$dic->resolve('Application', array($app, $path, $namespace, $env));
 	}
 
 	/**
