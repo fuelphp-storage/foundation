@@ -8,5 +8,7 @@
  * @link       http://fuelphp.com
  */
 
-// init the framework
+/**
+ * Package bootstrap, inits the framework
+ */
 \Fuel\Foundation\Fuel::init();

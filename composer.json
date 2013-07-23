@@ -23,7 +23,7 @@
 	},
 	"autoload": {
 		"psr-0": { "Fuel\\Foundation": "src/" },
-		"files": ["src/loader.php"]
+		"files": ["src/bootstrap.php"]
 	},
 	"minimum-stability": "dev"
 }
