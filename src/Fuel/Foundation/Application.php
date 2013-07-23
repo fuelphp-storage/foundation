@@ -276,6 +276,18 @@ class Application
 	}
 
 	/**
+	 * Return the application base namespace
+	 *
+	 * @return  string
+	 *
+	 * @since  2.0.0
+	 */
+	public function getNamespace()
+	{
+		return $this->appNamespace;
+	}
+
+	/**
 	 * Return the application root path
 	 *
 	 * @return  string
