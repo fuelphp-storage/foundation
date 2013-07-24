@@ -85,6 +85,13 @@ class Application
 	protected $activeRequest;
 
 	/**
+	 * @var  Fuel\Display\ViewManager  this applications view manager
+	 *
+	 * @since  2.0.0
+	 */
+	protected $view;
+
+	/**
 	 * Constructor
 	 *
 	 * @since  2.0.0
@@ -115,7 +122,20 @@ class Application
 		// create the security container for this application
 		$this->security = \Fuel::resolve('security', array($this));
 
-		// create a router object
+		// create the view manager instance for this application
+		$this->view = \Fuel::resolve('view', array(
+			\Fuel::resolve('finder', array(
+				array($this->appPath),
+			)),
+			array(
+				'cache' => $this->appPath.'cache',
+			)
+		));
+
+		// and enable the default view parser
+		$this->view->registerParser('php', \Fuel::resolve('parser.php'));
+
+		// TODO: create a router object
 		$this->router = \Fuel::resolve('Fuel\Foundation\Router', array($this));
 	}
 
@@ -297,6 +317,18 @@ class Application
 	public function getPath()
 	{
 		return $this->appPath;
+	}
+
+	/**
+	 * Return the applications View manager
+	 *
+	 * @return  Fuel\Display\ViewManager
+	 *
+	 * @since  2.0.0
+	 */
+	public function getViewManager()
+	{
+		return $this->view;
 	}
 
 	/**
