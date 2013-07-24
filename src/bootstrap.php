@@ -8,7 +8,19 @@
  * @link       http://fuelphp.com
  */
 
+namespace Fuel\Foundation;
+
 /**
- * Package bootstrap, inits the framework
+ * FuelPHP Composer library framework bootstrap
  */
-\Fuel\Foundation\Fuel::init();
+
+// register the services of this libr
+\Fuel::getDic()->registerService(new ServicesProvider);
+
+/**
+ * FuelPHP Composer library application bootstrap
+ */
+return function($app) {
+
+	// your app initialisation code here
+};

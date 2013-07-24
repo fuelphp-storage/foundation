@@ -68,7 +68,7 @@ class Security
 	 */
 	public function getCrypt()
 	{
-		! isset($this->crypt) and $this->crypt = \Fuel::resolve('Security\Crypt', array($this->app));
+		! isset($this->crypt) and $this->crypt = \Fuel::resolve('Fuel\Foundation\Security\Crypt', array($this->app));
 		return $this->crypt;
 	}
 
@@ -81,7 +81,7 @@ class Security
 	 */
 	public function getCsrf()
 	{
-		! isset($this->csrf) and $this->csrf = \Fuel::resolve('Security\Csrf', array($this->app));
+		! isset($this->csrf) and $this->csrf = \Fuel::resolve('Fuel\Foundation\Security\Csrf', array($this->app));
 		return $this->csrf;
 	}
 
@@ -94,7 +94,7 @@ class Security
 	 */
 	public function getStringCleaner()
 	{
-		! isset($this->string) and $this->string = \Fuel::resolve('Security\String\Htmlentities', array($this->app));
+		! isset($this->string) and $this->string = \Fuel::resolve('Fuel\Foundation\Security\String\Htmlentities', array($this->app));
 		return $this->string;
 	}
 
@@ -116,7 +116,7 @@ class Security
 		$filter === true and $filter = $this->getStringCleaner();
 
 		// When string is passed try to fetch special filter from DiC
-		is_string($filter) and $filter = \Fuel::resolve('Security\String\\'.$filter, array($this->app));
+		is_string($filter) and $filter = \Fuel::resolve('Fuel\Foundation\Security\String\\'.$filter, array($this->app));
 
 		// Whatever is left is either boolean false or a String Security object
 		return $filter ? $filter->clean($uri) : $uri;

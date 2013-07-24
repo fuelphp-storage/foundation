@@ -86,6 +86,13 @@ class Fuel
 	protected static $applications = array();
 
 	/**
+	 * @var  array  List of installed packages and their application init closure(s)
+	 *
+	 * @since  2.0.0
+	 */
+	protected static $packages = array();
+
+	/**
 	 * @var bool  Flag to indicate we've initialized the framework
 	 *
 	 * @since  1.0.0
@@ -93,15 +100,20 @@ class Fuel
 	protected static $initialized;
 
 	/**
-	 * Initialize the class
+	 * Bootstrap the framework
 	 *
+	 * @throws RuntimeException if the bootstrap is called more then once
+
 	 * @since  2.0.0
 	 */
-	public static function init()
+	public static function bootstrap($autoloader)
 	{
 		// make sure we run only once
 		if ( ! static::$initialized)
 		{
+			// store the composer autoloader instance
+			static::$loader = $autoloader;
+
 			// setup the shutdown, error & exception handlers
 			if (static::$errorHandler === null)
 			{
@@ -123,15 +135,32 @@ class Fuel
 				static::$alias = static::$dic->resolve('Fuel\Alias\Manager')->register();
 			}
 
-			// alias the Foundation classes to global to allow extension
-			static::aliasNamespace('Fuel\Foundation', '');
+			// load up the installed composer libraries, and check for a Fuel bootstrap
+			$bootstrap = function($file) {
+				return include $file;
+			};
+
+			foreach (static::$loader->getPrefixes() as $ns => $srcpaths)
+			{
+				static::$packages[$ns] = array();
+				foreach ($srcpaths as $srcpath)
+				{
+					if (file_exists($srcpath.DS.'bootstrap.php'))
+					{
+						if (($postinit = $bootstrap($srcpath.DS.'bootstrap.php')) instanceOf \Closure)
+						{
+							static::$packages[$ns][] = $postinit;
+						}
+					}
+				}
+			}
 
 			// initialize the global input container
-			static::$input = static::$dic->resolve('Input', array(null));
+			static::$input = static::$dic->resolve('input', array(null));
 			static::$input->fromGlobals();
 
 			// initialize the global config container
-			static::$config = static::$dic->resolve('Fuel\Config\Container');
+			static::$config = static::$dic->resolve('config');
 
 			// load the global default config
 			static::$config->addPath(APPSPATH);
@@ -156,31 +185,62 @@ class Fuel
 	 * Setup the framework application environment
 	 *
 	 * @param  $config  array with application configuration information
+	 * @throws InvalidArgumentException if a required config value is missing or incorrect
+	 * @returns	Application
+	 *
 	 * @since  2.0.0
 	 */
-	public static function setApp($app, $namespace, $env)
+	public static function setApp(array $config = array())
 	{
-		// create application object
-		if (is_array($app))
+		// application name and path
+		if (isset($config['name']))
 		{
-			$path = reset($app);
-			$app = key($app);
+			if (is_array($config['name']))
+			{
+				$config['path'] = reset($config['name']);
+				$config['name'] = key($config['name']);
+			}
+			else
+			{
+				$config['path'] = APPSPATH.$config['name'];
+			}
+			$config['path'] = realpath($config['path']);
+
+			if ( ! is_dir($config['path']))
+			{
+				throw new \InvalidArgumentException('The path "'.$config['path'].'" does not exist for application "'.$config['name'].'".');
+			}
 		}
 		else
 		{
-			$path = APPSPATH.$app;
+			throw new \InvalidArgumentException('The application name is missing from the configuration array.');
+		}
+
+		// application namespace, defaults to global
+		if (empty($config['namespace']))
+		{
+			$config['namespace'] = '';
+		}
+
+		// application environment, defaults to 'development'
+		if (empty($config['environment']))
+		{
+			$config['environment'] = 'development';
 		}
 
 		// add the root namespace for this application to composer
-		static::$loader->add($namespace, $path.DS.'classes', true);
+		static::$loader->add($config['namespace'], $config['path'].DS.'classes', true);
 
-		return static::$applications[$app] = static::$dic->resolve('Application', array($app, $path, $namespace, $env));
+		return static::$applications[$config['name']] = static::$dic->resolve('application', array($config['name'], $config['path'], $config['namespace'], $config['environment']));
 	}
 
 	/**
 	 * Get an application object
 	 *
 	 * @param  $app  name of the application, or none for the first application defined
+	 * @throws InvalidArgumentException if the requested application does not exist
+	 * @returns	Application
+	 *
 	 * @since  2.0.0
 	 */
 	public static function getApp($app = null)
@@ -196,16 +256,6 @@ class Fuel
 		}
 
 		return static::$applications[$app];
-	}
-
-	/**
-	 * Set the Composer autoloader instance
-	 *
-	 * @since  2.0.0
-	 */
-	public static function setLoader($autoloader)
-	{
-		$autoloader instanceOf \Composer\Autoload\ClassLoader and static::$loader = $autoloader;
 	}
 
 	/**

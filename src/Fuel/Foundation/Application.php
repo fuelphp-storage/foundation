@@ -105,18 +105,18 @@ class Application
 		$this->appPath = realpath($appPath).DS;
 
 		// and setup the configuration container
-		$this->config = \Fuel::resolve('Fuel\Config\Container');
+		$this->config = \Fuel::resolve('config');
 		$this->config->addPath($this->appPath);
 		$this->config->setParent(\Fuel::getConfig());
 
 		// create the environment for this application
-		$this->environment = \Fuel::resolve('Environment', array($this, $environment, $this->config));
+		$this->environment = \Fuel::resolve('environment', array($this, $environment, $this->config));
 
 		// create the security container for this application
-		$this->security = \Fuel::resolve('Security', array($this));
+		$this->security = \Fuel::resolve('security', array($this));
 
 		// create a router object
-		$this->router = \Fuel::resolve('Router', array($this));
+		$this->router = \Fuel::resolve('Fuel\Foundation\Router', array($this));
 	}
 
 	/**
@@ -178,7 +178,7 @@ class Application
 		// if no uri is given, fetch the global one
 		$uri === null and $uri = \Fuel::getInput()->getPathInfo($this->environment->baseUrl);
 
-		$this->request = \Fuel::resolve('Request', array($this, $this->security->cleanUri($uri), $input));
+		$this->request = \Fuel::resolve('request', array($this, $this->security->cleanUri($uri), $input));
 
 		return $this;
 	}

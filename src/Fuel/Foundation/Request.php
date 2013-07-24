@@ -81,13 +81,13 @@ class Request
 		// TODO: check if there is a parent request
 		if (is_array($input))
 		{
-			$this->input = \Fuel::resolve('Input', array($this->app, $input, \Fuel::getInput()));
+			$this->input = \Fuel::resolve('input', array($this->app, $input, \Fuel::getInput()));
 		}
 
 		// If there's no input object: default to environment input
 		if ( ! $this->input)
 		{
-			$this->input = \Fuel::resolve('Input', array($this->app, array(), \Fuel::getInput()));
+			$this->input = \Fuel::resolve('input', array($this->app, array(), \Fuel::getInput()));
 		}
 	}
 
@@ -134,12 +134,12 @@ class Request
 			}
 
 			if ( ! is_object($this->getResponse()) or array_diff(
-					get_class_methods('Response'),
+					get_class_methods('Fuel\Foundation\Response'),
 					get_class_methods($this->getResponse())
 				) != array())
 			{
 				throw new \DomainException('Result object from a Controller must'.
-					' implement all methods from Response.');
+					' implement all methods from \Fuel\Foundation\Response.');
 			}
 
 			// Render body before finishing the Request when a Viewable was returned

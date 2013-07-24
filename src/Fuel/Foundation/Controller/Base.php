@@ -99,7 +99,7 @@ abstract class Base
 	{
 		if ( ! $response instanceof Response)
 		{
-			$response = \Fuel::resolve('Response', array($this->app, $response));
+			$response = \Fuel::resolve('response', array($this->app, $response));
 		}
 
 		return $response;
