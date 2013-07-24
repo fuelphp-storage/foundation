@@ -77,34 +77,27 @@ class Request
 
 		$this->requestUri  = '/'.trim(strval($resource), '/');
 
-		// Create the new Input object when an array was passed
-		// TODO: check if there is a parent request
-		if (is_array($input))
-		{
-			$this->input = \Fuel::resolve('input', array($this->app, $input, \Fuel::getInput()));
-		}
+		// get the parents input, or the global instance of no parent is active
+		$inputInstance = ($request = $this->app->getActiveRequest()) ? $request->getInput() : \Fuel::getInput();
 
-		// If there's no input object: default to environment input
-		if ( ! $this->input)
-		{
-			$this->input = \Fuel::resolve('input', array($this->app, array(), \Fuel::getInput()));
-		}
+		// and create a new local input instance
+		$input = is_array($input) ? $input : array();
+
+		$this->input = \Fuel::resolve('input', array($this->app, $input, $inputInstance));
 	}
 
 	/**
 	 * Execute the request
 	 *
-	 * Must use $this->activate() as the first statement and $this->deactivate() as the last one
-	 *
 	 * @return  Request
-	 * @throws  \Fuel\Kernel\Response\Exception\Redirect|\Exception
+	 * @throws  \Exception
 	 * @throws  \DomainException
 	 *
 	 * @since  1.0.0
 	 */
 	public function execute()
 	{
-		$this->activate();
+		$this->app->setActiveRequest($this);
 
 		list($this->controller, $this->controllerParams, $this->params) = $this->app->getRouter()->route($this->requestUri);
 
@@ -118,19 +111,22 @@ class Request
 				throw new \DomainException('The Controller returned by routing is not callable.');
 			}
 
-			// Provide request context to controller when possible
-			if (is_object($this->controller) and method_exists($this->controller, '_setRequest'))
-			{
-				$this->controller->_setRequest($this);
-			}
-
 			try
 			{
 				$this->response = call_user_func($this->controller, $this->controllerParams);
 			}
-			catch (Response\Exception\Redirect $e)
+			catch (Exception\Redirect $e)
 			{
 				$this->response = $e->response($this->app);
+			}
+			catch (Exception\Base $e)
+			{
+				$this->response = $this->errorResponse($e);
+			}
+			catch (\Exception $e)
+			{
+				// rethrow
+				throw $e;
 			}
 
 			if ( ! is_object($this->getResponse()) or array_diff(
@@ -150,12 +146,12 @@ class Request
 		}
 		catch (\Exception $e)
 		{
-			// deactivate and rethrow
-			$this->deactivate();
+			// reset and rethrow
+			$this->app->resetActiveRequest();
 			throw $e;
 		}
 
-		$this->deactivate();
+		$this->app->resetActiveRequest();
 
 		return $this;
 	}
@@ -177,35 +173,6 @@ class Request
 		}
 
 		return isset($this->params[$param]) ? $this->params[$param] : $default;
-	}
-
-	/**
-	 * Makes this Request the active one
-	 *
-	 * @return  Base  for method chaining
-	 *
-	 * @since  2.0.0
-	 */
-	public function activate()
-	{
-		array_push($this->activeRequests, $this->app->getActiveRequest($this));
-		$this->app->setActiveRequest($this);
-
-		return $this;
-	}
-
-	/**
-	 * Deactivates this Request and reactivates the previous active
-	 *
-	 * @return  Base  for method chaining
-	 *
-	 * @since  2.0.0
-	 */
-	public function deactivate()
-	{
-		$this->app->setActiveRequest(array_pop($this->activeRequests));
-
-		return $this;
 	}
 
 	/**
@@ -233,14 +200,14 @@ class Request
 	}
 
 	/**
-	 * Returns the request that created this one
+	 * Allows setting a response object for errors or executing a fallback
 	 *
-	 * @return  Base
-	 *
-	 * @since  1.1.0
+	 * @param   \Fuel\Foundation\Exception\Base  $e
+	 * @return  \Fuel\Foundation\Response
+	 * @throws  \Fuel\Foundation\Exception\Base
 	 */
-	public function getParent()
+	protected function errorResponse(Exception\Base $e)
 	{
-		return $this->parent;
+		throw $e;
 	}
 }

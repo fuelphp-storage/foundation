@@ -78,11 +78,11 @@ class Application
 	protected $request;
 
 	/**
-	 * @var  Request  current active Request, not necessarily the main request
+	 * @var  array  current active request stack
 	 *
 	 * @since  2.0.0
 	 */
-	protected $activeRequest;
+	protected $requests = array();
 
 	/**
 	 * @var  Fuel\Display\ViewManager  this applications view manager
@@ -193,82 +193,12 @@ class Application
 	 *
 	 * @since  2.0.0
 	 */
-	public function request($uri = null, Array $input = array())
+	public function getRequest($uri = null, Array $input = array())
 	{
 		// if no uri is given, fetch the global one
 		$uri === null and $uri = \Fuel::getInput()->getPathInfo($this->environment->baseUrl);
 
-		$this->request = \Fuel::resolve('request', array($this, $this->security->cleanUri($uri), $input));
-
-		return $this;
-	}
-
-	/**
-	 * Execute the application main request
-	 *
-	 * @throws  \Exception|\Exception|\Exception\NotFound
-	 *
-	 * @return  Application
-	 *
-	 * @since  2.0.0
-	 */
-	public function execute()
-	{
-		try
-		{
-			// Execute the request
-			$this->request->execute();
-		}
-		catch (Exception\NotFound $e)
-		{
-			$this->request->response = $this->notFoundResponse($e);
-		}
-		catch (Exception\Base $e)
-		{
-			$this->request->response = $this->errorResponse($e);
-		}
-		catch (\Exception $e)
-		{
-			// rethrow
-			throw $e;
-		}
-
-		// Check if request needs to be assigned
-		method_exists($this->request->getResponse(), '_setRequest')
-			and $this->request->getResponse()->_setRequest($this->request);
-
-		return $this;
-	}
-
-	/**
-	 * Fetch the Request object
-	 *
-	 * @throws  \RuntimeException
-	 *
-	 * @return  Request
-	 *
-	 * @since  2.0.0
-	 */
-	public function getRequest()
-	{
-		if ( ! isset($this->request))
-		{
-			throw new \RuntimeException('Request needs to be made before the object may be fetched.');
-		}
-
-		return $this->request;
-	}
-
-	/**
-	 * Return the response object
-	 *
-	 * @return  Response
-	 *
-	 * @since  2.0.0
-	 */
-	public function getResponse()
-	{
-		return $this->request->getResponse();
+		return \Fuel::resolve('request', array($this, $this->security->cleanUri($uri), $input));
 	}
 
 	/**
@@ -336,13 +266,13 @@ class Application
 	 *
 	 * @param   Request  $request
 	 *
-	 * @return  Base
+	 * @return  Application
 	 *
 	 * @since  2.0.0
 	 */
 	public function setActiveRequest(Request $request = null)
 	{
-		$this->activeRequest = $request;
+		$this->requests[] = $request;
 		return $this;
 	}
 
@@ -355,34 +285,22 @@ class Application
 	 */
 	public function getActiveRequest()
 	{
-		return $this->activeRequest;
+		return empty($this->requests) ? null : end($this->requests);
 	}
 
 	/**
-	 * Allows setting a response object for NotFound errors or executing a fallback
+	 * Resets the current active request
 	 *
-	 * @param   Exception\NotFound  $e
+	 * @return  Application
 	 *
-	 * @throws  Exception\NotFound
-	 *
-	 * @return  Response\Base
+	 * @since  2.0.0
 	 */
-	protected function notFoundResponse(Exception\NotFound $e)
+	public function resetActiveRequest()
 	{
-		throw $e;
-	}
-
-	/**
-	 * Allows setting a response object for errors or executing a fallback
-	 *
-	 * @param   Exception\Base  $e
-	 *
-	 * @throws  Exception\Base
-	 *
-	 * @return  Response\Base
-	 */
-	protected function errorResponse(Exception\Base $e)
-	{
-		throw $e;
+		if ( ! empty($this->requests))
+		{
+			array_pop($this->requests);
+		}
+		return $this;
 	}
 }

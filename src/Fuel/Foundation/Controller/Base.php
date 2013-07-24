@@ -12,7 +12,7 @@ namespace Fuel\Foundation\Controller;
 
 //use View;
 //use Response;
-use Exception\NotFound;
+use Fuel\Foundation\Exception\NotFound;
 
 /**
  * Controller Base class
@@ -44,14 +44,21 @@ abstract class Base
 	 *
 	 * @since  2.0.0
 	 */
-	public $app;
+	protected $app;
+
+	/**
+	 * @var  Fuel\Display\ViewManager  this apps ViewManager
+	 *
+	 * @since  2.0.0
+	 */
+	protected $view;
 
 	/**
 	 * @var  Request
 	 *
 	 * @since  1.0.0
 	 */
-	public $request;
+	protected $request;
 
 	/**
 	 * Executes the given method and returns a Response object
@@ -119,6 +126,8 @@ abstract class Base
 	public function __invoke(array $args)
 	{
 		$this->app = array_shift($args);
+
+		$this->view = $this->app->getViewManager();
 		$this->request = $this->app->getActiveRequest();
 
 		// Determine the method

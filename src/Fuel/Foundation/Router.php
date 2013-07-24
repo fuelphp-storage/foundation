@@ -10,6 +10,8 @@
 
 namespace Fuel\Foundation;
 
+use Fuel\Dependency\ResolveException;
+
 /**
  * FuelPHP Router class
  *
@@ -34,7 +36,7 @@ class Router
 	 * @param  string  $resource
 	 * @param  array|Input  $input
 	 *
-	 * @since  1.0.0
+	 * @since  1.0.
 	 */
 	public function __construct($app)
 	{
@@ -42,7 +44,7 @@ class Router
 	}
 
 	/**
-	 * DUMMY ROUTE METHOD, routes always to Welcome::index
+	 * DUMMY ROUTE METHOD, maps directly from uri to Controller
 	 *
 	 * @param   string  $uri
 	 *
@@ -54,11 +56,29 @@ class Router
 	 */
 	public function route($uri)
 	{
-		// return a dummy route match, so we can test request/response
+		// do a straight URI-2-Controller mapping, so we can get on with things...
+		$segments = explode('/', trim($uri, '/'));
+		empty($segments[0]) and $segments = array('welcome');
+		count($segments) == 1 and $segments[] = 'index';
+
+		$controller = ucfirst(array_shift($segments));
+		$segments[0] = ucfirst($segments[0]);
+
+		try
+		{
+			$controller = \Fuel::resolve('\Controller\\'.$controller);
+		}
+		catch (ResolveException $e)
+		{
+			// for now, our fixed 404 method
+			$controller = \Fuel::resolve('\Controller\Welcome');
+			$segments[0] = 'error404';
+		}
+
 		return array(
-			\Fuel::resolve('\Controller\Welcome'),	// matched controller object
-			array('index', 'param1', 'param2'),		// segments list
-			array('param3' => 'param3'),			// named parameters in the route
+			$controller,				// matched controller object
+			$segments,					// segments list
+			array('name' => 'John'),	// named parameters in the route
 		);
 	}
 
