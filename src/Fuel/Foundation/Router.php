@@ -66,7 +66,7 @@ class Router
 
 		try
 		{
-			$controller = \Fuel::resolve('\Controller\\'.$controller);
+			$controller = \Dependency::resolve('\Controller\\'.$controller);
 		}
 		catch (ResolveException $e)
 		{

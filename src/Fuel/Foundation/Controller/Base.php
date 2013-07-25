@@ -51,7 +51,7 @@ abstract class Base
 	 *
 	 * @since  2.0.0
 	 */
-	protected $view;
+	protected $viewManager;
 
 	/**
 	 * @var  Request
@@ -59,6 +59,13 @@ abstract class Base
 	 * @since  1.0.0
 	 */
 	protected $request;
+
+	/**
+	 * @var  Response
+	 *
+	 * @since  1.0.0
+	 */
+	protected $response;
 
 	/**
 	 * Executes the given method and returns a Response object
@@ -75,13 +82,17 @@ abstract class Base
 		! $method instanceof \ReflectionMethod and $method = new \ReflectionMethod($this, $method);
 
 		$response = $this->before();
-		if ( ! $response instanceof Response)
+		if ($response instanceof Response)
+		{
+			$this->response = $response;
+		}
+		else
 		{
 			$response = $method->invokeArgs($this, $args);
-			$response = $this->after($response);
+			$this->after($response);
 		}
 
-		return $response;
+		return $this->response;
 	}
 
 	/**
@@ -106,10 +117,8 @@ abstract class Base
 	{
 		if ( ! $response instanceof Response)
 		{
-			$response = \Fuel::resolve('response', array($this->app, $response));
+			$this->response->setContent($response);
 		}
-
-		return $response;
 	}
 
 	/**
@@ -125,10 +134,13 @@ abstract class Base
 	 */
 	public function __invoke(array $args)
 	{
+		// Assign the most relevant objects to the Controller
 		$this->app = array_shift($args);
+		$this->viewManager = $this->app->getViewManager();
 
-		$this->view = $this->app->getViewManager();
+		// And create the Request/Response objects
 		$this->request = $this->app->getActiveRequest();
+		$this->response = \Dependency::resolve('response', array($this->app));
 
 		// Determine the method
 // CHECKME - do we need to camelcase the action?

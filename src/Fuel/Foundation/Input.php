@@ -141,12 +141,12 @@ class Input
 		isset($inputVars['requestBody'])
 			and $this->requestBody = $inputVars['requestBody'];
 
-		$this->server  = \Fuel::resolve('datacontainer', $this->server ?: array());
-		$this->param   = \Fuel::resolve('datacontainer', $this->param ?: array());
-		$this->query   = \Fuel::resolve('datacontainer', $this->query ?: array());
-		$this->cookie  = \Fuel::resolve('datacontainer', $this->cookie ?: array());
-		$this->files   = \Fuel::resolve('datacontainer', $this->files ?: array());
-		$this->cli     = \Fuel::resolve('datacontainer', $this->cli ?: array());
+		$this->server  = \Dependency::resolve('datacontainer', $this->server ?: array());
+		$this->param   = \Dependency::resolve('datacontainer', $this->param ?: array());
+		$this->query   = \Dependency::resolve('datacontainer', $this->query ?: array());
+		$this->cookie  = \Dependency::resolve('datacontainer', $this->cookie ?: array());
+		$this->files   = \Dependency::resolve('datacontainer', $this->files ?: array());
+		$this->cli     = \Dependency::resolve('datacontainer', $this->cli ?: array());
 
 		$this->parent = $parent instanceof self ? $parent : null;
 

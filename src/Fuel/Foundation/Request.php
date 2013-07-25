@@ -78,12 +78,12 @@ class Request
 		$this->requestUri  = '/'.trim(strval($resource), '/');
 
 		// get the parents input, or the global instance of no parent is active
-		$inputInstance = ($request = $this->app->getActiveRequest()) ? $request->getInput() : \Fuel::getInput();
+		$inputInstance = ($request = $this->app->getActiveRequest()) ? $request->getInput() : \Input::getInstance();
 
 		// and create a new local input instance
 		$input = is_array($input) ? $input : array();
 
-		$this->input = \Fuel::resolve('input', array($this->app, $input, $inputInstance));
+		$this->input = \Dependency::resolve('input', array($this->app, $input, $inputInstance));
 	}
 
 	/**

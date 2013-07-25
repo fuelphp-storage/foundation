@@ -8,12 +8,56 @@
  * @link       http://fuelphp.com
  */
 
-/**
- * Allow the Fuel class to be found in the global namespace
- */
-class_alias('\Fuel\Foundation\Fuel', 'Fuel');
+use Fuel\Foundation\Facades\Alias;
+use Fuel\Foundation\Facades\Composer;
+use Fuel\Foundation\Facades\Dependency;
+use Fuel\Foundation\Facades\Error;
+use Fuel\Foundation\Facades\Package;
 
 /**
- * Alias the base controllers to global
+ * Get the Composer autoloader instance and allow the framework to use it
  */
-class_alias('\Fuel\Foundation\Controller\Base', 'Controller\Base');
+Composer::setLoader(self::$loader);
+
+/**
+ * Setup the shutdown, error & exception handlers
+ */
+Error::setHandler();
+
+/**
+ * Setup the Dependency Container
+ */
+Dependency::setDic();
+
+/**
+ * Setup the Alias Manager
+ */
+Alias::setManager();
+
+/**
+ * Alias all Facades to global
+ */
+Alias::aliasNamespace('Fuel\Foundation\Facades', '');
+
+/**
+ * Run the composer package bootstraps
+ */
+Package::bootstrap();
+
+/**
+ * Create the global Input instance and import globals
+ */
+Input::loadGlobals();
+
+/**
+ * Alias all Base controllers to Fuel\Controller
+ */
+Alias::aliasNamespace('Fuel\Foundation\Controller', 'Fuel\Controller');
+
+/**
+ * And finish by running the global applications bootstrap, if present
+ */
+if (file_exists(APPSPATH.'bootstrap.php'))
+{
+	include APPSPATH.'bootstrap.php';
+}

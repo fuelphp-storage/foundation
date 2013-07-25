@@ -417,7 +417,7 @@ class Environment
 		// detect the base URL from global when not given
 		if (is_null($this->baseUrl) and ! $this->isCli)
 		{
-			$this->baseUrl = \Fuel::getInput()->getBaseUrl();
+			$this->baseUrl = \Input::getInstance()->getBaseUrl();
 		}
 
 		// when mbstring setting was not given default to availability
