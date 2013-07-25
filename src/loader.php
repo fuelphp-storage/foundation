@@ -50,6 +50,11 @@ Package::bootstrap();
 Input::loadGlobals();
 
 /**
+ * Create the global Config instance and import global configuration
+ */
+Config::loadGlobals();
+
+/**
  * Alias all Base controllers to Fuel\Controller
  */
 Alias::aliasNamespace('Fuel\Foundation\Controller', 'Fuel\Controller');

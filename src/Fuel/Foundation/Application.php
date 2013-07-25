@@ -43,27 +43,6 @@ class Application
 	protected $appNamespace;
 
 	/**
-	 * @var  Fuel\Config  this applications config container
-	 *
-	 * @since  2.0.0
-	 */
-	protected $config;
-
-	/**
-	 * @var  Environment  this applications environment
-	 *
-	 * @since  2.0.0
-	 */
-	protected $environment;
-
-	/**
-	 * @var  Security  this applications security container
-	 *
-	 * @since  2.0.0
-	 */
-	protected $security;
-
-	/**
 	 * @var  Router  this applications router object
 	 *
 	 * @since  2.0.0
@@ -85,13 +64,6 @@ class Application
 	protected $requests = array();
 
 	/**
-	 * @var  Fuel\Display\ViewManager  this applications view manager
-	 *
-	 * @since  2.0.0
-	 */
-	protected $view;
-
-	/**
 	 * Constructor
 	 *
 	 * @since  2.0.0
@@ -111,29 +83,35 @@ class Application
 		}
 		$this->appPath = realpath($appPath).DS;
 
-		// and setup the configuration container
-		$this->config = \Dependency::resolve('config');
-		$this->config->addPath($this->appPath);
-		$this->config->setParent(\Config::getInstance());
+		// setup the configuration container, and load the application config
+		\Config::forge($this->appName)
+			->addPath($this->appPath.'config'.DS)
+			->setParent(\Config::get())
+			->load('config', null);
 
 		// create the environment for this application
-		$this->environment = \Dependency::resolve('environment', array($this, $environment, $this->config));
-
-		// create the security container for this application
-		$this->security = \Dependency::resolve('security', array($this));
+		\Environment::forge($this, $environment);
 
 		// create the view manager instance for this application
-		$this->view = \Dependency::resolve('view', array(
-			\Dependency::resolve('finder', array(
-				array($this->appPath),
-			)),
-			array(
-				'cache' => $this->appPath.'cache',
-			)
-		));
+		$viewmanager = \ViewManager::forge($this);
 
-		// and enable the default view parser
-		$this->view->registerParser('php', \Dependency::resolve('parser.php'));
+		// load the view config
+		\Config::get($this->appName)
+			->load('view');
+
+		// get the defined view parsers
+		$parsers = $this->getConfig()->get('parsers', array());
+
+		// and register them to the View Manager
+		foreach($parsers as $extension => $parser)
+		{
+			if (is_numeric($extension))
+			{
+				$extension = $parser;
+				$parser = 'parser.'.$extension;
+			}
+			$viewmanager->registerParser($extension, \Dependency::resolve($parser));
+		}
 
 		// TODO: create a router object
 		$this->router = \Dependency::resolve('Fuel\Foundation\Router', array($this));
@@ -167,7 +145,7 @@ class Application
 	 */
 	public function getConfig()
 	{
-		return $this->config;
+		return \Config::get($this->appName);
 	}
 
 	/**
@@ -179,7 +157,7 @@ class Application
 	 */
 	public function getEnvironment()
 	{
-		return $this->environment;
+		return \Environment::get($this->appName);
 	}
 
 
@@ -196,9 +174,10 @@ class Application
 	public function getRequest($uri = null, Array $input = array())
 	{
 		// if no uri is given, fetch the global one
-		$uri === null and $uri = \Input::getInstance()->getPathInfo($this->environment->baseUrl);
+		$uri === null and $uri = \Input::getInstance()->getPathInfo($this->getEnvironment()->baseUrl);
 
-		return \Dependency::resolve('request', array($this, $this->security->cleanUri($uri), $input));
+		// forge a new request
+		return \Request::forge($this, \Security::cleanUri($uri), $input);
 	}
 
 	/**
@@ -258,7 +237,7 @@ class Application
 	 */
 	public function getViewManager()
 	{
-		return $this->view;
+		return \ViewManager::get($this->appName);
 	}
 
 	/**

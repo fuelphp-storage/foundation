@@ -27,44 +27,31 @@ class Application extends Base
 	protected static $applications = array();
 
 	/**
-	 * Define a new application
+	 * Forge a new application
 	 *
+	 * @param  $name  name of the application
 	 * @param  $config  array with application configuration information
 	 * @throws InvalidArgumentException if a required config value is missing or incorrect
 	 * @returns	Application
 	 *
 	 * @since  2.0.0
 	 */
-	public static function define(array $config = array())
+	public static function forge($name, array $config = array())
 	{
-		// application name and path
-		if (isset($config['name']))
+		// application path
+		if ( ! isset($config['path']))
 		{
-			if (is_array($config['name']))
-			{
-				$config['path'] = reset($config['name']);
-				$config['name'] = key($config['name']);
-			}
-			else
-			{
-				$config['path'] = APPSPATH.$config['name'];
-			}
-			$config['path'] = realpath($config['path']);
-
-			if ( ! is_dir($config['path']))
-			{
-				throw new \InvalidArgumentException('The path "'.$config['path'].'" does not exist for application "'.$config['name'].'".');
-			}
-
-			// do we already have this application?
-			if (isset(static::$applications[$config['name']]))
-			{
-				throw new \InvalidArgumentException('The application "'.$config['name'].'" is already defined.');
-			}
+			$config['path'] = realpath(APPSPATH.$name);
 		}
-		else
+		if ( ! is_dir($config['path']))
 		{
-			throw new \InvalidArgumentException('The application name is missing from the configuration array.');
+			throw new \InvalidArgumentException('The path "'.$config['path'].'" does not exist for application "'.$name.'".');
+		}
+
+		// do we already have this application?
+		if (isset(static::$applications[$name]))
+		{
+			throw new \InvalidArgumentException('The application "'.$name.'" is already forged.');
 		}
 
 		// application namespace, defaults to global
@@ -83,26 +70,26 @@ class Application extends Base
 		// add the root namespace for this application to composer
 		\Composer::getLoader()->add($config['namespace'], $config['path'].DS.'classes', true);
 
-		return static::$applications[$config['name']] = \Dependency::resolve('application', array($config['name'], $config['path'], $config['namespace'], $config['environment']));
+		return static::$applications[$name] = \Dependency::resolve('application', array($name, $config['path'], $config['namespace'], $config['environment']));
 	}
 
 	/**
 	 * Get a defined application instance
 	 *
-	 * @param  $app  name of the application, or none for the first application defined
+	 * @param  $name  name of the application
 	 * @throws InvalidArgumentException if the requested application does not exist
 	 * @returns	Application
 	 *
 	 * @since  2.0.0
 	 */
-	public static function with($app)
+	public static function get($name)
 	{
-		if ( ! isset(static::$applications[$app]))
+		if ( ! isset(static::$applications[$name]))
 		{
-			throw new \InvalidArgumentException('There is no application defined named "'.$app.'".');
+			throw new \InvalidArgumentException('There is no application defined named "'.$name.'".');
 		}
 
-		return static::$applications[$app];
+		return static::$applications[$name];
 	}
 
 	/**
@@ -112,6 +99,6 @@ class Application extends Base
 	 */
 	public static function getInstance()
 	{
-		return static::$instance;
+		return null;
 	}
 }
