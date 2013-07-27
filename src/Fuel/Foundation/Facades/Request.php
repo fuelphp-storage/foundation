@@ -10,7 +10,8 @@
 
 namespace Fuel\Foundation\Facades;
 
-use Fuel\Foundation\Application as App;
+use Fuel\Foundation\Application as AppInstance;
+use Fuel\Foundation\Request as RequestInstance;
 
 /**
  * Request Facade class
@@ -22,6 +23,13 @@ use Fuel\Foundation\Application as App;
 class Request extends Base
 {
 	/**
+	 * @var  array  active requests stack
+	 *
+	 * @since  2.0.0
+	 */
+	protected static $requestStack;
+
+	/**
 	 * Forge a new environment object
 	 *
 	 * @param  Application  $app  Application object on which to forge this environment
@@ -29,18 +37,57 @@ class Request extends Base
 	 *
 	 * @since  2.0.0
 	 */
-	public static function forge(App $app, $uri, Array $input = array())
+	public static function forge(AppInstance $app, $uri, Array $input = array())
 	{
 		return \Dependency::resolve('request', array($app, $uri, $input));
 	}
 
 	/**
-	 * Get the object instance for this Facade
+	 * Sets the current active request
+	 *
+	 * @param   Request  $request
+	 *
+	 * @return  Application
 	 *
 	 * @since  2.0.0
 	 */
-	protected static function getInstance()
+	public static function setActive(RequestInstance $request = null)
 	{
-		return null;
+		static::$requestStack->push($request);
+		return $request;
+	}
+
+	/**
+	 * Resets the current active request
+	 *
+	 * @return  bool  true if the reset was succesful, false if this was the main request
+	 *
+	 * @since  2.0.0
+	 */
+	public static function resetActive()
+	{
+		if ( ! static::$requestStack->isEmpty())
+		{
+			static::$requestStack->pop();
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Returns current active Request
+	 *
+	 * @return  Request
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getInstance()
+	{
+		if (static::$requestStack === null)
+		{
+			static::$requestStack = new \SplStack();
+		}
+
+		return static::$requestStack->isEmpty() ? null : static::$requestStack->top();
 	}
 }

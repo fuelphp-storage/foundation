@@ -15,7 +15,7 @@ use Fuel\Common\DataContainer;
 /**
  * Input
  *
- * Keeps the HTTP input for a request or the environment as a whole.
+ * Keeps the HTTP input for a request or the application as a whole.
  *
  * @package  Fuel\Foundation
  *

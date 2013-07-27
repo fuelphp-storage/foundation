@@ -139,7 +139,7 @@ abstract class Base
 		$this->viewManager = $this->app->getViewManager();
 
 		// And create the Request/Response objects
-		$this->request = $this->app->getActiveRequest();
+		$this->request = \Request::getInstance();
 		$this->response = \Dependency::resolve('response', array($this->app));
 
 		// Determine the method

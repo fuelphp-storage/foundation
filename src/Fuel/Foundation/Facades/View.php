@@ -11,21 +11,29 @@
 namespace Fuel\Foundation\Facades;
 
 /**
- * Alias Facade class
+ * View Facade class
  *
  * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
-class Alias extends Base
+class View extends Base
 {
+
 	/**
-	 * Get the object instance for this Facade
+	 * Get the active applications View Manager
 	 *
 	 * @since  2.0.0
 	 */
 	public static function getInstance()
 	{
-		return \Dependency::resolve('alias');
+		if ($app = \Application::getActive())
+		{
+			return \Dependency::multiton('viewmanager', $app->getName());
+		}
+		else
+		{
+			return null;
+		}
 	}
 }

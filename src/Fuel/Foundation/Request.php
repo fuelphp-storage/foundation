@@ -57,13 +57,6 @@ class Request
 	protected $response;
 
 	/**
-	 * @var  array  active Request stack before activation of this one
-	 *
-	 * @since  2.0.0
-	 */
-	protected $activeRequests = array();
-
-	/**
 	 * Constructor
 	 *
 	 * @param  string  $resource
@@ -78,12 +71,12 @@ class Request
 		$this->requestUri  = '/'.trim(strval($resource), '/');
 
 		// get the parents input, or the global instance of no parent is active
-		$inputInstance = ($request = $this->app->getActiveRequest()) ? $request->getInput() : \Input::getInstance();
+		$inputInstance = ($request = \Request::getInstance()) ? $request->getInput() : \Input::getInstance();
 
 		// and create a new local input instance
 		$input = is_array($input) ? $input : array();
 
-		$this->input = \Dependency::resolve('input', array($this->app, $input, $inputInstance));
+		$this->input = \Input::forge($app, $input, $inputInstance);
 	}
 
 	/**
@@ -97,7 +90,7 @@ class Request
 	 */
 	public function execute()
 	{
-		$this->app->setActiveRequest($this);
+		\Request::setActive($this);
 
 		list($this->controller, $this->controllerParams, $this->params) = $this->app->getRouter()->route($this->requestUri);
 
@@ -147,11 +140,11 @@ class Request
 		catch (\Exception $e)
 		{
 			// reset and rethrow
-			$this->app->resetActiveRequest();
+			\Request::resetActive();
 			throw $e;
 		}
 
-		$this->app->resetActiveRequest();
+		\Request::resetActive();
 
 		return $this;
 	}
@@ -185,6 +178,18 @@ class Request
 	public function getResponse()
 	{
 		return $this->response;
+	}
+
+	/**
+	 * Returns this requests Application instance
+	 *
+	 * @return  Base
+	 *
+	 * @since  1.1.0
+	 */
+	public function getApplication()
+	{
+		return $this->app;
 	}
 
 	/**

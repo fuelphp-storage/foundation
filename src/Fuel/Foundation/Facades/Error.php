@@ -27,11 +27,11 @@ class Error extends Base
 	protected static $errorHandler;
 
 	/**
-	 * Set the Error handler
+	 * Initialization, set the Error handler
 	 *
 	 * @since  2.0.0
 	 */
-	public static function setHandler($handler = null)
+	public static function initialize($handler = null)
 	{
 		if ($handler === null)
 		{
@@ -51,9 +51,11 @@ class Error extends Base
 	/**
 	 * Get the object instance for this Facade
 	 *
+	 * @returns Whoops\Run
+	 *
 	 * @since  2.0.0
 	 */
-	protected static function getInstance()
+	public static function getInstance()
 	{
 		return static::$errorHandler;
 	}

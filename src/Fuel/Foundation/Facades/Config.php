@@ -20,60 +20,46 @@ namespace Fuel\Foundation\Facades;
 class Config extends Base
 {
 	/**
-	 * @var  array  List of loaded configuration objects
-	 *
-	 * @since  2.0.0
-	 */
-	protected static $configs = array();
-
-	/**
 	 * Forge a new configuration object
 	 *
 	 * @param  $name  name of the object
-	 * @throws InvalidArgumentException if the object already exists
-	 * @returns	Application
+	 * @returns	Config
 	 *
 	 * @since  2.0.0
 	 */
 	public static function forge($name)
 	{
-		// do we already have this object?
-		if (isset(static::$configs[$name]))
-		{
-			throw new \InvalidArgumentException('The configuration object "'.$name.'" is already forged.');
-		}
-
-		return static::$configs[$name] = \Dependency::resolve('config');
+		return static::getConfig($name);
 	}
 
 	/**
 	 * Get a defined configuration object
 	 *
-	 * @param  $name  name of the configuration object
-	 * @throws InvalidArgumentException if the requested configuration object does not exist
-	 * @returns	Application
+	 * @param  $name  name of the configuration object, if not given returns the current application config object
+	 * @returns	Config
 	 *
 	 * @since  2.0.0
 	 */
-	public static function get($name = '')
+	public static function getConfig($name = null)
 	{
-		if ( ! isset(static::$configs[$name]))
+		if ($name === null)
 		{
-			throw new \InvalidArgumentException('There is no configuration object defined named "'.$name.'".');
+			$name = ($app = \Application::getActive()) ? $app->getName() : '__default__';
 		}
-
-		return static::$configs[$name];
+		return \Dependency::multiton('config', $name);
 	}
 
 	/**
 	 * Create the global input instance and load all global configuration
+	 *
+	 * @returns	Config
 	 *
 	 * @since  2.0.0
 	 */
 	public static function loadGlobals()
 	{
 		// get us an instance of input if we don't have one yet
-		$config = static::forge('');
+		$config = static::forge('__default__');
 
 		// load the global default config
 		$config->addPath(APPSPATH);
@@ -89,6 +75,6 @@ class Config extends Base
 	 */
 	public static function getInstance()
 	{
-		die('Config::getInstance() not implemented yet');
+		return static::getConfig();
 	}
 }

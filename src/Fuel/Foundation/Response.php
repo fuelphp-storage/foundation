@@ -148,7 +148,7 @@ class Response
 	public function __construct($app, $content = '', $status = 200, array $headers = array())
 	{
 		$this->app = $app;
-		$this->request = $this->app->getActiveRequest();
+		$this->request = \Request::getInstance();
 
 		$this->setContent($content);
 		$this->setStatusCode($status);

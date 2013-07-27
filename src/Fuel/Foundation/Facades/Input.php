@@ -10,6 +10,9 @@
 
 namespace Fuel\Foundation\Facades;
 
+use Fuel\Foundation\Application as AppInstance;
+use Fuel\Foundation\Input as InputInstance;
+
 /**
  * Input Facade class
  *
@@ -27,6 +30,20 @@ class Input extends Base
 	protected static $instance;
 
 	/**
+	 * Forge a new Input object
+	 *
+	 * @param  $input  array with input variables
+	 *
+	 * @returns	Input
+	 *
+	 * @since  2.0.0
+	 */
+	public static function forge(AppInstance $app = null, Array $input = array(), InputInstance $parent = null)
+	{
+		return \Dependency::resolve('input', array($app, $input, $parent));
+	}
+
+	/**
 	 * Create the global input instance and load all globals
 	 *
 	 * @since  2.0.0
@@ -34,7 +51,7 @@ class Input extends Base
 	public static function loadGlobals()
 	{
 		// get us an instance of input if we don't have one yet
-		static::$instance or static::$instance = \Dependency::resolve('input', array(null));
+		static::$instance or static::$instance = static::forge();
 
 		// and load it with all global data available
 		static::$instance->fromGlobals();
@@ -43,10 +60,19 @@ class Input extends Base
 	/**
 	 * Get the object instance for this Facade
 	 *
+	 * @returns	Input
+	 *
 	 * @since  2.0.0
 	 */
 	public static function getInstance()
 	{
+		// get the current request instance
+		if ($request = \Request::getInstance())
+		{
+			return $request->getInput();
+		}
+
+		// no active request, return the global instance
 		return static::$instance;
 	}
 }

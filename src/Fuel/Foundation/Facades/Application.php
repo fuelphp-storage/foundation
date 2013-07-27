@@ -20,18 +20,14 @@ namespace Fuel\Foundation\Facades;
 class Application extends Base
 {
 	/**
-	 * @var  array  List of loaded applications
-	 *
-	 * @since  2.0.0
-	 */
-	protected static $applications = array();
-
-	/**
 	 * Forge a new application
 	 *
 	 * @param  $name  name of the application
 	 * @param  $config  array with application configuration information
+	 *
 	 * @throws InvalidArgumentException if a required config value is missing or incorrect
+	 * @throws RuntimeException if the application to forge already exists
+	 *
 	 * @returns	Application
 	 *
 	 * @since  2.0.0
@@ -49,9 +45,9 @@ class Application extends Base
 		}
 
 		// do we already have this application?
-		if (isset(static::$applications[$name]))
+		if (\Dependency::isInstance('application', $name))
 		{
-			throw new \InvalidArgumentException('The application "'.$name.'" is already forged.');
+			throw new \RuntimeException('The application "'.$name.'" is already forged.');
 		}
 
 		// application namespace, defaults to global
@@ -68,37 +64,59 @@ class Application extends Base
 
 
 		// add the root namespace for this application to composer
-		\Composer::getLoader()->add($config['namespace'], $config['path'].DS.'classes', true);
+		\Composer::getInstance()->add($config['namespace'], $config['path'].DS.'classes', true);
 
-		return static::$applications[$name] = \Dependency::resolve('application', array($name, $config['path'], $config['namespace'], $config['environment']));
+		// register this application
+		return \Dependency::multiton('application', $name, array($name, $config['path'], $config['namespace'], $config['environment']));
 	}
 
 	/**
 	 * Get a defined application instance
 	 *
 	 * @param  $name  name of the application
-	 * @throws InvalidArgumentException if the requested application does not exist
+	 *
+	 * @throws RuntimeException if the application to get does not exist
+	 *
 	 * @returns	Application
 	 *
 	 * @since  2.0.0
 	 */
 	public static function get($name)
 	{
-		if ( ! isset(static::$applications[$name]))
+		if ( ! \Dependency::isInstance('application', $name))
 		{
-			throw new \InvalidArgumentException('There is no application defined named "'.$name.'".');
+			throw new \RuntimeException('There is no application defined named "'.$name.'".');
 		}
 
-		return static::$applications[$name];
+		return \Dependency::multiton('application', $name);
+	}
+
+	/**
+	 * Returns current active Application
+	 *
+	 * @return  Application
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getActive()
+	{
+		if ($request = \Request::getInstance())
+		{
+			return $request->getApplication();
+		}
+
+		return null;
 	}
 
 	/**
 	 * Get the object instance for this Facade
 	 *
+	 * @return  Application
+	 *
 	 * @since  2.0.0
 	 */
 	public static function getInstance()
 	{
-		return null;
+		return static::getActive();
 	}
 }

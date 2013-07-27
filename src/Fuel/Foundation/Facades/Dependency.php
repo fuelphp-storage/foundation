@@ -20,41 +20,35 @@ namespace Fuel\Foundation\Facades;
 class Dependency extends Base
 {
 	/**
-	 * @var  Whoops\Run
+	 * @var  Container  the DiC
 	 *
 	 * @since  2.0.0
 	 */
 	protected static $dic;
 
 	/**
-	 * Get the Dependency Container
+	 * Initialization, set the Dependency Container we're going to use
 	 *
 	 * @since  2.0.0
 	 */
-	public static function getDic()
+	public static function initialize($dic = null)
 	{
-		return static::$dic;
-	}
-
-	/**
-	 * Set the Dependency Container
-	 *
-	 * @since  2.0.0
-	 */
-	public static function setDic($dic = null)
-	{
-		if ($dic === null)
+		if ($dic)
 		{
-			// use the framework default Dependency container
-			static::$dic = new \Fuel\Dependency\Container;
+			static::$dic = $dic;
 		}
 		else
 		{
-			// set a custom DiC
-			static::$dic = $dic;
+			static::$dic = new \Fuel\Dependency\Container;
+
+			// register the DiC by itself so it can be resolved
+			static::$dic->registerSingleton('dic', function($container)
+			{
+				return $container;
+			});
 		}
 
-		return static::$dic;
+		return static::getInstance();
 	}
 
 	/**
@@ -62,7 +56,7 @@ class Dependency extends Base
 	 *
 	 * @since  2.0.0
 	 */
-	protected static function getInstance()
+	public static function getInstance()
 	{
 		return static::$dic;
 	}

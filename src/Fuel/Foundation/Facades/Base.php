@@ -24,6 +24,9 @@ abstract class Base
 	*
 	* @param  string  $method  method to call on the instance
 	* @param  array  $args  arguments to be passed to it
+	*
+	* @throws  ErrorException if the method called does not exist on the current instance
+	*
 	* @return  mixed
 	*/
 	public static function __callStatic($method, $args)

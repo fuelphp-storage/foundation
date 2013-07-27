@@ -27,21 +27,11 @@ class Composer extends Base
 	protected static $loader;
 
 	/**
-	 * get the Composer autoloader instance
+	 * Initialization, set the Composer autoloader instance
 	 *
 	 * @since  2.0.0
 	 */
-	public static function getLoader()
-	{
-		return static::$loader;
-	}
-
-	/**
-	 * Set the Composer autoloader instance
-	 *
-	 * @since  2.0.0
-	 */
-	public static function setLoader($autoloader)
+	public static function initialize($autoloader)
 	{
 		// store the composer autoloader instance
 		static::$loader = $autoloader;
@@ -54,7 +44,7 @@ class Composer extends Base
 	 *
 	 * @since  2.0.0
 	 */
-	protected static function getInstance()
+	public static function getInstance()
 	{
 		return static::$loader;
 	}

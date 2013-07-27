@@ -9,40 +9,51 @@
  */
 
 use Fuel\Foundation\Facades\Alias;
-use Fuel\Foundation\Facades\Composer;
-use Fuel\Foundation\Facades\Dependency;
 use Fuel\Foundation\Facades\Error;
 use Fuel\Foundation\Facades\Package;
 
 /**
+ * Some handy constants
+ */
+define('DS', DIRECTORY_SEPARATOR);
+define('CRLF', chr(13).chr(10));
+
+/**
+ * Do we have access to mbstring?
+ * We need this in order to work with UTF-8 strings
+ */
+define('MBSTRING', function_exists('mb_get_info'));
+
+/**
+ * Create some class aliases to get the bootstrapping to work
+ */
+class_alias('Fuel\Foundation\Facades\Composer', 'Composer');
+class_alias('Fuel\Foundation\Facades\Dependency', 'Dependency');
+
+/**
  * Get the Composer autoloader instance and allow the framework to use it
  */
-Composer::setLoader(self::$loader);
+Composer::initialize(self::$loader);
 
 /**
  * Setup the shutdown, error & exception handlers
  */
-Error::setHandler();
+Error::initialize();
 
 /**
  * Setup the Dependency Container
  */
-Dependency::setDic();
-
-/**
- * Setup the Alias Manager
- */
-Alias::setManager();
-
-/**
- * Alias all Facades to global
- */
-Alias::aliasNamespace('Fuel\Foundation\Facades', '');
+Dependency::initialize();
 
 /**
  * Run the composer package bootstraps
  */
-Package::bootstrap();
+Package::initialize();
+
+/**
+ * Alias all Facades to global
+ */
+Dependency::resolve('alias')->aliasNamespace('Fuel\Foundation\Facades', '');
 
 /**
  * Create the global Input instance and import globals
@@ -60,9 +71,6 @@ Config::loadGlobals();
 Alias::aliasNamespace('Fuel\Foundation\Controller', 'Fuel\Controller');
 
 /**
- * And finish by running the global applications bootstrap, if present
+ * And get the framework going
  */
-if (file_exists(APPSPATH.'bootstrap.php'))
-{
-	include APPSPATH.'bootstrap.php';
-}
+Fuel::initialize();

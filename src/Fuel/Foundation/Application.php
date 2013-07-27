@@ -43,25 +43,18 @@ class Application
 	protected $appNamespace;
 
 	/**
+	 * @var  Environment  this applications environment object
+	 *
+	 * @since  2.0.0
+	 */
+	protected $env;
+
+	/**
 	 * @var  Router  this applications router object
 	 *
 	 * @since  2.0.0
 	 */
 	protected $router;
-
-	/**
-	 * @var  Request  contains the app main request object
-	 *
-	 * @since  2.0.0
-	 */
-	protected $request;
-
-	/**
-	 * @var  array  current active request stack
-	 *
-	 * @since  2.0.0
-	 */
-	protected $requests = array();
 
 	/**
 	 * Constructor
@@ -86,17 +79,24 @@ class Application
 		// setup the configuration container, and load the application config
 		\Config::forge($this->appName)
 			->addPath($this->appPath.'config'.DS)
-			->setParent(\Config::get())
+			->setParent(\Config::getConfig())
 			->load('config', null);
 
 		// create the environment for this application
-		\Environment::forge($this, $environment);
+		$this->env = \Environment::forge($this, $environment);
 
 		// create the view manager instance for this application
-		$viewmanager = \ViewManager::forge($this);
+		$viewmanager = \Dependency::multiton('viewmanager', $this->appName, array(
+			\Dependency::resolve('finder', array(
+				array($this->appPath),
+			)),
+			array(
+				'cache' => $this->appPath.'cache',
+			)
+		));
 
 		// load the view config
-		\Config::get($this->appName)
+		\Config::getConfig($this->appName)
 			->load('view');
 
 		// get the defined view parsers
@@ -145,7 +145,7 @@ class Application
 	 */
 	public function getConfig()
 	{
-		return \Config::get($this->appName);
+		return \Config::getConfig($this->appName);
 	}
 
 	/**
@@ -237,49 +237,7 @@ class Application
 	 */
 	public function getViewManager()
 	{
-		return \ViewManager::get($this->appName);
+		return \Dependency::multiton('viewmanager', $this->appName);
 	}
 
-	/**
-	 * Sets the current active request
-	 *
-	 * @param   Request  $request
-	 *
-	 * @return  Application
-	 *
-	 * @since  2.0.0
-	 */
-	public function setActiveRequest(Request $request = null)
-	{
-		$this->requests[] = $request;
-		return $this;
-	}
-
-	/**
-	 * Returns current active Request
-	 *
-	 * @return  Request
-	 *
-	 * @since  2.0.0
-	 */
-	public function getActiveRequest()
-	{
-		return empty($this->requests) ? null : end($this->requests);
-	}
-
-	/**
-	 * Resets the current active request
-	 *
-	 * @return  Application
-	 *
-	 * @since  2.0.0
-	 */
-	public function resetActiveRequest()
-	{
-		if ( ! empty($this->requests))
-		{
-			array_pop($this->requests);
-		}
-		return $this;
-	}
 }

@@ -37,48 +37,6 @@ class Environment
 	protected $name = 'development';
 
 	/**
-	 * @var  string|null  optional overwrite for system environment setting
-	 *
-	 * @since  2.0.0
-	 */
-	protected $locale = null;
-
-	/**
-	 * @var  string|null  timezone name for php.net/timezones
-	 *
-	 * @since  2.0.0
-	 */
-	protected $timezone = 'UTC';
-
-	/**
-	 * @var  bool  whether or not usage of MBSTRING extension is enabled
-	 *
-	 * @since  2.0.0
-	 */
-	protected $mbstring = null;
-
-	/**
-	 * @var  string|null  character encoding
-	 *
-	 * @since  2.0.0
-	 */
-	protected $encoding = 'UTF-8';
-
-	/**
-	 * @var  bool  whether this is run through the command line
-	 *
-	 * @since  2.0.0
-	 */
-	protected $isCli = false;
-
-	/**
-	 * @var  bool  Readline is an extension for PHP that makes interactive with PHP much more bash-like
-	 *
-	 * @since  2.0.0
-	 */
-	protected $readlineSupport = false;
-
-	/**
 	 * @var  string  base url
 	 *
 	 * @since  2.0.0
@@ -90,14 +48,7 @@ class Environment
 	 *
 	 * @since  2.0.0
 	 */
-	public $indexFile = null;
-
-	/**
-	 * @var  bool  flag to indicate we're initialized
-	 *
-	 * @since  2.0.0
-	 */
-	protected $initialized = false;
+	protected $indexFile = null;
 
 	/**
 	 * @var  array  container for environment variables
@@ -131,8 +82,11 @@ class Environment
 		$this->vars['initMem']  = defined('FUEL_INIT_MEM') ? FUEL_INIT_MEM : memory_get_usage();
 
 
-		// fetch URL data from the config
-		$this->baseUrl = $config->baseUrl;
+		// fetch URL data from the config, construct it if not set
+		if ($this->baseUrl = $config->baseUrl === null)
+		{
+			$this->baseUrl = \Input::getInstance()->getBaseUrl();
+		}
 		$this->indexFile = $config->indexFile;
 
 		// store the application path
@@ -162,12 +116,18 @@ class Environment
 			$finishCallbacks[] = call_user_func($environments[$environment], $this);
 		}
 
-		// configure the localization options for PHP
-		$this->setLocale($this->locale);
-		$this->setTimezone($this->timezone);
-
-		// detects and configures the PHP Environment
-		$this->setPhpEnv();
+		// detect the base URL from global when not given
+		if (is_null($this->baseUrl))
+		{
+			if (\Fuel::isCli())
+			{
+				throw new \Exception('TODO');
+			}
+			else
+			{
+				$this->baseUrl = \Input::getInstance()->getBaseUrl();
+			}
+		}
 
 		// run environment callbacks to finish up
 		foreach ($finishCallbacks as $cb)
@@ -302,93 +262,6 @@ class Environment
 	}
 
 	/**
-	 * Set the character encoding (only when mbstring is enabled)
-	 *
-	 * @param   string|null  $encoding  encoding name
-	 * @return  Environment  to allow method chaining
-	 *
-	 * @since  2.0.0
-	 */
-	public function setEncoding($encoding)
-	{
-		$this->encoding = $encoding;
-		if ($this->mbstring and $this->encoding)
-		{
-			mb_internal_encoding($this->encoding);
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Get the character encoding
-	 *
-	 * @return  string|null  $encoding  encoding name
-	 *
-	 * @since  2.0.0
-	 */
-	public function getEncoding()
-	{
-		return $this->encoding;
-	}
-
-	/**
-	 * Set the locale
-	 *
-	 * @param   string|null  $locale  locale name (OS dependent)
-	 * @return  Environment  to allow method chaining
-	 *
-	 * @since  2.0.0
-	 */
-	public function setLocale($locale)
-	{
-		$this->locale = $locale;
-		is_null($this->locale) or setlocale(LC_ALL, $this->locale);
-
-		return $this;
-	}
-
-	/**
-	 * Get the locale
-	 *
-	 * @return  string|null  locale name (OS dependent)
-	 *
-	 * @since  2.0.0
-	 */
-	public function getLocale()
-	{
-		return $this->locale;
-	}
-
-	/**
-	 * Set the timezone
-	 *
-	 * @param   string|null  $timezone  timezone name (http://php.net/timezones)
-	 * @return  Environment  to allow method chaining
-	 *
-	 * @since  2.0.0
-	 */
-	public function setTimezone($timezone)
-	{
-		$this->timezone = $timezone;
-		$this->timezone and date_default_timezone_set($this->timezone);
-
-		return $this;
-	}
-
-	/**
-	 * Get the timezone
-	 *
-	 * @return  string|null  timezone name (http://php.net/timezones)
-	 *
-	 * @since  2.0.0
-	 */
-	public function getTimezone()
-	{
-		return $this->timezone;
-	}
-
-	/**
 	 * Get the baseUrl
 	 *
 	 * @return  string|null  determined base url
@@ -398,30 +271,5 @@ class Environment
 	public function getBaseUrl()
 	{
 		return $this->baseUrl;
-	}
-
-
-	/**
-	 * Detects and configures the PHP Environment
-	 *
-	 * @return  void
-	 *
-	 * @since  2.0.0
-	 */
-	protected function setPhpEnv()
-	{
-		// determine the Cli state
-		$this->isCli = (bool) defined('STDIN');
-		$this->isCli and $this->readlineSupport = extension_loaded('readline');
-
-		// detect the base URL from global when not given
-		if (is_null($this->baseUrl) and ! $this->isCli)
-		{
-			$this->baseUrl = \Input::getInstance()->getBaseUrl();
-		}
-
-		// when mbstring setting was not given default to availability
-		! is_bool($this->mbstring) and $this->mbstring = function_exists('mb_get_info');
-		$this->setEncoding($this->encoding);
 	}
 }
