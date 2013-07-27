@@ -1,4 +1,6 @@
 <?php
+include './vendor/autoload.php';
+
 /**
  * Alias the facade classes so the tests can run
  */
@@ -16,5 +18,3 @@ class_alias('Fuel\Foundation\Facades\Request', 'Request', false);
 //class_alias('Fuel\Foundation\Facades\Response', 'Response', false);
 class_alias('Fuel\Foundation\Facades\Security', 'Security', false);
 class_alias('Fuel\Foundation\Facades\View', 'View', false);
-
-include './vendor/autoload.php';
