@@ -128,8 +128,22 @@ class Application
 			$this->viewManager->registerParser($extension, \Dependency::resolve($parser));
 		}
 
-		// TODO: create a router object
-		$this->router = \Dependency::resolve('Fuel\Foundation\Router', array($this));
+		// create a router object
+		$this->router = \Router::forge($this);
+
+		// and load any defined routes
+		if (file_exists($path = $this->appPath.'config'.DS.'routes.php'))
+		{
+			$loadroutes = function($router, $__file__) {
+				return include $__file__;
+			};
+			$routes = $loadroutes($this->router, $path);
+
+			if (is_array($routes))
+			{
+				// TODO, process v1.x type route array
+			}
+		}
 	}
 
 	/**

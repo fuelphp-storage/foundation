@@ -92,21 +92,31 @@ class Request
 	{
 		\Request::setActive($this);
 
-		list($this->controller, $this->controllerParams, $this->params) = $this->app->getRouter()->route($this->requestUri);
+		// get a route object for this requestUri
+		$route = \Router::translate($this->requestUri, \Input::getInstance()->getMethod() );
+
+		// push any remaining segments so they'll be available as action arguments
+		if ( ! empty($route->segments))
+		{
+			$route->parameters = array_merge($route->parameters, $route->segments);
+		}
+
+		// push the action
+		array_unshift($route->parameters, $route->action);
 
 		// push the current app object so we have it available in the controller
-		array_unshift($this->controllerParams, $this->app);
+		array_unshift($route->parameters, $this->app);
 
 		try
 		{
-			if ( ! is_callable($this->controller))
+			if ( ! is_callable($route->controller))
 			{
 				throw new \DomainException('The Controller returned by routing is not callable.');
 			}
 
 			try
 			{
-				$this->response = call_user_func($this->controller, $this->controllerParams);
+				$this->response = call_user_func($route->controller, $route->parameters);
 			}
 			catch (Exception\Redirect $e)
 			{
@@ -129,12 +139,6 @@ class Request
 			{
 				throw new \DomainException('Result object from a Controller must'.
 					' implement all methods from \Fuel\Foundation\Response.');
-			}
-
-			// Render body before finishing the Request when a Viewable was returned
-			if (($body = $this->response->getContent()) instanceof Viewable)
-			{
-				$this->response->setContent($body->render());
 			}
 		}
 		catch (\Exception $e)
