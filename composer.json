@@ -17,7 +17,8 @@
         "fuelphp/alias": "dev-master",
 		"fuelphp/common": "dev-master",
 		"fuelphp/display": "dev-master",
-		"fuelphp/config": "dev-master"
+		"fuelphp/config": "dev-master",
+		"fuelphp/router": "dev-master"
 	},
 	"require-dev": {
 		"mockery/mockery": "0.7.*"
