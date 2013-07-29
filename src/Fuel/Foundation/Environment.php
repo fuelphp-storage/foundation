@@ -68,7 +68,6 @@ class Environment
 	 * Setup the framework environment. This will include all required global
 	 * classes, paths, and other configuration required to start the app.
 	 *
-	 * @throws  none
 	 * @return  void
 	 *
 	 * @since  2.0.0
@@ -81,7 +80,6 @@ class Environment
 		$this->vars['initTime'] = defined('FUEL_INIT_TIME') ? FUEL_INIT_TIME : microtime(true);
 		$this->vars['initMem']  = defined('FUEL_INIT_MEM') ? FUEL_INIT_MEM : memory_get_usage();
 
-
 		// fetch URL data from the config, construct it if not set
 		if ($this->baseUrl = $config->baseUrl === null)
 		{
@@ -93,7 +91,7 @@ class Environment
 		$this->addPath($this->app->getName(), $this->app->getPath());
 
 		// load the defined environments
-		$environments = $this->app->getPath().DS.'environments.php';
+		$environments = $this->app->getPath().'environments.php';
 		if (file_exists($environments))
 		{
 			$environments = require $environments;

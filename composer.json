@@ -13,10 +13,10 @@
 	"require": {
 		"php": ">=5.4",
 		"filp/whoops": "dev-master",
+        "fuelphp/dependency": "dev-master",
+        "fuelphp/alias": "dev-master",
 		"fuelphp/common": "dev-master",
-		"fuelphp/dependency": "dev-master",
 		"fuelphp/display": "dev-master",
-		"fuelphp/alias": "dev-master",
 		"fuelphp/config": "dev-master"
 	},
 	"require-dev": {

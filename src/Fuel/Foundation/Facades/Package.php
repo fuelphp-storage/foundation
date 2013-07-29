@@ -80,7 +80,21 @@ class Package extends Base
 	 */
 	public static function initialize()
 	{
-		foreach (\Composer::getPrefixes() as $ns => $srcPaths)
+		// get the composer prefixes
+		$prefixes = \Composer::getPrefixes();
+
+		// do these first, sequence is important for these ones!
+		foreach (array('Fuel\Dependency', 'Fuel\Alias', 'Fuel\Foundation') as $ns)
+		{
+			if (isset($prefixes[$ns]))
+			{
+				static::forge($prefixes[$ns], $ns, null);
+				unset($prefixes[$ns]);
+			}
+		}
+
+		// now do the rest, in order of composer definition
+		foreach ($prefixes as $ns => $srcPaths)
 		{
 			static::forge($srcPaths, $ns, null);
 		}

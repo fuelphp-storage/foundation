@@ -71,7 +71,7 @@ class Router
 		catch (ResolveException $e)
 		{
 			// for now, our fixed 404 method
-			$controller = \Fuel::resolve('\Controller\Welcome');
+			$controller = \Dependency::resolve('\Controller\Welcome');
 			$segments[0] = 'error404';
 		}
 

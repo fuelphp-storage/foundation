@@ -20,6 +20,11 @@ namespace Fuel\Foundation\Facades;
 class Application extends Base
 {
 	/**
+	 * @var Application main application instance
+	 */
+	protected static $mainApp;
+
+	/**
 	 * Forge a new application
 	 *
 	 * @param  $name  name of the application
@@ -67,7 +72,14 @@ class Application extends Base
 		\Composer::getInstance()->add($config['namespace'], $config['path'].DS.'classes', true);
 
 		// register this application
-		return \Dependency::multiton('application', $name, array($name, $config['path'], $config['namespace'], $config['environment']));
+		$app = \Dependency::multiton('application', $name, array($name, $config['path'], $config['namespace'], $config['environment']));
+
+		// if this is the first one forged, store it as the main Application
+		if (static::$mainApp === null)
+		{
+			static::$mainApp = $app;
+		}
+		return $app;
 	}
 
 	/**
@@ -105,7 +117,7 @@ class Application extends Base
 			return $request->getApplication();
 		}
 
-		return null;
+		return static::$mainApp;
 	}
 
 	/**

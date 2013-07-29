@@ -50,6 +50,20 @@ class Application
 	protected $env;
 
 	/**
+	 * @var  Fuel/Config/Container  this applications config object
+	 *
+	 * @since  2.0.0
+	 */
+	protected $config;
+
+	/**
+	 * @var  Fuel/Display/ViewManager  this applications view manager object
+	 *
+	 * @since  2.0.0
+	 */
+	protected $viewManager;
+
+	/**
 	 * @var  Router  this applications router object
 	 *
 	 * @since  2.0.0
@@ -76,17 +90,19 @@ class Application
 		}
 		$this->appPath = realpath($appPath).DS;
 
-		// setup the configuration container, and load the application config
-		\Config::forge($this->appName)
+		// setup the configuration container...
+		$this->config = \Config::forge($this->appName)
 			->addPath($this->appPath.'config'.DS)
-			->setParent(\Config::getConfig())
-			->load('config', null);
+			->setParent(\Config::getConfig());
+
+		// and load the application config
+		$this->config->load('config', null);
 
 		// create the environment for this application
 		$this->env = \Environment::forge($this, $environment);
 
 		// create the view manager instance for this application
-		$viewmanager = \Dependency::multiton('viewmanager', $this->appName, array(
+		$this->viewManager = \Dependency::multiton('viewmanager', $this->appName, array(
 			\Dependency::resolve('finder', array(
 				array($this->appPath),
 			)),
@@ -96,11 +112,10 @@ class Application
 		));
 
 		// load the view config
-		\Config::getConfig($this->appName)
-			->load('view');
+		$this->config->load('view', true);
 
 		// get the defined view parsers
-		$parsers = $this->getConfig()->get('parsers', array());
+		$parsers = $this->config->get('view.parsers', array());
 
 		// and register them to the View Manager
 		foreach($parsers as $extension => $parser)
@@ -110,7 +125,7 @@ class Application
 				$extension = $parser;
 				$parser = 'parser.'.$extension;
 			}
-			$viewmanager->registerParser($extension, \Dependency::resolve($parser));
+			$this->viewManager->registerParser($extension, \Dependency::resolve($parser));
 		}
 
 		// TODO: create a router object
@@ -134,62 +149,6 @@ class Application
 		}
 
 		throw new \OutOfBoundsException('Property "'.$property.'" not available on the application.');
-	}
-
-	/**
-	 * Returns the applications config object
-	 *
-	 * @return  Fuel\Config\Datacontainer
-	 *
-	 * @since  2.0.0
-	 */
-	public function getConfig()
-	{
-		return \Config::getConfig($this->appName);
-	}
-
-	/**
-	 * Returns the applications environment object
-	 *
-	 * @return  Fuel\Config\Datacontainer
-	 *
-	 * @since  2.0.0
-	 */
-	public function getEnvironment()
-	{
-		return \Environment::get($this->appName);
-	}
-
-
-	/**
-	 * Construct an application request
-	 *
-	 * @param   string  $uri
-	 * @param   array|Input  $input
-	 *
-	 * @return  Request
-	 *
-	 * @since  2.0.0
-	 */
-	public function getRequest($uri = null, Array $input = array())
-	{
-		// if no uri is given, fetch the global one
-		$uri === null and $uri = \Input::getInstance()->getPathInfo($this->getEnvironment()->baseUrl);
-
-		// forge a new request
-		return \Request::forge($this, \Security::cleanUri($uri), $input);
-	}
-
-	/**
-	 * Return the router object
-	 *
-	 * @return  Router
-	 *
-	 * @since  2.0.0
-	 */
-	public function getRouter()
-	{
-		return $this->router;
 	}
 
 	/**
@@ -229,6 +188,42 @@ class Application
 	}
 
 	/**
+	 * Returns the applications config object
+	 *
+	 * @return  Fuel\Config\Datacontainer
+	 *
+	 * @since  2.0.0
+	 */
+	public function getConfig()
+	{
+		return $this->config;
+	}
+
+	/**
+	 * Returns the applications environment object
+	 *
+	 * @return  Fuel\Config\Datacontainer
+	 *
+	 * @since  2.0.0
+	 */
+	public function getEnvironment()
+	{
+		return $this->env;
+	}
+
+	/**
+	 * Return the router object
+	 *
+	 * @return  Router
+	 *
+	 * @since  2.0.0
+	 */
+	public function getRouter()
+	{
+		return $this->router;
+	}
+
+	/**
 	 * Return the applications View manager
 	 *
 	 * @return  Fuel\Display\ViewManager
@@ -237,7 +232,25 @@ class Application
 	 */
 	public function getViewManager()
 	{
-		return \Dependency::multiton('viewmanager', $this->appName);
+		return $this->viewManager;
 	}
 
+	/**
+	 * Construct an application request
+	 *
+	 * @param   string  $uri
+	 * @param   array|Input  $input
+	 *
+	 * @return  Request
+	 *
+	 * @since  2.0.0
+	 */
+	public function getRequest($uri = null, Array $input = array())
+	{
+		// if no uri is given, fetch the global one
+		$uri === null and $uri = \Input::getInstance()->getPathInfo();
+
+		// forge a new request
+		return \Request::forge($this, \Security::cleanUri($uri), $input);
+	}
 }

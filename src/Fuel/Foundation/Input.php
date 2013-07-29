@@ -305,15 +305,15 @@ class Input
 			}
 
 			// If we are using an index file (not mod_rewrite) then remove it
-			$index_file = ''; //\Config::get('index_file');
-			if ($index_file and strncmp($uri, $index_file, strlen($index_file)) === 0)
+			$indexFile = \Config::get('indexFile');
+			if ($indexFile and strncmp($uri, $indexFile, strlen($indexFile)) === 0)
 			{
-				$uri = substr($uri, strlen($index_file));
+				$uri = substr($uri, strlen($indexFile));
 			}
 
 			// When index.php? is used and the config is set wrong, lets just
 			// be nice and help them out.
-			if ($index_file and strncmp($uri, '?/', 2) === 0)
+			if ($indexFile and strncmp($uri, '?/', 2) === 0)
 			{
 				$uri = substr($uri, 1);
 			}
@@ -367,7 +367,10 @@ class Input
 	 */
 	public function getExtension()
 	{
-		! isset($this->detectedExt) and static::getPathInfo();
+		if ( ! isset($this->detectedExt))
+		{
+			static::getPathInfo();
+		}
 		return $this->detectedExt;
 	}
 

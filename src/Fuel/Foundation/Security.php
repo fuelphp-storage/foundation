@@ -17,146 +17,180 @@ namespace Fuel\Foundation;
  *
  * @package  Fuel\Foundation
  *
- * @since  1.0.0
+ * @since    1.0.0
  */
 class Security
 {
 	/**
-	 * @var  Application
+	 * @var  Application  this objects application instance
 	 *
 	 * @since  2.0.0
 	 */
 	protected $app;
 
 	/**
-	 * @var  Security\Crypt
+	 * @var  array  list of loaded security filters
 	 *
 	 * @since  2.0.0
 	 */
-	protected $crypt;
+	protected $filters = array();
 
 	/**
-	 * @var  Security\Csrf
+	 * @var  array  list of cleaned variables
 	 *
 	 * @since  2.0.0
 	 */
-	protected $csrf;
+	protected $cleaned = array();
 
 	/**
-	 * @var  Security\String
+	 * Setup the application security object.
 	 *
-	 * @since  2.0.0
-	 */
-	protected $string;
-
-	/**
-	 * Constructor
+	 * @return  void
 	 *
 	 * @since  2.0.0
 	 */
 	public function __construct($app)
 	{
+		// store this app's instance
 		$this->app = $app;
+
+		// load the security configuration
+		$this->app->getConfig()->load('security', true);
 	}
 
 	/**
-	 * Returns the App's Crypt instance
+	 * Cleans the request URI
 	 *
-	 * @return  Crypt\Cryptable
-	 *
-	 * @since  2.0.0
+	 * @param  string $uri     uri to clean
+	 * @param  bool   $strict  whether to remove relative directories
 	 */
-	public function getCrypt()
+	public function cleanUri($uri, $strict = false)
 	{
-		! isset($this->crypt) and $this->crypt = \Dependency::resolve('Fuel\Foundation\Security\Crypt', array($this->app));
-		return $this->crypt;
+		$filters = $this->app->getConfig()->get('security.uri_filter', array());
+		$filters = is_array($filters) ? $filters : array($filters);
+
+		if ($strict)
+		{
+			$uri = preg_replace(array("/\.+\//", '/\/+/'), '/', $uri);
+		}
+
+		return $this->clean($uri, $filters);
 	}
 
 	/**
-	 * Returns the App's Csrf instance
+	 * Generic variable clean method
 	 *
-	 * @return  Csrf\Base
+	 * @param  mixed  $var     the variable to clean
+	 * @param  mixed  $filters list of filters to apply to the variable (method names or callables)
+	 * @param  string $type    default filter definition to apply if no filters are given
 	 *
-	 * @since  2.0.0
 	 */
-	public function getCsrf()
+	public function clean($var, $filters = null, $type = 'security.input_filter')
 	{
-		! isset($this->csrf) and $this->csrf = \Dependency::resolve('Fuel\Foundation\Security\Csrf', array($this->app));
-		return $this->csrf;
+		// if no filters are given, load the defaults from config
+		is_null($filters) and $filters = $this->app->getConfig()->get($type, array());
+
+		// and make sure it's an array
+		$filters = is_array($filters) ? $filters : array($filters);
+
+		foreach ($filters as $filter)
+		{
+			// do we have this filter loaded? or can we load it?
+			if (array_key_exists(strtolower($filter), $this->filters) or $this->loadFilter($filter))
+			{
+				$filter = $this->filters[strtolower($filter)];
+			}
+
+			// does the filter have a callable clean() method?
+			if (is_callable(array($filter, 'clean')))
+			{
+				$var = $filter->clean($var);
+			}
+
+			// is the filter callable in itself?
+			elseif (is_callable($filter))
+			{
+				$var = $filter($var);
+			}
+
+			// assume it's a regex of characters to filter
+			else
+			{
+				$var = $this->filterRegex($var, $filter);
+			}
+		}
+
+		return $var;
 	}
 
 	/**
-	 * Returns the App's String cleaner instance
+	 * @param mixed $input variable to check
 	 *
-	 * @return  String\Base
-	 *
-	 * @since  2.0.0
+	 * @return bool, true if the variable was cleaned before
 	 */
-	public function getStringCleaner()
+	public function isCleaned($input)
 	{
-		! isset($this->string) and $this->string = \Dependency::resolve('Fuel\Foundation\Security\String\Htmlentities', array($this->app));
-		return $this->string;
+		return in_array($input, $this->cleaned, true);
 	}
 
 	/**
-	 * Separate method for cleaning the URI
-	 *
-	 * @param   string  $uri
-	 * @param   null|bool|string|String\Base  $filter
-	 * @return  string
-	 *
-	 * @since  1.1.0
+	 * @param mixed $input a cleaned variable
 	 */
-	public function cleanUri($uri, $filter = null)
+	public function isClean($input)
 	{
-		// Set default when null
-		is_null($filter) and $filter = $this->app->config->get('security.uri_filter', true);
-
-		// When true use internal security filter
-		$filter === true and $filter = $this->getStringCleaner();
-
-		// When string is passed try to fetch special filter from DiC
-		is_string($filter) and $filter = \Dependency::resolve('Fuel\Foundation\Security\String\\'.$filter, array($this->app));
-
-		// Whatever is left is either boolean false or a String Security object
-		return $filter ? $filter->clean($uri) : $uri;
+		$this->cleaned[] = $input;
 	}
 
 	/**
-	 * Clean a variable with the String cleaner
+	 * @param string $filter name of the filter class to load
 	 *
-	 * @param   mixed  $input
-	 * @return  mixed
-	 *
-	 * @since  1.0.0
+	 * @return bool
 	 */
-	public function clean($input)
+	protected function loadFilter($filter)
 	{
-		return $this->getStringCleaner()->clean($input);
+		static $misses = array();
+
+		if ( ! in_array($filter, $misses))
+		{
+			try
+			{
+				if ($obj = \Dependency::resolve('Fuel\Foundation\Security\Filter\\'.$filter, array($this->app, $this)))
+				{
+					$this->filters[strtolower($filter)] = $obj;
+
+					return true;
+				}
+			}
+			catch (\Fuel\Dependency\ResolveException $e)
+			{
+				// we don't have a class for this filter
+				$misses[] = $filter;
+			}
+		}
+
+		return false;
 	}
 
 	/**
-	 * Fetch the CSRF token
+	 * @param mixed  $var   the variable to filter
+	 * @param string $filter  the regex to apply
 	 *
-	 * @return string
-	 *
-	 * @since  1.0.0
+	 * @return mixed
 	 */
-	public function getToken()
+	protected function filterRegex($var, $filter)
 	{
-		return $this->getCsrf()->getToken();
-	}
+		if (is_array($var))
+		{
+			foreach($var as $key => $value)
+			{
+				$var[$key] = preg_replace('#['.$filter.']#ui', '', $value);
+			}
+		}
+		else
+		{
+			$var = preg_replace('#['.$filter.']#ui', '', $var);
+		}
 
-	/**
-	 * Check the CSRF token
-	 *
-	 * @param   null|string  $token
-	 * @return  bool
-	 *
-	 * @since  1.0.0
-	 */
-	public function checkToken($token = null)
-	{
-		return $this->getCsrf()->checkToken($token);
+		return $var;
 	}
 }

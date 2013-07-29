@@ -11,7 +11,7 @@
 namespace Fuel\Foundation\Facades;
 
 use Fuel\Config\Container;
-use Fuel\Foundation\Application as App;
+use Fuel\Foundation\Application as AppInstance;
 
 /**
  * Environment Facade class
@@ -34,9 +34,9 @@ class Environment extends Base
 	 *
 	 * @since  2.0.0
 	 */
-	public static function forge(App $app, $environment)
+	public static function forge(AppInstance $app, $environment)
 	{
-		// do we already have this application?
+		// do we already have this instance?
 		$name = $app->getName();
 		if (\Dependency::isInstance('environment', $name))
 		{

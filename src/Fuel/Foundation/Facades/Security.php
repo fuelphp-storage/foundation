@@ -10,6 +10,8 @@
 
 namespace Fuel\Foundation\Facades;
 
+use Fuel\Foundation\Application as AppInstance;
+
 /**
  * Security Facade class
  *
@@ -20,25 +22,42 @@ namespace Fuel\Foundation\Facades;
 class Security extends Base
 {
 	/**
-	 * Cleans the request URI
+	 * Forge a new security object
 	 *
-	 * @param  string  $uri     uri to clean
-	 * @param  bool    $strict  whether to remove relative directories
+	 * @param  Application  $app  Application object on which to forge this security object
 	 *
-	 * @since  1.0.0
+	 * @returns	Security
+	 *
+	 * @since  2.0.0
 	 */
-	public static function cleanUri($uri, $strict = false)
+	public static function forge(AppInstance $app)
 	{
-		return $uri;
+		// do we already have this instance?
+		$name = $app->getName();
+		if (\Dependency::isInstance('security', $name))
+		{
+			throw new \RuntimeException('The security object "'.$name.'" is already forged.');
+		}
+
+		return \Dependency::multiton('security', $name, array($app));
 	}
 
 	/**
 	 * Get the object instance for this Facade
 	 *
+	 * @returns	Input
+	 *
 	 * @since  2.0.0
 	 */
-	protected static function getInstance()
+	public static function getInstance()
 	{
+		// get the current request instance
+		if ($app = \Application::getInstance())
+		{
+			return \Dependency::multiton('security', $app->getName(), array($app));
+		}
+
+		// no active application, so no instance available
 		return null;
 	}
 }

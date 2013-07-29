@@ -29,6 +29,7 @@ define('MBSTRING', function_exists('mb_get_info'));
  */
 class_alias('Fuel\Foundation\Facades\Composer', 'Composer');
 class_alias('Fuel\Foundation\Facades\Dependency', 'Dependency');
+class_alias('Fuel\Foundation\Facades\Alias', 'Alias');
 
 /**
  * Get the Composer autoloader instance and allow the framework to use it

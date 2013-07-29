@@ -26,7 +26,10 @@ class ServicesProvider extends ServiceProvider
 	/**
 	 * @var  array  list of service names provided by this provider
 	 */
-	public $provides = array('application', 'environment', 'input', 'request', 'response', 'security');
+	public $provides = array(
+		'application', 'environment', 'input', 'request', 'response',
+		'security'
+	);
 
 	/**
 	 * Service provider definitions
