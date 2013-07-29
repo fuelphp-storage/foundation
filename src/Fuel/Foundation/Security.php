@@ -142,6 +142,57 @@ class Security
 	}
 
 	/**
+	 * @param  mixed $input  a variable to strip tags from
+	 *
+	 * @return  mixed
+	 */
+	public function stripTags($value)
+	{
+		if ( ! is_array($value))
+		{
+			$value = filter_var($value, FILTER_SANITIZE_STRING);
+		}
+		else
+		{
+			foreach ($value as $k => $v)
+			{
+				$value[$k] = $this->stripTags($v);
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * @param  mixed $input  a variable to xssClean
+	 *
+	 * @return  mixed
+	 */
+	public function xssClean($value)
+	{
+		if ( ! is_array($value))
+		{
+			if ( ! function_exists('htmLawed'))
+			{
+				if ( ! file_exists($file = VENDORPATH.'htmlawed'.DS.'htmlawed'.DS.'htmLawed.php'))
+				{
+					throw new \RuntimeException('You need to install the "htmlawed/htmlawed" composer package to use Security::xss_clean()');
+				}
+				require_once $file;
+			}
+
+			return htmLawed($value, array('safe' => 1, 'balanced' => 0));
+		}
+
+		foreach ($value as $k => $v)
+		{
+			$value[$k] = $this->xss_clean($v);
+		}
+
+		return $value;
+	}
+
+	/**
 	 * @param string $filter name of the filter class to load
 	 *
 	 * @return bool
