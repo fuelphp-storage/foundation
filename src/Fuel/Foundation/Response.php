@@ -337,7 +337,7 @@ class Response
 	 */
 	public function sendContent()
 	{
-		echo $this->getContent();
+		echo $this->__toString();
 
 		return $this;
 	}
@@ -402,6 +402,27 @@ class Response
 	 */
 	public function __toString()
 	{
-		return strval($this->getContent());
+		// special treatment for integers and floats
+		if (is_numeric($this->content))
+		{
+			$content = (string) $this->content;
+		}
+
+		// objects with a toString method
+		elseif (is_object($this->content) and is_callable(array($this->content, '__toString')))
+		{
+			$content = (string) $this->content;
+		}
+
+		// and all other non-string values
+		elseif ( ! is_string($content = $this->content))
+		{
+			// this var_dump() is here intentionally !
+			ob_start();
+			var_dump($content);
+			$content = html_entity_decode(ob_get_clean());
+		}
+
+		return $content;
 	}
 }

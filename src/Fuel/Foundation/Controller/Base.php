@@ -10,8 +10,7 @@
 
 namespace Fuel\Foundation\Controller;
 
-//use View;
-//use Response;
+use Fuel\Foundation\Response;
 use Fuel\Foundation\Exception\NotFound;
 
 /**
@@ -118,6 +117,10 @@ abstract class Base
 		if ( ! $response instanceof Response)
 		{
 			$this->response->setContent($response);
+		}
+		else
+		{
+			$this->response = $response;
 		}
 	}
 
