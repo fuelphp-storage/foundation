@@ -47,7 +47,7 @@ class Request
 	 *
 	 * @since  1.0.0
 	 */
-	protected $params;
+	protected $params = array();
 
 	/**
 	 * @var  Response  Response after execution
@@ -94,6 +94,9 @@ class Request
 
 		// get a route object for this requestUri
 		$route = \Router::translate($this->requestUri, \Input::getInstance()->getMethod() );
+
+		// store the request parameters
+		$this->params = array_merge($this->params, $route->parameters);
 
 		// push any remaining segments so they'll be available as action arguments
 		if ( ! empty($route->segments))
