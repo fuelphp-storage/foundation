@@ -28,7 +28,8 @@ class ServicesProvider extends ServiceProvider
 	 */
 	public $provides = array(
 		'application', 'environment', 'input', 'request', 'response',
-		'security'
+		'security',
+		'log'
 	);
 
 	/**
@@ -70,6 +71,16 @@ class ServicesProvider extends ServiceProvider
 		$this->register('security', function ($dic, $app)
 		{
 			return new Security($app);
+		});
+
+		/**
+		 * Service definitions for required non-Fuel classes
+		 */
+
+		// \Monolog\Logger
+		$this->register('log', function ($dic, $name)
+		{
+			return new \Monolog\Logger($name);
 		});
 	}
 }

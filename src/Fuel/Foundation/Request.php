@@ -92,8 +92,14 @@ class Request
 	{
 		\Request::setActive($this);
 
+		// log the request
+		\Log::info('Executing request');
+
 		// get a route object for this requestUri
 		$route = \Router::translate($this->requestUri, \Input::getInstance()->getMethod() );
+
+		// log the request destination
+		\Log::info('Request routed to '.$route->translation);
 
 		// store the request parameters
 		$this->params = array_merge($this->params, $route->parameters);
@@ -146,10 +152,16 @@ class Request
 		}
 		catch (\Exception $e)
 		{
+			// log the request termination
+			\Log::info('Request executed');
+
 			// reset and rethrow
 			\Request::resetActive();
 			throw $e;
 		}
+
+		// log the request termination
+		\Log::info('Request executed');
 
 		\Request::resetActive();
 

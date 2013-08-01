@@ -112,12 +112,7 @@ class Application extends Base
 	 */
 	public static function getActive()
 	{
-		if ($request = \Request::getInstance())
-		{
-			return $request->getApplication();
-		}
-
-		return static::$mainApp;
+		return static::getInstance();
 	}
 
 	/**
@@ -129,6 +124,11 @@ class Application extends Base
 	 */
 	public static function getInstance()
 	{
-		return static::getActive();
+		if ($request = \Request::getInstance())
+		{
+			return $request->getApplication();
+		}
+
+		return static::$mainApp;
 	}
 }

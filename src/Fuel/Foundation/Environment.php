@@ -216,6 +216,18 @@ class Environment
 	}
 
 	/**
+	 * Get the name of the current environment
+	 *
+	 * @return  string
+	 *
+	 * @since  2.0.0
+	 */
+	public function getName()
+	{
+		return $this->name;
+	}
+
+	/**
 	 * Attempt make the path relative to a registered path
 	 *
 	 * @param   string  $path

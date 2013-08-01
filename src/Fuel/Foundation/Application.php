@@ -50,6 +50,13 @@ class Application
 	protected $env;
 
 	/**
+	 * @var  Psr/Log/LoggerInterface  this applications log object
+	 *
+	 * @since  2.0.0
+	 */
+	protected $log;
+
+	/**
 	 * @var  Fuel/Config/Container  this applications config object
 	 *
 	 * @since  2.0.0
@@ -98,8 +105,29 @@ class Application
 		// and load the application config
 		$this->config->load('config', null);
 
+		// load the file config
+		$this->config->load('file', true);
+
 		// create the environment for this application
 		$this->env = \Environment::forge($this, $environment);
+
+		// create the log instance for this application
+		$this->log = \Log::forge('fuelphp-'.$this->appName);
+
+		// load the log config
+		if (file_exists($path = $this->appPath.'config'.DS.'log.php'))
+		{
+			$loadlog = function($log, $app, $__file__) {
+				return require $__file__;
+			};
+			$log = $loadlog($this->log, $this, $path);
+
+			// if a log instance is returned, replace the one we had
+			if ($log instanceOf \Psr\Log\LoggerInterface)
+			{
+				$this->log = $log;
+			}
+		}
 
 		// create the view manager instance for this application
 		$this->viewManager = \Dependency::multiton('viewmanager', $this->appName, array(
@@ -144,6 +172,9 @@ class Application
 				// TODO, process v1.x type route array
 			}
 		}
+
+		// log we're alive!
+		$this->log->info('Application "'.$this->appName.'" initialized.');
 	}
 
 	/**
@@ -250,6 +281,18 @@ class Application
 	}
 
 	/**
+	 * Return the applications Log manager
+	 *
+	 * @return  Psr\Log\LoggerInterface
+	 *
+	 * @since  2.0.0
+	 */
+	public function getLog()
+	{
+		return $this->log;
+	}
+
+	/**
 	 * Construct an application request
 	 *
 	 * @param   string  $uri
@@ -263,6 +306,9 @@ class Application
 	{
 		// if no uri is given, fetch the global one
 		$uri === null and $uri = \Input::getInstance()->getPathInfo();
+
+		// log the request
+		$this->log->info('Application "'.$this->appName.'" is creating new Request for URI: '.(empty($uri) ? '/' : $uri));
 
 		// forge a new request
 		return \Request::forge($this, \Security::cleanUri($uri), $input);
