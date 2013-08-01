@@ -13,6 +13,7 @@
 	"require": {
 		"php": ">=5.4",
 		"filp/whoops": "dev-master",
+		"monolog/monolog": "1.6.0",
         "fuelphp/dependency": "dev-master",
         "fuelphp/alias": "dev-master",
 		"fuelphp/common": "dev-master",
