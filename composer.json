@@ -18,6 +18,7 @@
 		"fuelphp/common": "dev-master",
 		"fuelphp/display": "dev-master",
 		"fuelphp/config": "dev-master",
+		"fuelphp/event": "dev-master",
 		"fuelphp/routing": "dev-master"
 	},
 	"require-dev": {
