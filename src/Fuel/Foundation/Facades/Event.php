@@ -22,28 +22,6 @@ use Fuel\Event\Container;
 class Event extends Base
 {
 	/**
-	 * Create and retrieve an instance.
-	 *
-	 * @param   string  $name    instance reference
-	 *
-	 * @return  Fuel\Event\Container
-	 */
-	public static function instance($name = '__default__')
-	{
-		return \Dependency::multiton('event', $name);
-	}
-
-	/**
-	 * Delete an multiton instance from the facade.
-	 *
-	 * @param  mixed  $name  instance name
-	 */
-	public static function delete($name)
-	{
-		return \Dependency::remove('event::'.$name);
-	}
-
-	/**
 	 * Get a new Container instance.
 	 *
 	 * @return  Fuel\Event\Container  new Event Container instance
@@ -54,14 +32,18 @@ class Event extends Base
 	}
 
 	/**
-	 * Get the default instance for this Facade
-	 *
-	 * @return  Fuel\Event\Container
+	 * Get the object instance for this Facade
 	 *
 	 * @since  2.0.0
 	 */
 	public static function getInstance()
 	{
-		return static::instance('__default__');
+		// get the current event manager via the active request instance
+		if ($request = \Request::getInstance())
+		{
+			return $request->getApplication()->getEvent();
+		}
+
+		return null;
 	}
 }

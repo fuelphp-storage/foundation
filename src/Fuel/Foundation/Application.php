@@ -10,6 +10,8 @@
 
 namespace Fuel\Foundation;
 
+use Fuel\Session\Manager as SessionManager;
+
 /**
  * Application Base class
  *
@@ -62,6 +64,20 @@ class Application
 	 * @since  2.0.0
 	 */
 	protected $config;
+
+	/**
+	 * @var  Fuel/Session/Manager  this applications session object
+	 *
+	 * @since  2.0.0
+	 */
+	protected $session;
+
+	/**
+	 * @var  Fuel/Event/Container  this applications event container
+	 *
+	 * @since  2.0.0
+	 */
+	protected $event;
 
 	/**
 	 * @var  Fuel/Display/ViewManager  this applications view manager object
@@ -127,6 +143,28 @@ class Application
 			{
 				$this->log = $log;
 			}
+		}
+
+		// setup the applications event manager
+		$this->event = \Event::forge();
+
+		//
+		register_shutdown_function(function($event) { $event->trigger('shutdown', $this); }, $this->event);
+
+		// load the session config
+		$session = $this->config->load('session', true);
+
+		// do we need to auto-start one?
+		if (isset($session['auto_initialize']) and $session['auto_initialize'])
+		{
+			// create a session instance
+			$this->session = \Session::forge($session);
+
+			// start the session
+			$this->session->start();
+
+			// and make sure it ends too
+			$this->event->on('shutdown', function($event, $app) { $app->getSession()->stop(); });
 		}
 
 		// create the view manager instance for this application
@@ -290,6 +328,42 @@ class Application
 	public function getLog()
 	{
 		return $this->log;
+	}
+
+	/**
+	 * Return the applications session manager
+	 *
+	 * @return  Fuel\Session\Manager
+	 *
+	 * @since  2.0.0
+	 */
+	public function getSession()
+	{
+		return $this->session;
+	}
+
+	/**
+	 * Set the applications session manager
+	 *
+	 * @return  void
+	 *
+	 * @since  2.0.0
+	 */
+	public function setSession(SessionManager $session)
+	{
+		$this->session = $session;
+	}
+
+	/**
+	 * Return the applications event manager
+	 *
+	 * @return  Fuel\Event\Container
+	 *
+	 * @since  2.0.0
+	 */
+	public function getEvent()
+	{
+		return $this->event;
 	}
 
 	/**
