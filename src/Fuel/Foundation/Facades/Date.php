@@ -33,6 +33,7 @@ class Date extends Base
 	 */
 	public static function forge($time = "now", $timezone = null, Array $config = array())
 	{
+		$config = array_merge(\Config::load('date', true), $config);
 		return \Dependency::resolve('date', array($time, $timezone, $config));
 	}
 
