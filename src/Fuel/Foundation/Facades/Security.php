@@ -10,8 +10,6 @@
 
 namespace Fuel\Foundation\Facades;
 
-use Fuel\Foundation\Application as AppInstance;
-
 /**
  * Security Facade class
  *
@@ -32,14 +30,33 @@ class Security extends Base
 	 */
 	public static function forge(AppInstance $app)
 	{
-		// do we already have this instance?
 		$name = $app->getName();
-		if (\Dependency::isInstance('security', $name))
-		{
-			throw new \RuntimeException('The security object "'.$name.'" is already forged.');
-		}
-
 		return \Dependency::multiton('security', $name, array($app));
+	}
+
+	/**
+	 * Generate a unique CSRF token for the given form identification
+	 *
+	 * @param  string  $form_id  Unique identification of the form to protect
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getCsrfToken($form_id)
+	{
+		return static::getInstance()->csrf()->getToken($form_id);
+	}
+
+	/**
+	 * Validate a given CSRF token
+	 *
+	 * @param  string  $form_id  Unique identification of the form to protect
+	 * @param  string  $token    Token to validate
+	 *
+	 * @since  2.0.0
+	 */
+	public static function validateCsrfToken($form_id, $token)
+	{
+		return static::getInstance()->csrf()->validateToken($form_id, $token);
 	}
 
 	/**
