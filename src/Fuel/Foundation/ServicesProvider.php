@@ -27,9 +27,7 @@ class ServicesProvider extends ServiceProvider
 	 * @var  array  list of service names provided by this provider
 	 */
 	public $provides = array(
-		'application', 'environment', 'input', 'request', 'response',
-		'security',
-		'log'
+		'application', 'environment', 'input', 'request', 'response', 'log'
 	);
 
 	/**
@@ -65,12 +63,6 @@ class ServicesProvider extends ServiceProvider
 		$this->register('response', function ($dic, $app, $content = '', $status = 200, array $headers = array())
 		{
 			return new Response($app, $content, $status, $headers);
-		});
-
-		// \Fuel\Foundation\Security
-		$this->register('security', function ($dic, $app)
-		{
-			return new Security($app);
 		});
 
 		/**

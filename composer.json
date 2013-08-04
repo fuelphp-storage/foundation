@@ -23,6 +23,7 @@
 		"fuelphp/event": "dev-master",
 		"fuelphp/upload": "dev-master",
 		"fuelphp/session": "dev-master",
+		"fuelphp/security": "dev-master",
 		"fuelphp/routing": "dev-master"
 	},
 	"require-dev": {
