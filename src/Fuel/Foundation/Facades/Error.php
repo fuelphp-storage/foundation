@@ -42,34 +42,61 @@ class Error extends Base
 			$pagehandler = new \Whoops\Handler\PrettyPageHandler;
 			$pagehandler->setResourcesPath(__DIR__.DS.'..'.DS.'Exception'.DS.'resources');
 
-			$pagehandler->addDataTableCallback('Current Request', function() {
+			$pagehandler->addDataTableCallback('Current Request', function()
+			{
+				if ($request = \Request::getInstance())
+				{
+					$params = $request->getRoute()->parameters;
+					array_shift($params);
+					ob_start();
+					var_dump($params);
+					$params = ob_get_clean();
+				}
 
-				$request = \Request::getInstance();
-
-				$params = $request->getRoute()->parameters;
-				array_shift($params);
-				ob_start();
-				var_dump($params);
-				$params = ob_get_clean();
+				$application = \Application::getInstance();
+				$environment = \Environment::getInstance();
 
 				return array(
-					'Application'  => \Application::getInstance()->getName(),
-					'Environment'  => \Environment::getInstance()->getName(),
-					'Original URI' => $request->getRoute()->uri,
-					'Mapped URI'   => $request->getRoute()->translation,
-					'Namespace'    => $request->getRoute()->namespace,
-					'Controller'   => get_class($request->getRoute()->controller),
-					'Action'       => 'action'.$request->getRoute()->action,
-					'HTTP Method'  => \Input::getMethod(),
-					'Parameters'   => $params,
+					'Application'  => $application ? $application->getName() : '',
+					'Environment'  => $environment ? $environment->getName() : '',
+					'Original URI' => $request ? $request->getRoute()->uri : '',
+					'Mapped URI'   => $request ? $request->getRoute()->translation : '',
+					'Namespace'    => $request ? $request->getRoute()->namespace : '',
+					'Controller'   => $request ? get_class($request->getRoute()->controller) : '',
+					'Action'       => $request ? 'action'.$request->getRoute()->action : '',
+					'HTTP Method'  => $request ? \Input::getMethod() : '',
+					'Parameters'   => $request ? $params : '',
 				);
 			});
-			$pagehandler->addDataTableCallback('Request Parameters', function() { return \Input::getParam()->getContents(); });
-			$pagehandler->addDataTableCallback('Permanent Session Data', function() { return \Application::getInstance()->getSession()->getContents(); });
-			$pagehandler->addDataTableCallback('Flash Session Data', function() { return \Application::getInstance()->getSession()->getContents(); });
-			$pagehandler->addDataTableCallback('Defined Cookies', function() { return \Input::getCookie(); });
-			$pagehandler->addDataTableCallback('Uploaded Files', function() { return \Input::getFile(); });
-			$pagehandler->addDataTableCallback('Server Data', function() { return $_SERVER; });
+			$pagehandler->addDataTableCallback('Request Parameters', function()
+			{
+				$input = \Input::getInstance();
+				return $input ? $input->getParam()->getContents() : '';
+			});
+			$pagehandler->addDataTableCallback('Permanent Session Data', function()
+			{
+				$application = \Application::getInstance();
+				return $application ? $application->getSession()->getContents() : '';
+			});
+			$pagehandler->addDataTableCallback('Flash Session Data', function()
+			{
+				$application = \Application::getInstance();
+				return $application ? $application->getSession()->getContentsFlash() : '';
+			});
+			$pagehandler->addDataTableCallback('Defined Cookies', function()
+			{
+				$input = \Input::getInstance();
+				return $input ? $input->getCookie() : '';
+			});
+			$pagehandler->addDataTableCallback('Uploaded Files', function()
+			{
+				$input = \Input::getInstance();
+				return $input ? $input->getFile() : '';
+			});
+			$pagehandler->addDataTableCallback('Server Data', function()
+			{
+				return $_SERVER;
+			});
 
 			static::$errorHandler->pushHandler($pagehandler);
 

@@ -136,9 +136,14 @@
 													<td><?php echo $e($k) ?></td>
 													<td>
 														<?php
-															if (in_array($label.'-'.$k, array('Current Request-Parameters')))
+															if (
+																in_array($label.'-'.$k, array('Current Request-Parameters')) or
+																in_array($label, array('Permanent Session Data', 'Flash Session Data'))
+																)
 															{
-																echo print_r($value, true);
+																ob_start();
+																var_dump($value);
+																echo ob_get_clean();
 															}
 															else
 															{
