@@ -57,6 +57,13 @@ class Request
 	protected $response;
 
 	/**
+	 * @var  Route  Current route
+	 *
+	 * @since  1.0.0
+	 */
+	protected $route;
+
+	/**
 	 * Constructor
 	 *
 	 * @param  string  $resource
@@ -96,36 +103,36 @@ class Request
 		\Log::info('Executing request');
 
 		// get a route object for this requestUri
-		$route = \Router::translate($this->requestUri, \Input::getInstance()->getMethod() );
+		$this->route = \Router::translate($this->requestUri, \Input::getInstance()->getMethod() );
 
 		// log the request destination
-		\Log::info('Request routed to '.$route->translation);
+		\Log::info('Request routed to '.$this->route->translation);
 
 		// store the request parameters
-		$this->params = array_merge($this->params, $route->parameters);
+		$this->params = array_merge($this->params, $this->route->parameters);
 
 		// push any remaining segments so they'll be available as action arguments
-		if ( ! empty($route->segments))
+		if ( ! empty($this->route->segments))
 		{
-			$route->parameters = array_merge($route->parameters, $route->segments);
+			$this->route->parameters = array_merge($this->route->parameters, $this->route->segments);
 		}
 
 		// push the action
-		array_unshift($route->parameters, $route->action);
+		array_unshift($this->route->parameters, $this->route->action);
 
 		// push the current app object so we have it available in the controller
-		array_unshift($route->parameters, $this->app);
+		array_unshift($this->route->parameters, $this->app);
 
 		try
 		{
-			if ( ! is_callable($route->controller))
+			if ( ! is_callable($this->route->controller))
 			{
 				throw new \DomainException('The Controller returned by routing is not callable.');
 			}
 
 			try
 			{
-				$this->response = call_user_func($route->controller, $route->parameters);
+				$this->response = call_user_func($this->route->controller, $this->route->parameters);
 			}
 			catch (Exception\Redirect $e)
 			{
@@ -190,7 +197,7 @@ class Request
 	/**
 	 * Fetch the request response after execution
 	 *
-	 * @return  \Fuel\Kernel\Response\Base
+	 * @return  \Fuel\Foundation\Response
 	 *
 	 * @since  1.0.0
 	 */
@@ -202,7 +209,7 @@ class Request
 	/**
 	 * Returns this requests Application instance
 	 *
-	 * @return  Base
+	 * @return  Application
 	 *
 	 * @since  1.1.0
 	 */
@@ -214,13 +221,25 @@ class Request
 	/**
 	 * Returns this requests Input instance
 	 *
-	 * @return  Base
+	 * @return  Input
 	 *
 	 * @since  1.1.0
 	 */
 	public function getInput()
 	{
 		return $this->input;
+	}
+
+	/**
+	 * Returns this requests current active Route
+	 *
+	 * @return  Route
+	 *
+	 * @since  1.1.0
+	 */
+	public function getRoute()
+	{
+		return $this->route;
 	}
 
 	/**
