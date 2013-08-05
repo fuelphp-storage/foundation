@@ -134,7 +134,18 @@
 											<?php foreach($data as $k => $value): ?>
 												<tr>
 													<td><?php echo $e($k) ?></td>
-													<td><?php echo $e(print_r($value, true)) ?></td>
+													<td>
+														<?php
+															if (in_array($label.'-'.$k, array('Current Request-Parameters')))
+															{
+																echo print_r($value, true);
+															}
+															else
+															{
+																echo $e(print_r($value, true));
+															}
+														?>
+													</td>
 												</tr>
 											<?php endforeach ?>
 										</table>

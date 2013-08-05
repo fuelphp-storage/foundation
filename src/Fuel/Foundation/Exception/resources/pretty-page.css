@@ -239,6 +239,7 @@ header {
     overflow: hidden;
     color: #463C54;
     padding-right: 5px;
+    vertical-align:top;
 
   }
 
@@ -252,6 +253,11 @@ header {
     -moz-hyphens: auto;
     hyphens: auto;
   }
+
+  .data-table td:last-child pre {
+	margin:0px;
+  }
+
 
   .data-table .empty {
     color: rgba(0, 0, 0, .3);
