@@ -37,7 +37,20 @@ class Error extends Base
 		{
 			// use the framework default Whoops error handler
 			static::$errorHandler = new \Whoops\Run;
-			static::$errorHandler->pushHandler(new \Whoops\Handler\PrettyPageHandler);
+
+			// define the page handler TODO (deal with AJAX/JSON)
+			$pagehandler = new \Whoops\Handler\PrettyPageHandler;
+			$pagehandler->setResourcesPath(__DIR__.DS.'..'.DS.'Exception'.DS.'resources');
+
+			$pagehandler->addDataTableCallback('Request Information', function() { return array('Method' => \Input::getMethod()); });
+			$pagehandler->addDataTableCallback('Request Parameters', function() { return \Input::getParam(); });
+			$pagehandler->addDataTableCallback('Permanent Session Data', function() { return \Application::getInstance()->getSession()->getContents(); });
+			$pagehandler->addDataTableCallback('Flash Session Data', function() { return \Application::getInstance()->getSession()->getContents(); });
+			$pagehandler->addDataTableCallback('Defined Cookies', function() { return \Input::getCookie(); });
+			$pagehandler->addDataTableCallback('Uploaded Files', function() { return \Input::getFile(); });
+			$pagehandler->addDataTableCallback('Server Data', function() { return $_SERVER; });
+
+			static::$errorHandler->pushHandler($pagehandler);
 
 			static::$errorHandler->register();
 		}
