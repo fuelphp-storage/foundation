@@ -75,7 +75,7 @@ class Environment extends Base
 	public static function getInstance()
 	{
 		// get the current environment via the active request instance
-		if ($request = \Request::getInstance())
+		if ($request = \Request::getActive())
 		{
 			return $request->getApplication()->getEnvironment();
 		}

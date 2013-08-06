@@ -30,6 +30,13 @@ class Request extends Base
 	protected static $requestStack;
 
 	/**
+	 * @var  RequestInstance  last active request
+	 *
+	 * @since  2.0.0
+	 */
+	protected static $request;
+
+	/**
 	 * Forge a new environment object
 	 *
 	 * @param  Application  $app  Application object on which to forge this environment
@@ -43,17 +50,30 @@ class Request extends Base
 	}
 
 	/**
+	 * get the current active request
+	 *
+	 * @return  RequestInstance
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getActive()
+	{
+		return static::$request;
+	}
+
+	/**
 	 * Sets the current active request
 	 *
 	 * @param   Request  $request
 	 *
-	 * @return  Application
+	 * @return  RequestInstance
 	 *
 	 * @since  2.0.0
 	 */
 	public static function setActive(RequestInstance $request = null)
 	{
 		static::$requestStack->push($request);
+		static::$request = $request;
 		return $request;
 	}
 
