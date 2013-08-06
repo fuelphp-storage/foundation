@@ -37,26 +37,26 @@ class Security extends Base
 	/**
 	 * Generate a unique CSRF token for the given form identification
 	 *
-	 * @param  string  $form_id  Unique identification of the form to protect
+	 * @param  string  $id  Unique identification of the object to protect
 	 *
 	 * @since  2.0.0
 	 */
-	public static function getCsrfToken($form_id)
+	public static function getCsrfToken($id)
 	{
-		return static::getInstance()->csrf()->getToken($form_id);
+		return static::getInstance()->csrf()->getToken($id);
 	}
 
 	/**
 	 * Validate a given CSRF token
 	 *
-	 * @param  string  $form_id  Unique identification of the form to protect
-	 * @param  string  $token    Token to validate
+	 * @param  string  $id     Unique identification of the object to protect
+	 * @param  string  $token  Token to validate
 	 *
 	 * @since  2.0.0
 	 */
-	public static function validateCsrfToken($form_id, $token)
+	public static function validateCsrfToken($id, $token)
 	{
-		return static::getInstance()->csrf()->validateToken($form_id, $token);
+		return static::getInstance()->csrf()->validateToken($id, $token);
 	}
 
 	/**
