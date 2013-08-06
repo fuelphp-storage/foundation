@@ -136,18 +136,16 @@
 													<td><?php echo $e($k) ?></td>
 													<td>
 														<?php
-															if (
-																in_array($label.'-'.$k, array('Current Request-Parameters')) or
-																in_array($label, array('Permanent Session Data', 'Flash Session Data'))
-																)
+															if (function_exists('xdebug_var_dump') and (is_array($value) or is_object($value)))
 															{
 																ob_start();
 																var_dump($value);
-																echo ob_get_clean();
+																$value = ob_get_clean();
+																echo $value;
 															}
 															else
 															{
-																echo $e(print_r($value, true));
+																echo '<pre>',$e(print_r($value, true)),'</pre>';
 															}
 														?>
 													</td>

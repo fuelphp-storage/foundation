@@ -44,19 +44,12 @@ class Error extends Base
 
 			$pagehandler->addDataTableCallback('Current Request', function()
 			{
-				$request = \Request::getInstance();
-				$route = $request ? $request->getRoute() : null;
-				if ($route)
-				{
-					$params = $route->parameters;
-					array_shift($params);
-					ob_start();
-					var_dump($params);
-					$params = ob_get_clean();
-				}
-
 				$application = \Application::getInstance();
 				$environment = \Environment::getInstance();
+				$request     = \Request::getActive();
+				$route = $request ? $request->getRoute() : null;
+				$parameters = $route ? $route->parameters : array();
+				array_shift($parameters);
 
 				return array(
 					'Application'  => $application ? $application->getName() : '',
@@ -67,7 +60,7 @@ class Error extends Base
 					'Controller'   => $route ? get_class($route->controller) : '',
 					'Action'       => $route ? 'action'.$route->action : '',
 					'HTTP Method'  => $request ? \Input::getMethod() : '',
-					'Parameters'   => $route ? $params : '',
+					'Parameters'   => $parameters,
 				);
 			});
 			$pagehandler->addDataTableCallback('Request Parameters', function()
