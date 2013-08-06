@@ -44,9 +44,11 @@ class Error extends Base
 
 			$pagehandler->addDataTableCallback('Current Request', function()
 			{
-				if ($request = \Request::getInstance())
+				$request = \Request::getInstance();
+				$route = $request ? $request->getRoute() : null;
+				if ($route)
 				{
-					$params = $request->getRoute()->parameters;
+					$params = $route->parameters;
 					array_shift($params);
 					ob_start();
 					var_dump($params);
@@ -59,13 +61,13 @@ class Error extends Base
 				return array(
 					'Application'  => $application ? $application->getName() : '',
 					'Environment'  => $environment ? $environment->getName() : '',
-					'Original URI' => $request ? $request->getRoute()->uri : '',
-					'Mapped URI'   => $request ? $request->getRoute()->translation : '',
-					'Namespace'    => $request ? $request->getRoute()->namespace : '',
-					'Controller'   => $request ? get_class($request->getRoute()->controller) : '',
-					'Action'       => $request ? 'action'.$request->getRoute()->action : '',
+					'Original URI' => $route ? $route->uri : '',
+					'Mapped URI'   => $route ? $route->translation : '',
+					'Namespace'    => $route ? $route->namespace : '',
+					'Controller'   => $route ? get_class($route->controller) : '',
+					'Action'       => $route ? 'action'.$route->action : '',
 					'HTTP Method'  => $request ? \Input::getMethod() : '',
-					'Parameters'   => $request ? $params : '',
+					'Parameters'   => $route ? $params : '',
 				);
 			});
 			$pagehandler->addDataTableCallback('Request Parameters', function()
