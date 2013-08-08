@@ -79,9 +79,16 @@ class Session extends Base
 		// create the session manager
 		$manager = \Dependency::resolve('session', array($driver, $config));
 
-		// if a default session was forged, assign it to the application
+		// if a default session was forged
 		if (empty($custom) and $app == \Application::getInstance())
 		{
+			if ($session = $app->getSession())
+			{
+				// reuse the one attached to the application
+				return $session;
+			}
+
+			// assign the new one to the application
 			$app->setSession($manager);
 		}
 
