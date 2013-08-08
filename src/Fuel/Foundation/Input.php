@@ -87,7 +87,7 @@ class Input
 	protected $cli;
 
 	/**
-	 * @var  Fuel\Common\DataContainer  Cookie
+	 * @var  Fuel\Common\CookieJar  Cookie
 	 *
 	 * @since  2.0.0
 	 */
@@ -141,12 +141,12 @@ class Input
 		isset($inputVars['requestBody'])
 			and $this->requestBody = $inputVars['requestBody'];
 
-		$this->server  = \Dependency::resolve('datacontainer', $this->server ?: array());
-		$this->param   = \Dependency::resolve('datacontainer', $this->param ?: array());
-		$this->query   = \Dependency::resolve('datacontainer', $this->query ?: array());
-		$this->cookie  = \Dependency::resolve('datacontainer', $this->cookie ?: array());
-		$this->files   = \Dependency::resolve('datacontainer', $this->files ?: array());
-		$this->cli     = \Dependency::resolve('datacontainer', $this->cli ?: array());
+		$this->server  = \Dependency::resolve('datacontainer', array($this->server ?: array()));
+		$this->param   = \Dependency::resolve('datacontainer', array($this->param ?: array()));
+		$this->query   = \Dependency::resolve('datacontainer', array($this->query ?: array()));
+		$this->files   = \Dependency::resolve('datacontainer', array($this->files ?: array()));
+		$this->cli     = \Dependency::resolve('datacontainer', array($this->cli ?: array()));
+		$this->cookie  = \Dependency::resolve('cookiejar', array(array(), $this->cookie ?: array()));
 
 		$this->parent = $parent instanceof self ? $parent : null;
 
@@ -155,9 +155,9 @@ class Input
 			$this->server->setParent($this->parent->getServer());
 			$this->param->setParent($this->parent->getParam());
 			$this->query->setParent($this->parent->getQuery());
-			$this->cookie->setParent($this->parent->getCookie());
 			$this->files->setParent($this->parent->getFile());
 			$this->cli->setParent($this->parent->getCli());
+			$this->cookie->setParent($this->parent->getCookie());
 		}
 
 		isset($inputVars['method'])
@@ -236,11 +236,11 @@ class Input
 		in_array('uriVars', $vars)
 			and $this->query->setContents($_GET);
 
-		in_array('cookie', $vars)
-			and $this->cookie->setContents($_COOKIE);
-
 		in_array('files', $vars)
 			and $this->files->setContents($_FILES);
+
+		in_array('cookie', $vars)
+			and $this->cookie->merge($_COOKIE);
 
 		return $this;
 	}
