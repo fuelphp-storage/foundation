@@ -124,7 +124,7 @@ class Application extends Base
 	 */
 	public static function getInstance()
 	{
-		if ($request = \Request::getInstance())
+		if ($request = \Request::getActive())
 		{
 			return $request->getApplication();
 		}
