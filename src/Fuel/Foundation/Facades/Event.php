@@ -22,13 +22,24 @@ use Fuel\Event\Container;
 class Event extends Base
 {
 	/**
+	 * @var global event instance
+	 */
+	protected static $mainEvent;
+
+	/**
 	 * Get a new Container instance.
 	 *
 	 * @return  Fuel\Event\Container  new Event Container instance
 	 */
 	public static function forge()
 	{
-		return \Dependency::resolve('event');
+		$event = \Dependency::resolve('event');
+		if (static::$mainEvent === null)
+		{
+			static::$mainEvent = $event;
+		}
+
+		return $event;
 	}
 
 	/**
@@ -44,6 +55,6 @@ class Event extends Base
 			return $request->getApplication()->getEvent();
 		}
 
-		return null;
+		return static::$mainEvent;
 	}
 }
