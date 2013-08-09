@@ -148,7 +148,7 @@ class Application
 		// setup the applications event manager
 		$this->event = \Event::forge();
 
-		//
+		// setup a shutdown event for this application
 		register_shutdown_function(function($event) { $event->trigger('shutdown', $this); }, $this->event);
 
 		// load the session config
@@ -164,7 +164,7 @@ class Application
 			$this->session->start();
 
 			// and make sure it ends too
-			$this->event->on('shutdown', function($event, $app) { $app->getSession()->stop(); });
+			$this->event->on('shutdown', function($event) { $this->getSession()->stop(); }, $this);
 		}
 
 		// create the view manager instance for this application
