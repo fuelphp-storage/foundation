@@ -382,7 +382,7 @@ class Application
 		$uri === null and $uri = \Input::getInstance()->getPathInfo();
 
 		// log the request
-		$this->log->info('Application "'.$this->appName.'" is creating new Request for URI: '.(empty($uri) ? '/' : $uri));
+		$this->log->info('Application "'.$this->appName.'" is creating new "'.\Input::getMethod().'" Request for URI: '.(empty($uri) ? '/' : $uri));
 
 		// forge a new request
 		return \Request::forge($this, \Security::cleanUri($uri), $input);
