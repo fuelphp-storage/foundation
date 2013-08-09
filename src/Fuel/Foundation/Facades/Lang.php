@@ -20,42 +20,18 @@ namespace Fuel\Foundation\Facades;
 class Lang extends Base
 {
 	/**
-	 * @var  array  Container to store loaded containers per language code
-	 */
-	protected static $container = array();
-
-	/**
 	 * Forge a new language object
 	 *
-	 * @param  $language  name of the object
-	 * @param  $name      name of the object
+	 * @param  $name      name of the instance
 	 *
 	 * @returns	Config
 	 *
 	 * @since  2.0.0
 	 */
-	public static function forge($language = null, $name = null)
+	public static function forge($name)
 	{
-		// get the defined current language if no language is passed
-		if ($language === null)
-		{
-			$config = \Config::load('lang', true);
-			$language = \Config::get('lang.current', \Config::get('lang.fallback', 'en'));
-		}
-
-		// get the application name if no name is passed
-		if ($name === null)
-		{
-			$name = \Application::getActive()->getName();
-		}
-
-		if ( ! isset(static::$container[$language.'-'.$name]))
-		{
-			static::$container[$language.'-'.$name] = \Dependency::resolve('config');
-			static::$container[$language.'-'.$name]->addPath(\Application::getActive()->getPath().'lang'.DS.$language.DS);
-		}
-
-		return static::$container[$language.'-'.$name];
+		$instance = \Dependency::multiton('config', $name);
+		return $instance;
 	}
 
 	/**
@@ -164,6 +140,6 @@ class Lang extends Base
 	 */
 	public static function getInstance($lang = null)
 	{
-		return static::forge($lang);
+		return \Application::getInstance()->getLanguage($lang);
 	}
 }

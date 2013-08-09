@@ -11,6 +11,7 @@
 namespace Fuel\Foundation;
 
 use Fuel\Session\Manager as SessionManager;
+use Fuel\Config\Container as ConfigContainer;
 
 /**
  * Application Base class
@@ -71,6 +72,13 @@ class Application
 	 * @since  2.0.0
 	 */
 	protected $config;
+
+	/**
+	 * @var  array  this applications list of languages objects
+	 *
+	 * @since  2.0.0
+	 */
+	protected $languages = array();
 
 	/**
 	 * @var  Fuel/Session/Manager  this applications session object
@@ -138,6 +146,9 @@ class Application
 
 		// load the file config
 		$this->config->load('file', true);
+
+		// load the lang config
+		$this->config->load('lang', true);
 
 		// create the environment for this application
 		$this->env = \Environment::forge($this, $environment);
@@ -382,6 +393,41 @@ class Application
 	}
 
 	/**
+	 * Return a language container instance
+	 *
+	 * @return  Fuel\Config\Container
+	 *
+	 * @since  2.0.0
+	 */
+	public function getLanguage($language = null)
+	{
+		if ($language === null)
+		{
+			$language = $this->config->get('lang.current', $this->config->get('lang.fallback', 'en'));
+		}
+
+		if ( ! isset($this->languages[$language]))
+		{
+			$this->languages[$language] = \Lang::forge($this->appName.'-'.$language);
+			$this->languages[$language]->addPath($this->appPath.'lang'.DS.$language.DS);
+		}
+
+		return $this->languages[$language];
+	}
+
+	/**
+	 * Set an applications language container instance
+	 *
+	 * @return  void
+	 *
+	 * @since  2.0.0
+	 */
+	public function setLanguage($language, ConfigContainer $instance)
+	{
+		$this->languages[$language] = $instance;
+	}
+
+	/**
 	 * Return the applications event manager
 	 *
 	 * @return  Fuel\Event\Container
@@ -435,6 +481,15 @@ class Application
 
 		// make sure longer prefixes are first in the list
 		krsort($this->appNamespaces);
+
+		// does this module have a bootstrap?
+		if (file_exists($file = $path.'bootstrap.php'))
+		{
+			$loadbootstrap = function($app, $__file__) {
+				return include $__file__;
+			};
+			$loadbootstrap($this, $file);
+		}
 
 		return $this;
 	}

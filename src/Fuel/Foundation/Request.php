@@ -134,7 +134,8 @@ class Request
 
 			// add the root path to the config, lang and view manager objects
 			$this->app->getViewManager()->getFinder()->addPath($this->route->path);
-			$this->app->getConfig()->addPath($this->route->path);
+			$this->app->getConfig()->addPath($this->route->path.'config'.DS);
+			$this->app->getLanguage()->addPath($this->route->path.'lang'.DS.\Lang::getActive().DS);
 
 			try
 			{
@@ -174,7 +175,8 @@ class Request
 		}
 
 		// remove the root path to the config, lang and view manager objects
-		$this->app->getConfig()->removePath($this->route->path);
+		$this->app->getLanguage()->removePath($this->route->path.'lang'.DS.\Lang::getActive().DS);
+		$this->app->getConfig()->removePath($this->route->path.'config'.DS);
 		$this->app->getViewManager()->getFinder()->removePath($this->route->path);
 
 		// log the request termination
