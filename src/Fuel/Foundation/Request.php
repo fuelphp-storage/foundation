@@ -10,6 +10,8 @@
 
 namespace Fuel\Foundation;
 
+use Fuel\Foundation\Exception\NotFound;
+
 /**
  * FuelPHP Request class
  *
@@ -127,8 +129,12 @@ class Request
 		{
 			if ( ! is_callable($this->route->controller))
 			{
-				throw new \DomainException('The Controller returned by routing is not callable.');
+				throw new NotFound('The Controller returned by routing is not callable.');
 			}
+
+			// add the root path to the config, lang and view manager objects
+			$this->app->getViewManager()->getFinder()->addPath($this->route->path);
+			$this->app->getConfig()->addPath($this->route->path);
 
 			try
 			{
@@ -166,6 +172,10 @@ class Request
 			\Request::resetActive();
 			throw $e;
 		}
+
+		// remove the root path to the config, lang and view manager objects
+		$this->app->getConfig()->removePath($this->route->path);
+		$this->app->getViewManager()->getFinder()->removePath($this->route->path);
 
 		// log the request termination
 		\Log::info('Request executed');

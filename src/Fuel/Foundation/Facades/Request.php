@@ -56,6 +56,19 @@ class Request extends Base
 	 *
 	 * @since  2.0.0
 	 */
+	public static function isMainRequest()
+	{
+		// if we only have one request on the stack, we're in the main request
+		return count(static::$requestStack) === 1;
+	}
+
+	/**
+	 * get the current active request
+	 *
+	 * @return  RequestInstance
+	 *
+	 * @since  2.0.0
+	 */
 	public static function getActive()
 	{
 		return static::$request;

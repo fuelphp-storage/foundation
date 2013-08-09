@@ -38,13 +38,20 @@ class Presenter extends Base
 			$view = $presenter;
 		}
 
-		// TODO: determine the namespace
-		$namespace = '';
+		// get the root namespace if the correct controller
+		$namespace = \Request::getActive()->getRoute()->namespace;
+		$path = \Request::getActive()->getRoute()->path;
 
 		// get the segments from the presenter string passed
 		$segments = explode('/', $presenter);
 		while(count($segments))
 		{
+			$file = $path.'classes'.DS.'Presenter'.DS.implode('/', array_map('ucfirst', $segments)).'.php';
+			if (file_exists($file))
+			{
+				include $file;
+			}
+
 			$class = $namespace.'\\Presenter\\'.implode('\\', array_map('ucfirst', $segments));
 			if (class_exists($class))
 			{

@@ -45,6 +45,13 @@ class Application
 	protected $appNamespace;
 
 	/**
+	 * @var  array  namespace to location mappings
+	 *
+	 * @since  2.0.0
+	 */
+	protected $appNamespaces = array();
+
+	/**
 	 * @var  Environment  this applications environment object
 	 *
 	 * @since  2.0.0
@@ -112,6 +119,14 @@ class Application
 			throw new \InvalidArgumentException('Application path "'.$appPath.'" does not exist.');
 		}
 		$this->appPath = realpath($appPath).DS;
+
+		// store it in the application namespaces list
+		$this->appNamespaces[''] = array(
+			'prefix' => false,
+			'namespace' => $this->appNamespace,
+			'path' => $this->appPath,
+			'routeable' => true,
+		);
 
 		// setup the configuration container...
 		$this->config = \Config::forge($this->appName)
@@ -259,6 +274,18 @@ class Application
 	}
 
 	/**
+	 * Return the application namespaces
+	 *
+	 * @return  string
+	 *
+	 * @since  2.0.0
+	 */
+	public function getNamespaces()
+	{
+		return $this->appNamespaces;
+	}
+
+	/**
 	 * Return the application root path
 	 *
 	 * @return  string
@@ -386,5 +413,29 @@ class Application
 
 		// forge a new request
 		return \Request::forge($this, \Security::cleanUri($uri), $input);
+	}
+
+	/**
+	 */
+	public function addModule($prefix, $namespace, $path, $routeable = true)
+	{
+		if ( ! is_dir($path))
+		{
+			throw new \InvalidArgumentException('Module path "'.$path.'" does not exist.');
+		}
+		$path = realpath($path).DS;
+
+		// store it in the application namespaces list
+		$this->appNamespaces[$prefix] = array(
+			'prefix' => $prefix,
+			'namespace' => $namespace,
+			'path' => $path,
+			'routeable' => $routeable,
+		);
+
+		// make sure longer prefixes are first in the list
+		krsort($this->appNamespaces);
+
+		return $this;
 	}
 }

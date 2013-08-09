@@ -54,21 +54,51 @@ class Router extends Base
 		// resolve the route
 		$route = static::getInstance()->translate($uri, $method);
 
-		// TODO: namespace match first
-		$route->namespace = '';
-
-		// get the segments from the translated route
-		$segments = explode('/', $route->translation);
-		$arguments = array();
-		while(count($segments))
+		// find a match
+		foreach (\Application::getInstance()->getNamespaces() as $namespace)
 		{
-			$class = $route->namespace.'\\Controller\\'.implode('\\', array_map('ucfirst', $segments));
-			if (class_exists($class))
+			// skip non-routeable namespaces
+			if ( ! $namespace['routeable'] and \Request::isMainRequest())
 			{
-				$route->controller = new $class;
+				continue;
+			}
+
+			// skip if we don't have a prefix match
+			if ($namespace['prefix'] and strpos($route->translation, $namespace['prefix']) !== 0)
+			{
+				continue;
+			}
+
+			$route->namespace = $namespace['namespace'];
+
+			// get the segments from the translated route
+			$segments = explode('/', ltrim(substr($route->translation, strlen($namespace['prefix'])),'/'));
+
+			$arguments = array();
+			while(count($segments))
+			{
+				$file = $namespace['path'].'classes'.DS.'Controller'.DS.implode('/', array_map('ucfirst', $segments)).'.php';
+				if (file_exists($file))
+				{
+					include $file;
+				}
+
+				$class = $route->namespace.'\\Controller\\'.implode('\\', array_map('ucfirst', $segments));
+				if (class_exists($class))
+				{
+					$route->path = $namespace['path'];
+					$route->controller = new $class;
+					break;
+				}
+				array_unshift($arguments, array_pop($segments));
+			}
+
+			// did we find a match
+			if ($route->controller)
+			{
+				// then stop looking
 				break;
 			}
-			array_unshift($arguments, array_pop($segments));
 		}
 
 		// any segments left?

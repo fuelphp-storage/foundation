@@ -48,6 +48,7 @@ class Error extends Base
 				$environment = \Environment::getInstance();
 				$request     = \Request::getActive();
 				$route = $request ? $request->getRoute() : null;
+				$controller = $route ? $route->controller : null;
 				$parameters = $route ? $route->parameters : array();
 				array_shift($parameters);
 
@@ -57,8 +58,8 @@ class Error extends Base
 					'Original URI' => $route ? $route->uri : '',
 					'Mapped URI'   => $route ? $route->translation : '',
 					'Namespace'    => $route ? $route->namespace : '',
-					'Controller'   => $route ? get_class($route->controller) : '',
-					'Action'       => $route ? 'action'.$route->action : '',
+					'Controller'   => $controller ? get_class($controller) : '',
+					'Action'       => $controller ? ('action'.$route->action) : '',
 					'HTTP Method'  => $request ? \Input::getMethod() : '',
 					'Parameters'   => $parameters,
 				);
