@@ -167,7 +167,7 @@ class Request
 		catch (\Exception $e)
 		{
 			// log the request termination
-			\Log::info('Request executed, but failed');
+			\Log::info('Request executed, but failed: '.$e->getMessage());
 
 			// reset and rethrow
 			\Request::resetActive();
