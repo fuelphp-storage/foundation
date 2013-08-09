@@ -462,6 +462,14 @@ class Application
 	}
 
 	/**
+	 * Add a module to the application
+	 *
+	 * @param  string   URI prefix for this module
+	 * @param  string   root namespace for classes in this module
+	 * @param  string   the path to the root of the module
+	 * @param  boolean  whether or not this module is routable
+	 *
+	 * @return Application  for chaining
 	 */
 	public function addModule($prefix, $namespace, $path, $routeable = true)
 	{
@@ -492,5 +500,31 @@ class Application
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Add all modules in the given path to the application
+	 *
+	 * @param  string   the path to the root of the modules
+	 *
+	 * @return Application  for chaining
+	 */
+	public function addModulePath($path)
+	{
+		if ( ! is_dir($path))
+		{
+			throw new \InvalidArgumentException('Module path "'.$path.'" does not exist.');
+		}
+
+		$folder = new \GlobIterator(realpath($path).DS.'*', \GlobIterator::SKIP_DOTS | \GlobIterator::CURRENT_AS_PATHNAME);
+
+		foreach($folder as $entry)
+		{
+			// make sure it's a directory, and we have a classes folder
+			if (is_dir($entry) and is_dir($entry.DS.'classes'))
+			{
+				$this->addModule(basename($entry), ucfirst(basename($entry)), $entry, true);
+			}
+		}
 	}
 }
