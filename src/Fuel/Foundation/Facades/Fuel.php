@@ -134,7 +134,13 @@ class Fuel extends Base
 	public static function setLocale($locale)
 	{
 		static::$locale = $locale;
-		is_null(static::$locale) or setlocale(LC_ALL, static::$locale);
+		if (static::$locale !== null)
+		{
+			if ( ! setlocale(LC_ALL, static::$locale))
+			{
+				throw new \Exception('The locale "'.$locale.'" is not installed on this server');
+			}
+		}
 	}
 
 	/**
@@ -169,7 +175,7 @@ class Fuel extends Base
 		catch (\Exception $e)
 		{
 			date_default_timezone_set('UTC');
-			throw new \PHPErrorException($e->getMessage());
+			throw new \Exception($e->getMessage());
 		}
 	}
 
