@@ -171,8 +171,11 @@ class Date extends Base
 
 		$period = $difference == 1 ? $periods[$j] : \Inflector::pluralize($periods[$j]);
 
-		// TODO unit translations
-		$result = $difference.' '.$period;
+		\Lang::load('date', true);
+
+		$result = \Lang::get('date.text', array(
+			'time' => \Lang::get('date.'.$period, array('t' => $difference))
+		));
 
 		return $result;
 	}
