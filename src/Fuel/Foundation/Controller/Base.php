@@ -10,7 +10,7 @@
 
 namespace Fuel\Foundation\Controller;
 
-use Fuel\Foundation\Response;
+use Fuel\Foundation\Response\Base as Response;
 use Fuel\Foundation\Exception\NotFound;
 
 /**
@@ -53,6 +53,13 @@ abstract class Base
 	protected $response;
 
 	/**
+	 * @var  string  The format of the response this controller returns
+	 *
+	 * @since  1.0.0
+	 */
+	protected $responseFormat = 'html';
+
+	/**
 	 * Makes the Controller instance executable, must be given the URI segments to continue
 	 *
 	 * @param    array  $args
@@ -69,7 +76,13 @@ abstract class Base
 		$this->route = array_shift($args);
 
 		// And create a response object
-		$this->response = \Dependency::resolve('response', array(\Application::getInstance()));
+		if (empty($this->responseFormat))
+		{
+			$this->responseFormat = 'html';
+		}
+		$this->initialResponseFormat = $this->responseFormat;
+
+		$this->response = \Dependency::resolve('response.'.$this->responseFormat, array(\Application::getInstance()));
 
 		// Determine the method to call
 		$action = $this->route->action ?: $this->defaultAction;
@@ -140,6 +153,7 @@ abstract class Base
 	 */
 	protected function after($response)
 	{
+		// make sure we have a valid response object
 		if ( ! $response instanceof Response)
 		{
 			$this->response->setContent($response);
@@ -147,6 +161,13 @@ abstract class Base
 		elseif ($response !== null)
 		{
 			$this->response = $response;
+		}
+
+		// do we need to repackage the response?
+		if ($this->responseFormat !== $this->initialResponseFormat)
+		{
+			$response = \Dependency::resolve('response.'.$this->responseFormat, array(\Application::getInstance()));
+			$this->response = $response->setContent($this->response->getContent());
 		}
 	}
 }

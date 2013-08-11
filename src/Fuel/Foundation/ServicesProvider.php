@@ -11,7 +11,9 @@
 namespace Fuel\Foundation;
 
 use Fuel\Foundation\Request\Local as LocalRequest;
+
 use Fuel\Foundation\Response\Html as HtmlResponse;
+use Fuel\Foundation\Response\Json as JsonResponse;
 
 use Fuel\Dependency\ServiceProvider;
 
@@ -31,7 +33,7 @@ class ServicesProvider extends ServiceProvider
 	 */
 	public $provides = array(
 		'application', 'environment', 'input', 'log',
-		'response', 'response.html',
+		'response', 'response.html', 'response.json',
 		'request', 'request.local',
 	);
 
@@ -58,16 +60,22 @@ class ServicesProvider extends ServiceProvider
 			return new Input($app, $inputVars, $parent);
 		});
 
-		// \Fuel\Foundation\Response
+		// \Fuel\Foundation\Response\Html
 		$this->register('response', function ($dic, $app, $content = '', $status = 200, array $headers = array())
 		{
 			return new HtmlResponse($app, $content, $status, $headers);
 		});
 
-		// \Fuel\Foundation\Response
+		// \Fuel\Foundation\Response\Html
 		$this->register('response.html', function ($dic, $app, $content = '', $status = 200, array $headers = array())
 		{
 			return new HtmlResponse($app, $content, $status, $headers);
+		});
+
+		// \Fuel\Foundation\Response\Json
+		$this->register('response.json', function ($dic, $app, $content = '', $status = 200, array $headers = array())
+		{
+			return new JsonResponse($app, $content, $status, $headers);
 		});
 
 		// \Fuel\Foundation\Request\Local

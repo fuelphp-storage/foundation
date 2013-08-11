@@ -107,33 +107,33 @@ abstract class Base
 	 *
 	 * @since  1.0.0
 	 */
-	public $headers = array();
+	protected $headers = array();
 
 	/**
 	 * @var  string  The content of the response
 	 *
 	 * @since  1.0.0
 	 */
-	public $content;
+	protected $content;
 
 	/**
 	 * @var  string  mime type of the return body
 	 */
-	public $contentType = 'text/html';
+	protected $contentType = 'text/html';
 
 	/**
 	 * @var  string  The charset used for the response
 	 *
 	 * @since  2.0.0
 	 */
-	public $charset;
+	protected $charset;
 
 	/**
 	 * @var  \Fuel\Kernel\Request\Base
 	 *
 	 * @since  2.0.0
 	 */
-	public $request;
+	protected $request;
 
 	/**
 	 * Constructor
@@ -232,10 +232,9 @@ abstract class Base
 	 *
 	 * @since  2.0.0
 	 */
-	public function setContent($content, $mimeType = null)
+	public function setContent($content)
 	{
 		$this->content = $content;
-		$mimeType and $this->setContentType($mimeType);
 		return $this;
 	}
 

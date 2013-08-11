@@ -11,7 +11,7 @@
 namespace Fuel\Foundation\Response;
 
 /**
- * FuelPHP HTMl response class
+ * FuelPHP Json response class
  *
  * Standardized response on any request initiated
  *
@@ -19,12 +19,12 @@ namespace Fuel\Foundation\Response;
  *
  * @since  2.0.0
  */
-class Html extends Base
+class Json extends Base
 {
 	/**
 	 * @var  string  mime type of the return body
 	 */
-	protected $contentType = 'text/html';
+	protected $contentType = 'application/json';
 
 	/**
 	 * Send the content to the output
@@ -49,27 +49,22 @@ class Html extends Base
 	 */
 	public function __toString()
 	{
-		// special treatment for integers and floats
-		if (is_numeric($this->content))
+		$content = $this->content;
+
+		if (is_object($content) and is_callable(array($content, '__toString')))
 		{
-			$content = (string) $this->content;
+			$content = (string) $content;
 		}
 
-		// objects with a toString method
-		elseif (is_object($this->content) and is_callable(array($this->content, '__toString')))
+		if ( ! is_array($content) and ! is_object($content))
 		{
-			$content = (string) $this->content;
+			$type = gettype($content);
+			if ( ! $content = json_decode($content))
+			{
+				$content = array('ERROR' => 'Data type \''.$type.'\', passed to the JSON Response, was not recognized as valid JSON.');
+			}
 		}
 
-		// and all other non-string values
-		elseif ( ! is_string($content = $this->content))
-		{
-			// this var_dump() is here intentionally !
-			ob_start();
-			var_dump($content);
-			$content = html_entity_decode(ob_get_clean());
-		}
-
-		return $content;
+		return json_encode($content);
 	}
 }
