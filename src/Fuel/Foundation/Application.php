@@ -129,7 +129,7 @@ class Application
 		$this->appPath = realpath($appPath).DS;
 
 		// store it in the application namespaces list
-		$this->appNamespaces[''] = array(
+		$this->appNamespaces[$this->appNamespace] = array(
 			'prefix' => false,
 			'namespace' => $this->appNamespace,
 			'path' => $this->appPath,
@@ -224,7 +224,7 @@ class Application
 		$this->router = \Router::forge($this);
 
 		// and load any defined routes
-		$this->loadRoutes($this->appPath);
+		$this->loadRoutes($this->appPath, $this->appNamespaces[$this->appNamespace]);
 
 		// log we're alive!
 		$this->log->info('Application "'.$this->appName.'" initialized.');
@@ -480,7 +480,7 @@ class Application
 		krsort($this->appNamespaces);
 
 		// and load any defined routes in this module
-		$this->loadRoutes($path);
+		$this->loadRoutes($path, $this->appNamespaces[$prefix]);
 
 		// does this module have a bootstrap?
 		if (file_exists($file = $path.'bootstrap.php'))
@@ -524,15 +524,18 @@ class Application
 	 * Import routes from the given path's config folder, it defined
 	 *
 	 * @param  string  path to an app/module/package root
+	 * @param  array   information about the environment these routes are defined in
+	 *
+	 * @return  bool  Whether or not the path had routes defined
 	 */
-	protected function loadRoutes($path)
+	protected function loadRoutes($path, Array $config = array())
 	{
 		if (file_exists($path = $path.'config'.DS.'routes.php'))
 		{
-			$loadroutes = function($router, $__file__) {
+			$loadroutes = function($router, $config, $__file__) {
 				return include $__file__;
 			};
-			$routes = $loadroutes($this->router, $path);
+			$routes = $loadroutes($this->router, $config, $path);
 
 			if (is_array($routes))
 			{
