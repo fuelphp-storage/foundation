@@ -108,7 +108,7 @@ class Request
 		$this->route = \Router::translate($this->requestUri, \Input::getInstance()->getMethod() );
 
 		// log the request destination
-		\Log::info('Request routed to '.$this->route->translation);
+		\Log::info($this->route->method.' request routed to '.$this->route->translation);
 
 		// store the request parameters
 		$this->params = array_merge($this->params, $this->route->parameters);
@@ -119,18 +119,15 @@ class Request
 			$this->route->parameters = array_merge($this->route->parameters, $this->route->segments);
 		}
 
-		// push the action
-		array_unshift($this->route->parameters, $this->route->action);
-
-		// push the current app object so we have it available in the controller
-		array_unshift($this->route->parameters, $this->app);
-
 		try
 		{
 			if ( ! is_callable($this->route->controller))
 			{
 				throw new NotFound('The Controller returned by routing is not callable.');
 			}
+
+			// push the route so we have access to it in the controller
+			array_unshift($this->route->parameters, $this->route);
 
 			// add the root path to the config, lang and view manager objects
 			$this->app->getViewManager()->getFinder()->addPath($this->route->path);

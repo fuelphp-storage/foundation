@@ -39,25 +39,11 @@ abstract class Base
 	protected $actionPrefix = 'action';
 
 	/**
-	 * @var  Application  app that created this request
-	 *
-	 * @since  2.0.0
-	 */
-	protected $app;
-
-	/**
-	 * @var  Fuel\Display\ViewManager  this apps ViewManager
-	 *
-	 * @since  2.0.0
-	 */
-	protected $viewManager;
-
-	/**
-	 * @var  Request
+	 * @var  Fuel\Routing\Match  the route that led us to this controller
 	 *
 	 * @since  1.0.0
 	 */
-	protected $request;
+	protected $route;
 
 	/**
 	 * @var  Response
@@ -65,6 +51,46 @@ abstract class Base
 	 * @since  1.0.0
 	 */
 	protected $response;
+
+	/**
+	 * Makes the Controller instance executable, must be given the URI segments to continue
+	 *
+	 * @param    array  $args
+	 *
+	 * @throws  Request\Exception\NotFound
+	 *
+	 * @return  Response
+	 *
+	 * @since  2.0.0
+	 */
+	public function __invoke(array $args)
+	{
+		// get the route that got us here
+		$this->route = array_shift($args);
+
+		// And create a response object
+		$this->response = \Dependency::resolve('response', array(\Application::getInstance()));
+
+		// Determine the method to call
+		$action = $this->route->action ?: $this->defaultAction;
+		if ( ! is_callable(array($this, $method = strtolower($this->route->method).$action)))
+		{
+			if ( ! is_callable(array($this, $method = $this->actionPrefix.$action)))
+			{
+				throw new NotFound('No such action "'.$action.'" found in Controller: \\'.get_class($this));
+			}
+		}
+
+		 // only public methods can be called via a request
+		$method = new \ReflectionMethod($this, $method);
+		if ( ! $method->isPublic())
+		{
+			throw new NotFound('Unavailable action "'.$method.'" in Controller: \\'.get_class($this));
+		}
+
+		// execute the request
+		return $this->execute($method, $args);
+	}
 
 	/**
 	 * Executes the given method and returns a Response object
@@ -76,7 +102,7 @@ abstract class Base
 	 *
 	 * @since  2.0.0
 	 */
-	public function execute($method, array $args = array())
+	protected function execute($method, array $args = array())
 	{
 		! $method instanceof \ReflectionMethod and $method = new \ReflectionMethod($this, $method);
 
@@ -118,52 +144,9 @@ abstract class Base
 		{
 			$this->response->setContent($response);
 		}
-		else
+		elseif ($response !== null)
 		{
 			$this->response = $response;
 		}
-	}
-
-	/**
-	 * Makes the Controller instance executable, must be given the URI segments to continue
-	 *
-	 * @param    array  $args
-	 *
-	 * @throws  Request\Exception\NotFound
-	 *
-	 * @return  Response
-	 *
-	 * @since  2.0.0
-	 */
-	public function __invoke(array $args)
-	{
-		// Assign the most relevant objects to the Controller
-		$this->app = array_shift($args);
-		$this->viewManager = $this->app->getViewManager();
-
-		// And create the Request/Response objects
-		$this->request = \Request::getInstance();
-		$this->response = \Dependency::resolve('response', array($this->app));
-
-		// Determine the method
-// CHECKME - do we need to camelcase the action?
-		$method = $this->actionPrefix.(array_shift($args) ?: $this->defaultAction);
-
-		// Return false if it doesn't exist
-		if ( ! method_exists($this, $method))
-		{
-			throw new NotFound('No such action "'.$method.'" in Controller: \\'.get_class($this));
-		}
-
-		/**
-		 * Return false if the method isn't public
-		 */
-		$method = new \ReflectionMethod($this, $method);
-		if ( ! $method->isPublic())
-		{
-			throw new NotFound('Unavailable action "'.$method.'" in Controller: \\'.get_class($this));
-		}
-
-		return $this->execute($method, $args);
 	}
 }

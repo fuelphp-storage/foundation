@@ -108,7 +108,7 @@ class Router extends Base
 		}
 
 		// more? return them as additional segments
-		$route->segments = empty($segments) ? array() : $segments;
+		$route->segments = empty($arguments) ? array() : $arguments;
 
 		return $route;
 	}
