@@ -14,6 +14,9 @@ use Fuel\Foundation\Request\Local as LocalRequest;
 
 use Fuel\Foundation\Response\Html as HtmlResponse;
 use Fuel\Foundation\Response\Json as JsonResponse;
+use Fuel\Foundation\Response\Jsonp as JsonpResponse;
+use Fuel\Foundation\Response\Csv as CsvResponse;
+use Fuel\Foundation\Response\Xml as XmlResponse;
 
 use Fuel\Dependency\ServiceProvider;
 
@@ -33,7 +36,7 @@ class ServicesProvider extends ServiceProvider
 	 */
 	public $provides = array(
 		'application', 'environment', 'input', 'log',
-		'response', 'response.html', 'response.json',
+		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml',
 		'request', 'request.local',
 	);
 
@@ -76,6 +79,24 @@ class ServicesProvider extends ServiceProvider
 		$this->register('response.json', function ($dic, $app, $content = '', $status = 200, array $headers = array())
 		{
 			return new JsonResponse($app, $content, $status, $headers);
+		});
+
+		// \Fuel\Foundation\Response\Jsonp
+		$this->register('response.jsonp', function ($dic, $app, $content = '', $status = 200, array $headers = array())
+		{
+			return new JsonpResponse($app, $content, $status, $headers);
+		});
+
+		// \Fuel\Foundation\Response\Csv
+		$this->register('response.csv', function ($dic, $app, $content = '', $status = 200, array $headers = array())
+		{
+			return new CsvResponse($app, $content, $status, $headers);
+		});
+
+		// \Fuel\Foundation\Response\Xml
+		$this->register('response.xml', function ($dic, $app, $content = '', $status = 200, array $headers = array())
+		{
+			return new XmlResponse($app, $content, $status, $headers);
 		});
 
 		// \Fuel\Foundation\Request\Local

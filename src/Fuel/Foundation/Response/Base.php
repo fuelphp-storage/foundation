@@ -136,6 +136,13 @@ abstract class Base
 	protected $request;
 
 	/**
+	 * @var  \Fuel\Common\Format
+	 *
+	 * @since  2.0.0
+	 */
+	protected $format;
+
+	/**
 	 * Constructor
 	 *
 	 * @param  string  $content
@@ -148,6 +155,7 @@ abstract class Base
 	{
 		$this->app = $app;
 		$this->request = \Request::getInstance();
+		$this->format = \Format::getInstance();
 
 		$this->setContent($content);
 		$this->setStatusCode($status);

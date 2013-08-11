@@ -46,6 +46,7 @@ class Config extends Base
 		{
 			$name = ($app = \Application::getActive()) ? $app->getName() : '__default__';
 		}
+
 		return \Dependency::multiton('config', $name);
 	}
 

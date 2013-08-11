@@ -32,4 +32,16 @@ class Format extends Base
 	{
 		return \Dependency::resolve('format', array($data, $from_type, \Config::load('format', true) ?: array(), \Input::getInstance()));
 	}
+
+	/**
+	 * Get the default instance for this Facade
+	 *
+	 * @return  Fuel\Event\Queue
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getInstance()
+	{
+		return static::forge();
+	}
 }

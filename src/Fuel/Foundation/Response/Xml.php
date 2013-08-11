@@ -11,7 +11,7 @@
 namespace Fuel\Foundation\Response;
 
 /**
- * FuelPHP Json response class
+ * FuelPHP XML response class
  *
  * Standardized response on any request initiated
  *
@@ -19,12 +19,12 @@ namespace Fuel\Foundation\Response;
  *
  * @since  2.0.0
  */
-class Json extends Base
+class Xml extends Base
 {
 	/**
 	 * @var  string  mime type of the return body
 	 */
-	protected $contentType = 'application/json';
+	protected $contentType = 'text/xml';
 
 	/**
 	 * Send the content to the output
@@ -65,6 +65,6 @@ class Json extends Base
 			}
 		}
 
-		return $this->format->toJson($content);
+		return $this->format->toXml($content);
 	}
 }
