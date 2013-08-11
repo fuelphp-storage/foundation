@@ -28,9 +28,19 @@ class Response extends Base
 	 *
 	 * @return  Response
 	 */
-	public static function forge($body = null, $status = 200, array $headers = array())
+	public static function forge($body = null, $status = 200, array $headers = array(), $type = null)
 	{
-		$response = \Dependency::resolve('response', array(\Application::getInstance(), $body, $status, $headers));
+		if (! empty($type) and is_string($type) and substr($type,0,1) !== '.')
+		{
+			$type = '.'.$type;
+		}
+		else
+		{
+			// default to an HTML response
+			$type = '.html';
+		}
+
+		$response = \Dependency::resolve('response'.$type, array(\Application::getInstance(), $body, $status, $headers));
 
 		return $response;
 	}

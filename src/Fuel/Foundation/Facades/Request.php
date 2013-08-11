@@ -11,7 +11,7 @@
 namespace Fuel\Foundation\Facades;
 
 use Fuel\Foundation\Application as AppInstance;
-use Fuel\Foundation\Request as RequestInstance;
+use Fuel\Foundation\Request\Base as RequestBase;
 
 /**
  * Request Facade class
@@ -37,16 +37,57 @@ class Request extends Base
 	protected static $request;
 
 	/**
-	 * Forge a new environment object
+	 * Forge a new request object
 	 *
-	 * @param  Application  $app  Application object on which to forge this environment
-	 * @param  string  $enviroment  Name of the current environment
+	 * @param  string  $resource  The resource to request
+	 * @param  array   $input  Optional custom input for this request
+	 * @param  string  $type  Type of request to load
 	 *
 	 * @since  2.0.0
 	 */
-	public static function forge(AppInstance $app, $uri, Array $input = array())
+	public static function forge($resource, Array $input = array(), $type = null)
 	{
-		return \Dependency::resolve('request', array($app, $uri, $input));
+		$app = \Application::getInstance();
+
+		// if no type is given, auto-detect the type
+		if ($type === null)
+		{
+			// determine the type of request
+			if (empty($resource) or substr($resource,0,1) == '/')
+			{
+				// URI only, so it's an local request
+				$resource  = '/'.trim(strval($resource), '/');
+				$type = '.local';
+			}
+			else
+			{
+				$url = parse_url($resource = rtrim($resource, '/').'/');
+
+				// http request for this current base url?
+				if (strpos($resource, $app->getEnvironment()->getBaseUrl()) === 0)
+				{
+					// request for the current base URL, so it's a local request too
+					$resource  = empty($url['path']) ? '/' : $url['path'];
+					$type = '.local';
+				}
+				else
+				{
+					// external URL, use the Curl request driver
+					$type = '.curl';
+				}
+			}
+		}
+		elseif (is_string($type) and ! empty($type) and substr($type,0,1) !== '.')
+		{
+			$type = '.'.$type;
+		}
+		else
+		{
+			// default to local
+			$type = '.local';
+		}
+
+		return \Dependency::resolve('request'.$type, array($app, $resource, $input));
 	}
 
 	/**
@@ -83,7 +124,7 @@ class Request extends Base
 	 *
 	 * @since  2.0.0
 	 */
-	public static function setActive(RequestInstance $request = null)
+	public static function setActive(RequestBase $request = null)
 	{
 		static::$requestStack->push($request);
 		static::$request = $request;

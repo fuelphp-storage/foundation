@@ -447,7 +447,7 @@ class Application
 		$this->log->info('Application "'.$this->appName.'" is creating new "'.\Input::getMethod().'" Request for URI: '.(empty($uri) ? '/' : $uri));
 
 		// forge a new request
-		return \Request::forge($this, \Security::cleanUri($uri), $input);
+		return \Request::forge(\Security::cleanUri($uri), $input);
 	}
 
 	/**

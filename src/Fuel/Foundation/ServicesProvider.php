@@ -10,6 +10,9 @@
 
 namespace Fuel\Foundation;
 
+use Fuel\Foundation\Request\Local as LocalRequest;
+use Fuel\Foundation\Response\Html as HtmlResponse;
+
 use Fuel\Dependency\ServiceProvider;
 
 /**
@@ -27,7 +30,9 @@ class ServicesProvider extends ServiceProvider
 	 * @var  array  list of service names provided by this provider
 	 */
 	public $provides = array(
-		'application', 'environment', 'input', 'request', 'response', 'log'
+		'application', 'environment', 'input', 'log',
+		'response', 'response.html',
+		'request', 'request.local',
 	);
 
 	/**
@@ -53,16 +58,28 @@ class ServicesProvider extends ServiceProvider
 			return new Input($app, $inputVars, $parent);
 		});
 
-		// \Fuel\Foundation\Request
-		$this->register('request', function ($dic, $app, $resource = '', $input = null)
-		{
-			return new Request($app, $resource, $input);
-		});
-
 		// \Fuel\Foundation\Response
 		$this->register('response', function ($dic, $app, $content = '', $status = 200, array $headers = array())
 		{
-			return new Response($app, $content, $status, $headers);
+			return new HtmlResponse($app, $content, $status, $headers);
+		});
+
+		// \Fuel\Foundation\Response
+		$this->register('response.html', function ($dic, $app, $content = '', $status = 200, array $headers = array())
+		{
+			return new HtmlResponse($app, $content, $status, $headers);
+		});
+
+		// \Fuel\Foundation\Request\Local
+		$this->register('request', function ($dic, $app, $resource = '', $input = null)
+		{
+			return new LocalRequest($app, $resource, $input);
+		});
+
+		// \Fuel\Foundation\Request\Local
+		$this->register('request.local', function ($dic, $app, $resource = '', $input = null)
+		{
+			return new LocalRequest($app, $resource, $input);
 		});
 
 		/**

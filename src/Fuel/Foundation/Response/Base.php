@@ -8,10 +8,10 @@
  * @link       http://fuelphp.com
  */
 
-namespace Fuel\Foundation;
+namespace Fuel\Foundation\Response;
 
 /**
- * FuelPHP Response class
+ * FuelPHP base response class
  *
  * Standardized response on any request initiated
  *
@@ -19,10 +19,10 @@ namespace Fuel\Foundation;
  *
  * @since  2.0.0
  */
-class Response
+abstract class Base
 {
 	/**
-	 * @var  Application  app that created this request
+	 * @var  Application  app that created this response
 	 *
 	 * @since  2.0.0
 	 */
@@ -328,20 +328,6 @@ class Response
 	}
 
 	/**
-	 * Send the content to the output
-	 *
-	 * @return  Response
-	 *
-	 * @since  2.0.0
-	 */
-	public function sendContent()
-	{
-		echo $this->__toString();
-
-		return $this;
-	}
-
-	/**
 	 * Sends the headers if they haven't already been sent.
 	 *
 	 * @return  Response
@@ -393,35 +379,20 @@ class Response
 	}
 
 	/**
+	 * Send the content to the output
+	 *
+	 * @return  Response
+	 *
+	 * @since  2.0.0
+	 */
+	abstract public function sendContent();
+
+	/**
 	 * Returns the body as a string.
 	 *
 	 * @return  string
 	 *
 	 * @since  1.0.0
 	 */
-	public function __toString()
-	{
-		// special treatment for integers and floats
-		if (is_numeric($this->content))
-		{
-			$content = (string) $this->content;
-		}
-
-		// objects with a toString method
-		elseif (is_object($this->content) and is_callable(array($this->content, '__toString')))
-		{
-			$content = (string) $this->content;
-		}
-
-		// and all other non-string values
-		elseif ( ! is_string($content = $this->content))
-		{
-			// this var_dump() is here intentionally !
-			ob_start();
-			var_dump($content);
-			$content = html_entity_decode(ob_get_clean());
-		}
-
-		return $content;
-	}
+	abstract public function __toString();
 }
