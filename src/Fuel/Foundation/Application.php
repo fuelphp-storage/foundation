@@ -224,18 +224,7 @@ class Application
 		$this->router = \Router::forge($this);
 
 		// and load any defined routes
-		if (file_exists($path = $this->appPath.'config'.DS.'routes.php'))
-		{
-			$loadroutes = function($router, $__file__) {
-				return include $__file__;
-			};
-			$routes = $loadroutes($this->router, $path);
-
-			if (is_array($routes))
-			{
-				// TODO, process v1.x type route array
-			}
-		}
+		$this->loadRoutes($this->appPath);
 
 		// log we're alive!
 		$this->log->info('Application "'.$this->appName.'" initialized.');
@@ -490,6 +479,9 @@ class Application
 		// make sure longer prefixes are first in the list
 		krsort($this->appNamespaces);
 
+		// and load any defined routes in this module
+		$this->loadRoutes($path);
+
 		// does this module have a bootstrap?
 		if (file_exists($file = $path.'bootstrap.php'))
 		{
@@ -526,5 +518,30 @@ class Application
 				$this->addModule(basename($entry), ucfirst(basename($entry)), $entry, true);
 			}
 		}
+	}
+
+	/**
+	 * Import routes from the given path's config folder, it defined
+	 *
+	 * @param  string  path to an app/module/package root
+	 */
+	protected function loadRoutes($path)
+	{
+		if (file_exists($path = $path.'config'.DS.'routes.php'))
+		{
+			$loadroutes = function($router, $__file__) {
+				return include $__file__;
+			};
+			$routes = $loadroutes($this->router, $path);
+
+			if (is_array($routes))
+			{
+				// TODO, process v1.x type route array
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 }

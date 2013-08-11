@@ -121,7 +121,11 @@ class Request
 
 		try
 		{
-			if ( ! is_callable($this->route->controller))
+			if (empty($this->route->controller))
+			{
+				throw new NotFound('No route match has been found for this request.');
+			}
+			elseif ( ! is_callable($this->route->controller))
 			{
 				throw new NotFound('The Controller returned by routing is not callable.');
 			}
