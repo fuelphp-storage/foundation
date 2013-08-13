@@ -17,6 +17,7 @@ use Fuel\Foundation\Response\Json as JsonResponse;
 use Fuel\Foundation\Response\Jsonp as JsonpResponse;
 use Fuel\Foundation\Response\Csv as CsvResponse;
 use Fuel\Foundation\Response\Xml as XmlResponse;
+use Fuel\Foundation\Response\Redirect as RedirectResponse;
 
 use Fuel\Dependency\ServiceProvider;
 
@@ -36,7 +37,7 @@ class ServicesProvider extends ServiceProvider
 	 */
 	public $provides = array(
 		'application', 'environment', 'input', 'log',
-		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml',
+		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml', 'response.redirect',
 		'request', 'request.local',
 	);
 
@@ -97,6 +98,12 @@ class ServicesProvider extends ServiceProvider
 		$this->register('response.xml', function ($dic, $app, $content = '', $status = 200, array $headers = array())
 		{
 			return new XmlResponse($app, $content, $status, $headers);
+		});
+
+		// \Fuel\Foundation\Response\Redirect
+		$this->register('response.redirect', function ($dic, $app, $url = '', $method = 'location', $status = 302, array $headers = array())
+		{
+			return new RedirectResponse($app, $url, $method, $status, $headers);
 		});
 
 		// \Fuel\Foundation\Request\Local

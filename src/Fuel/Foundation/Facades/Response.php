@@ -28,21 +28,42 @@ class Response extends Base
 	 *
 	 * @return  Response
 	 */
-	public static function forge($body = null, $status = 200, array $headers = array(), $type = null)
+	public static function forge()
 	{
-		if (! empty($type) and is_string($type) and substr($type,0,1) !== '.')
+		if ($args = func_get_args())
 		{
-			$type = '.'.$type;
+			$type = array_shift($args);
+			if (! empty($type) and is_string($type) and substr($type,0,1) !== '.')
+			{
+				$type = '.'.$type;
+			}
+			else
+			{
+				// default to an HTML response
+				$type = '.html';
+			}
 		}
-		else
-		{
-			// default to an HTML response
-			$type = '.html';
-		}
+		array_unshift($args, \Application::getInstance());
 
-		$response = \Dependency::resolve('response'.$type, array(\Application::getInstance(), $body, $status, $headers));
+		$response = \Dependency::resolve('response'.$type, $args);
 
 		return $response;
+	}
+
+	/**
+	 * Creates an instance of the Response class
+	 *
+	 * @param   string  $body    The response body
+	 * @param   int     $status  The HTTP response status for this response
+	 * @param   array   $headers Array of HTTP headers for this reponse
+	 *
+	 * @return  Response
+	 */
+	public static function redirect()
+	{
+		$args = func_get_args();
+		array_unshift($args, 'redirect');
+		return call_user_func_array('static::forge', $args);
 	}
 
 }
