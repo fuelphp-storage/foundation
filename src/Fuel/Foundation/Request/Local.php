@@ -76,9 +76,11 @@ class Local extends Base
 			{
 				throw new NotFound('No route match has been found for this request.');
 			}
-			elseif ( ! is_callable($this->route->controller))
+
+			$controller = new $this->route->controller;
+			if ( ! is_callable($controller))
 			{
-				throw new NotFound('The Controller returned by routing is not callable.');
+				throw new NotFound('The Controller returned by routing is not callable. Does it extend a base controller?');
 			}
 
 			// push the route so we have access to it in the controller
@@ -92,7 +94,7 @@ class Local extends Base
 
 			try
 			{
-				$this->response = call_user_func($this->route->controller, $this->route->parameters);
+				$this->response = call_user_func($controller, $this->route->parameters);
 			}
 			catch (Exception\Redirect $e)
 			{

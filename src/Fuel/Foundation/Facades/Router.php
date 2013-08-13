@@ -69,7 +69,7 @@ class Router extends Base
 				continue;
 			}
 
-			$route->namespace = $namespace['namespace'];
+			$route->setNamespace($namespace['namespace']);
 
 			// get the segments from the translated route
 			$segments = explode('/', ltrim(substr($route->translation, strlen($namespace['prefix'])),'/'));
@@ -83,11 +83,11 @@ class Router extends Base
 					include $file;
 				}
 
-				$class = $route->namespace.'\\Controller\\'.implode('\\', array_map('ucfirst', $segments));
+				$class = $route->namespace.'Controller\\'.implode('\\', array_map('ucfirst', $segments));
 				if (class_exists($class))
 				{
 					$route->path = $namespace['path'];
-					$route->controller = new $class;
+					$route->controller = $class;
 					break;
 				}
 				array_unshift($arguments, array_pop($segments));
