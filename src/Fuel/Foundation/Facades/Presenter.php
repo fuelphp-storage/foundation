@@ -46,18 +46,23 @@ class Presenter extends Base
 		$segments = explode('/', $presenter);
 		while(count($segments))
 		{
-			$file = $path.'classes'.DS.'Presenter'.DS.implode('/', array_map('ucfirst', $segments)).'.php';
-			if (file_exists($file))
-			{
-				include $file;
+			$class = $namespace.'Presenter\\'.implode('\\', array_map('ucfirst', $segments));
 
-				$class = $namespace.'Presenter\\'.implode('\\', array_map('ucfirst', $segments));
-				if (class_exists($class))
+			if ( ! class_exists($class, false))
+			{
+				$file = $path.'classes'.DS.'Presenter'.DS.implode('/', array_map('ucfirst', $segments)).'.php';
+				if (file_exists($file))
 				{
-					$presenter = new $class(\View::getInstance(), $method, $autoFilter, $view);
-					break;
+					include $file;
 				}
 			}
+
+			if (class_exists($class))
+			{
+				$presenter = new $class(\View::getInstance(), $method, $autoFilter, $view);
+				break;
+			}
+
 			array_pop($segments);
 		}
 
