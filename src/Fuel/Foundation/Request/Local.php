@@ -96,10 +96,6 @@ class Local extends Base
 			{
 				$this->response = call_user_func($controller, $this->route->parameters);
 			}
-			catch (Exception\Redirect $e)
-			{
-				$this->response = $e->response($app);
-			}
 			catch (Exception\Base $e)
 			{
 				$this->response = $this->errorResponse($e);
