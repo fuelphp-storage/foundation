@@ -52,8 +52,10 @@ class Request extends Base
 		// if no type is given, auto-detect the type
 		if ($type === null)
 		{
+			$url = parse_url($resource = rtrim($resource, '/').'/');
+
 			// determine the type of request
-			if (empty($resource) or substr($resource,0,1) == '/')
+			if (empty($resource) or empty($url['host']) or substr($resource,0,1) == '/')
 			{
 				// URI only, so it's an local request
 				$resource  = '/'.trim(strval($resource), '/');
@@ -61,8 +63,6 @@ class Request extends Base
 			}
 			else
 			{
-				$url = parse_url($resource = rtrim($resource, '/').'/');
-
 				// http request for this current base url?
 				if (strpos($resource, $app->getEnvironment()->getBaseUrl()) === 0)
 				{
