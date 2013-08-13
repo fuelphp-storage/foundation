@@ -77,13 +77,17 @@ class Router extends Base
 			$arguments = array();
 			while(count($segments))
 			{
-				$file = $namespace['path'].'classes'.DS.'Controller'.DS.implode('/', array_map('ucfirst', $segments)).'.php';
-				if (file_exists($file))
+				$class = $route->namespace.'Controller\\'.implode('\\', array_map('ucfirst', $segments));
+
+				if ( ! class_exists($class, false))
 				{
-					include $file;
+					$file = $namespace['path'].'classes'.DS.'Controller'.DS.implode('/', array_map('ucfirst', $segments)).'.php';
+					if (file_exists($file))
+					{
+						include $file;
+					}
 				}
 
-				$class = $route->namespace.'Controller\\'.implode('\\', array_map('ucfirst', $segments));
 				if (class_exists($class))
 				{
 					$route->path = $namespace['path'];
