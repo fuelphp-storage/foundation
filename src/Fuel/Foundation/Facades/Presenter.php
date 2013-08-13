@@ -50,13 +50,13 @@ class Presenter extends Base
 			if (file_exists($file))
 			{
 				include $file;
-			}
 
-			$class = $namespace.'\\Presenter\\'.implode('\\', array_map('ucfirst', $segments));
-			if (class_exists($class))
-			{
-				$presenter = new $class(\View::getInstance(), $method, $autoFilter, $view);
-				break;
+				$class = $namespace.'Presenter\\'.implode('\\', array_map('ucfirst', $segments));
+				if (class_exists($class))
+				{
+					$presenter = new $class(\View::getInstance(), $method, $autoFilter, $view);
+					break;
+				}
 			}
 			array_pop($segments);
 		}
