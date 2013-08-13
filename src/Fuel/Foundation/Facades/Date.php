@@ -48,21 +48,6 @@ class Date extends Base
 	}
 
 	/**
-	 * Returns new Date object formatted according to the specified format. The
-	 * method supports both strptime() formats and DateTime formats
-	 *
-	 * @param  string               $format  any format supported by DateTime, or a format name configured
-	 * @param  string               $time    string representing the time.
-	 * @param  string|DateTimeZone  $time    timezone, if null the default timezone will be used
-	 *
-	 * @return  bool|Date  new Date instance, or false on failure
-	 */
-	public static function createFromFormat($format = 'local', $time, $timezone = null)
-	{
-		return CommonDate::createFromFormat($format, $time, $timezone);
-	}
-
-	/**
 	 * Returns the warnings and errors from the last parsing operation
 	 *
 	 * @return  array  array of warnings and errors found while parsing a date/time string.
@@ -178,5 +163,15 @@ class Date extends Base
 		));
 
 		return $result;
+	}
+
+	/**
+	 * Get an object instance for this Facade
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getInstance($lang = null)
+	{
+		return static::forge();
 	}
 }
