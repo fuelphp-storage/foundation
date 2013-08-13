@@ -36,6 +36,10 @@ abstract class Base
 		{
 			throw new \ErrorException('No instance available to call: '.get_called_class().'::'.$method.'()');
 		}
+		elseif ( ! is_callable(array($instance, $method)))
+		{
+			throw new \ErrorException('Method '.get_called_class().'::'.$method.'() does not exist.');
+		}
 
 		// calling the method directly is faster then call_user_func_array() !
 		switch (count($args))
