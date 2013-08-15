@@ -11,34 +11,14 @@
 namespace Fuel\Foundation\Facades;
 
 /**
- * Composer Facade class
+ * Error Facade class
  *
  * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
-class Composer extends Base
+class Error extends Base
 {
-	/**
-	 * @var  Composer\Autoload\ClassLoader
-	 *
-	 * @since  2.0.0
-	 */
-	protected static $loader;
-
-	/**
-	 * Initialization, set the Composer autoloader instance
-	 *
-	 * @since  2.0.0
-	 */
-	public static function initialize($autoloader)
-	{
-		// store the composer autoloader instance
-		static::$loader = $autoloader;
-
-		return static::$loader;
-	}
-
 	/**
 	 * Get the object instance for this Facade
 	 *
@@ -46,6 +26,6 @@ class Composer extends Base
 	 */
 	public static function getInstance()
 	{
-		return static::$loader;
+		return \Dependency::getInstance()->resolve('errorhandler');
 	}
 }

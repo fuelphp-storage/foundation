@@ -39,8 +39,8 @@ class Presenter extends Base
 		}
 
 		// get the root namespace if the correct controller
-		$namespace = \Request::getActive()->getRoute()->namespace;
-		$path = \Request::getActive()->getRoute()->path;
+		$namespace = \Request::getInstance()->getRoute()->namespace;
+		$path = \Request::getInstance()->getRoute()->path;
 
 		// get the segments from the presenter string passed
 		$segments = explode('/', $presenter);

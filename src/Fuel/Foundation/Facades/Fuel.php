@@ -10,6 +10,8 @@
 
 namespace Fuel\Foundation\Facades;
 
+use Fuel\Config\Container;
+
 /**
  * Fuel Facade class
  *
@@ -66,27 +68,19 @@ class Fuel extends Base
 	 *
 	 * @since  2.0.0
 	 */
-	public static function initialize()
+	public static function initialize(Container $config)
 	{
-		/**
-		 * run the global applications bootstrap, if present
-		 */
-		if (file_exists(APPSPATH.'bootstrap.php'))
-		{
-			include APPSPATH.'bootstrap.php';
-		}
-
 		// Start up output buffering
-		ob_start(\Config::get('ob_callback', null));
+		ob_start($config->get('ob_callback', null));
 
 		// configure the localization options for PHP
-		static::$encoding = \Config::get('encoding', static::$encoding);
+		static::$encoding = $config->get('encoding', static::$encoding);
 		static::setEncoding(static::$encoding);
 
-		static::$locale = \Config::get('locale', static::$locale);
+		static::$locale = $config->get('locale', static::$locale);
 		static::setLocale(static::$locale);
 
-		static::$timezone = \Config::get('default_timezone') ?: date_default_timezone_get();
+		static::$timezone = $config->get('default_timezone') ?: date_default_timezone_get();
 		static::setTimezone(static::$timezone);
 
 		// determine the Cli state

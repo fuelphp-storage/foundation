@@ -14,15 +14,6 @@ use Fuel\Foundation\Application as AppInstance;
 use Fuel\Foundation\Input as InputInstance;
 
 /**
- * Insane workaround for https://bugs.php.net/bug.php?id=64761
- */
-function InputClosureBindStupidWorkaround($event, $input)
-{
-	// setup a shutdown event for writing cookies
-	$event->on('shutdown', function($event) { $this->getCookie()->send(); }, $input);
-}
-
-/**
  * Input Facade class
  *
  * @package  Fuel\Foundation
@@ -50,32 +41,6 @@ class Input extends Base
 	public static function forge(AppInstance $app = null, Array $input = array(), InputInstance $parent = null)
 	{
 		return \Dependency::resolve('input', array($app, $input, $parent));
-	}
-
-	/**
-	 * Create the global input instance and load all globals
-	 *
-	 * @since  2.0.0
-	 */
-	public static function loadGlobals()
-	{
-		// get us an global instance of input if we don't have one yet
-		if (static::$instance === null)
-		{
-			static::$instance = static::forge();
-
-			// construct the main event object
-			$event = \Event::forge();
-
-			// and setup a global shutdown event
-			register_shutdown_function(function($event) { $event->trigger('shutdown'); }, $event);
-
-			// setup a shutdown event for saving cookies
-			InputClosureBindStupidWorkaround($event, static::$instance);
-		}
-
-		// and load it with all global data available
-		static::$instance->fromGlobals();
 	}
 
 	/**

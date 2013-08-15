@@ -58,13 +58,6 @@ class View extends Base
 	 */
 	public static function getInstance()
 	{
-		if ($app = \Application::getActive())
-		{
-			return \Dependency::multiton('viewmanager', $app->getName());
-		}
-		else
-		{
-			return null;
-		}
+		return \Application::getInstance()->getViewManager();
 	}
 }

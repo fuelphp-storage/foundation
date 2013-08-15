@@ -10,28 +10,22 @@
 
 namespace Fuel\Foundation\Facades;
 
-use Fuel\Foundation\Application as AppInstance;
-use Fuel\Foundation\Request\Base as RequestBase;
-
 /**
- * Request Facade class
+ * Composer Facade class
  *
  * @package  Fuel\Foundation
  *
- * @since  1.0.0
+ * @since  2.0.0
  */
-class Request extends Base
+class Composer extends Base
 {
 	/**
-	 * Returns current active Request
-	 *
-	 * @return  Request
+	 * Get the object instance for this Facade
 	 *
 	 * @since  2.0.0
 	 */
 	public static function getInstance()
 	{
-		$stack = \Dependency::resolve('requeststack');
-		return $stack->top();
+		return \Dependency::getInstance()->resolve('autoloader');
 	}
 }

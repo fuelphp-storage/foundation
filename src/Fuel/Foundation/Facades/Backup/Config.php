@@ -51,25 +51,6 @@ class Config extends Base
 	}
 
 	/**
-	 * Create the global input instance and load all global configuration
-	 *
-	 * @returns	Config
-	 *
-	 * @since  2.0.0
-	 */
-	public static function loadGlobals()
-	{
-		// get us an instance of input if we don't have one yet
-		$config = static::forge('__default__');
-
-		// load the global default config
-		$config->addPath(APPSPATH);
-		$config->load('config', null);
-
-		return $config;
-	}
-
-	/**
 	 * Get the object instance for this Facade
 	 *
 	 * @since  2.0.0

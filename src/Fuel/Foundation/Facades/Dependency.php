@@ -10,6 +10,8 @@
 
 namespace Fuel\Foundation\Facades;
 
+use Fuel\Dependency\Container;
+
 /**
  * Dependency Facade class
  *
@@ -27,28 +29,38 @@ class Dependency extends Base
 	protected static $dic;
 
 	/**
-	 * Initialization, set the Dependency Container we're going to use
+	 * setup the Dependency Container we're going to use
 	 *
 	 * @since  2.0.0
 	 */
-	public static function initialize($dic = null)
+	public static function setup($dic = null)
 	{
+		// if a custom DiC is passed, use that
 		if ($dic)
 		{
 			static::$dic = $dic;
 		}
-		else
-		{
-			static::$dic = new \Fuel\Dependency\Container;
 
-			// register the DiC by itself so it can be resolved
-			static::$dic->registerSingleton('dic', function($container)
-			{
-				return $container;
-			});
+		// else set one up if not done yet
+		elseif ( ! static::$dic)
+		{
+			// get us a Dependency Container instance
+			static::$dic = new Container;
 		}
 
-		return static::getInstance();
+		// register the DiC on classname so it can be auto-resolved
+		static::$dic->registerSingleton('Fuel\Dependency\Container', function($container)
+		{
+			return $container;
+		});
+
+		// and on alias for manual resolving
+		static::$dic->registerSingleton('dic', function($container)
+		{
+			return $container;
+		});
+
+		return static::$dic;
 	}
 
 	/**
