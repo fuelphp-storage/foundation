@@ -55,7 +55,7 @@ $bootstrapFuel = function()
 	/**
 	 * Setup the Dependency Container of none was setup yet
 	 */
-	$dic = $dic->setup();
+	$dic = Dependency::setup();
 
 	/**
 	 * Get the Composer autoloader instance and allow the framework to use it
