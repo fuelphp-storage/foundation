@@ -30,6 +30,13 @@ class Environment
 	protected $app;
 
 	/**
+	 * @var  Fuel\Foundation\Input  global input instance
+	 *
+	 * @since  2.0.0
+	 */
+	protected $input;
+
+	/**
 	 * @var  string  name of the current environment
 	 *
 	 * @since  2.0.0
@@ -72,9 +79,13 @@ class Environment
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct($app, $environment, $config)
+	public function __construct($app, $environment, $input, $config)
 	{
+		// store the Application this environment is tied to
 		$this->app = $app;
+
+		// the global input container
+		$this->input = $input;
 
 		// store some initial environment values
 		$this->vars['initTime'] = defined('FUEL_INIT_TIME') ? FUEL_INIT_TIME : microtime(true);
@@ -83,7 +94,7 @@ class Environment
 		// fetch URL data from the config, construct it if not set
 		if ($this->baseUrl = $config->baseUrl === null)
 		{
-			$this->baseUrl = \Input::getInstance()->getBaseUrl();
+			$this->baseUrl = $this->input->getBaseUrl();
 		}
 		$this->indexFile = $config->indexFile;
 
@@ -123,7 +134,7 @@ class Environment
 			}
 			else
 			{
-				$this->baseUrl = \Input::getInstance()->getBaseUrl();
+				$this->baseUrl = $this->input->getBaseUrl();
 			}
 		}
 

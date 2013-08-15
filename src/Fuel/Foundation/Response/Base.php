@@ -22,13 +22,6 @@ namespace Fuel\Foundation\Response;
 abstract class Base
 {
 	/**
-	 * @var  Application  app that created this response
-	 *
-	 * @since  2.0.0
-	 */
-	protected $app;
-
-	/**
 	 * @var  array  An array of status codes and messages
 	 *
 	 * @since  1.0.0
@@ -129,20 +122,6 @@ abstract class Base
 	protected $charset;
 
 	/**
-	 * @var  \Fuel\Kernel\Request\Base
-	 *
-	 * @since  2.0.0
-	 */
-	protected $request;
-
-	/**
-	 * @var  \Fuel\Common\Format
-	 *
-	 * @since  2.0.0
-	 */
-	protected $format;
-
-	/**
 	 * Constructor
 	 *
 	 * @param  string  $content
@@ -151,18 +130,27 @@ abstract class Base
 	 *
 	 * @since  1.0.0
 	 */
-	public function __construct($app, $content = '', $status = 200, array $headers = array())
+	public function __construct($content = '', $status = 200, array $headers = array())
 	{
-		$this->app = $app;
-		$this->request = \Request::getInstance();
-		$this->format = \Format::getInstance();
-
+		// process the passed data
 		$this->setContent($content);
 		$this->setStatusCode($status);
 		foreach ($headers as $k => $v)
 		{
 			$this->setHeader($k, $v);
 		}
+	}
+
+	/**
+	 * Sets this responses' Request instance
+	 *
+	 * @param  Request  $request
+	 *
+	 * @since  1.1.0
+	 */
+	public function setRequest($request)
+	{
+		$this->request = $request;
 	}
 
 	/**
@@ -346,7 +334,6 @@ abstract class Base
 	public function sendHeaders()
 	{
 		$input = $this->request->getInput();
-		$input = isset($input) ? $input : $this->env->input;
 
 		if (headers_sent())
 		{

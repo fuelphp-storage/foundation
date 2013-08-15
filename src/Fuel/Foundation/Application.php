@@ -53,6 +53,13 @@ class Application
 	protected $appNamespaces = array();
 
 	/**
+	 * @var  ApplicationInjectionFactory  this applications object factory
+	 *
+	 * @since  2.0.0
+	 */
+	protected $factory;
+
+	/**
 	 * @var  Environment  this applications environment object
 	 *
 	 * @since  2.0.0
@@ -72,6 +79,13 @@ class Application
 	 * @since  2.0.0
 	 */
 	protected $config;
+
+	/**
+	 * @var  Fuel/Foundation/Input  this applications input object
+	 *
+	 * @since  2.0.0
+	 */
+	protected $input;
 
 	/**
 	 * @var  array  this applications list of languages objects
@@ -111,10 +125,22 @@ class Application
 	/**
 	 * Constructor
 	 *
+	 * @param  string                       $appName      name of this application
+	 * @param  string                       $appPath      path to the application installation root
+	 * @param  string                       $namespace    this applications base namespace
+	 * @param  string                       $environment  the environment this application has to run in
+	 * @param  ApplicationInjectionFactory  $factory      factory object to construct external objects
+
 	 * @since  2.0.0
 	 */
-	public function __construct($appName, $appPath, $namespace, $environment)
+	public function __construct($appName, $appPath, $namespace, $environment, ApplicationInjectionFactory $factory)
 	{
+		// store the applications object factory
+		$this->factory = $factory;
+
+		// register the application
+		$this->factory->registerApplication($this);
+
 		// store the application name
 		$this->appName = $appName;
 
@@ -137,9 +163,8 @@ class Application
 		);
 
 		// setup the configuration container...
-		$this->config = \Config::forge($this->appName)
-			->addPath($this->appPath.'config'.DS)
-			->setParent(\Config::getConfig());
+		$this->config = $factory->createConfigContainer($this->appName)
+			->addPath($this->appPath.'config'.DS);
 
 		// and load the application config
 		$this->config->load('config', null);
@@ -150,11 +175,15 @@ class Application
 		// load the lang config
 		$this->config->load('lang', true);
 
+		// setup the input container...
+		$this->input = $factory->createInputContainer();
+		$this->input->setConfig($this->config);
+
 		// create the environment for this application
-		$this->env = \Environment::forge($this, $environment);
+		$this->env = $factory->createEnvironmentContainer($this, $environment, $this->input, $this->config);
 
 		// create the log instance for this application
-		$this->log = \Log::forge('fuelphp-'.$this->appName);
+		$this->log = $factory->createLogInstance('fuelphp-'.$this->appName);
 
 		// load the log config
 		if (file_exists($path = $this->appPath.'config'.DS.'log.php'))
@@ -172,7 +201,7 @@ class Application
 		}
 
 		// setup the applications event manager
-		$this->event = \Event::forge();
+		$this->event = $factory->createEventInstance();
 
 		// setup a shutdown event for this application
 		register_shutdown_function(function($event) { $event->trigger('shutdown', $this); }, $this->event);
@@ -184,7 +213,7 @@ class Application
 		if (isset($session['auto_initialize']) and $session['auto_initialize'])
 		{
 			// create a session instance
-			$this->session = \Session::forge($session);
+			$this->session = $factory->createSessionInstance();
 
 			// start the session
 			$this->session->start();
@@ -194,14 +223,7 @@ class Application
 		}
 
 		// create the view manager instance for this application
-		$this->viewManager = \Dependency::multiton('viewmanager', $this->appName, array(
-			\Dependency::resolve('finder', array(
-				array($this->appPath),
-			)),
-			array(
-				'cache' => $this->appPath.'cache',
-			)
-		));
+		$this->viewManager = $factory->createViewmanagerInstance($this->appName, $this->appPath);
 
 		// load the view config
 		$this->config->load('view', true);
@@ -217,11 +239,11 @@ class Application
 				$extension = $parser;
 				$parser = 'parser.'.$extension;
 			}
-			$this->viewManager->registerParser($extension, \Dependency::resolve($parser));
+			$this->viewManager->registerParser($extension, $factory->createViewParserInstance($parser));
 		}
 
 		// create a router object
-		$this->router = \Router::forge($this);
+		$this->router = $factory->createRouterInstance($this->appName);
 
 		// and load any defined routes
 		$this->loadRoutes($this->appPath, $this->appNamespaces[$this->appNamespace]);
@@ -397,7 +419,7 @@ class Application
 
 		if ( ! isset($this->languages[$language]))
 		{
-			$this->languages[$language] = \Lang::forge($this->appName.'-'.$language);
+			$this->languages[$language] = $this->factory->createLanguageInstance($this->appName.'-'.$language);
 			$this->languages[$language]->addPath($this->appPath.'lang'.DS.$language.DS);
 		}
 
@@ -441,13 +463,13 @@ class Application
 	public function getRequest($uri = null, Array $input = array())
 	{
 		// if no uri is given, fetch the global one
-		$uri === null and $uri = \Input::getInstance()->getPathInfo();
+		$uri === null and $uri = $this->input->getPathInfo();
 
 		// log the request
-		$this->log->info('Application "'.$this->appName.'" is creating new "'.\Input::getMethod().'" Request for URI: '.(empty($uri) ? '/' : $uri));
+		$this->log->info('Application "'.$this->appName.'" is creating new "'.$this->input->getMethod().'" Request for URI: '.(empty($uri) ? '/' : $uri));
 
 		// forge a new request
-		return \Request::forge(\Security::cleanUri($uri), $input);
+		return $this->factory->createRequestInstance($this, $uri, $input);
 	}
 
 	/**

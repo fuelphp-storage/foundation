@@ -10,6 +10,7 @@
 
 namespace Fuel\Foundation\Controller;
 
+use Fuel\Foundation\InjectionFactory;
 use Fuel\Foundation\Response\Base as Response;
 use Fuel\Foundation\Exception\NotFound;
 
@@ -25,6 +26,42 @@ use Fuel\Foundation\Exception\NotFound;
 abstract class Base
 {
 	/**
+	 * @var  Fuel\Foundation\InjectorFactory  injector factory for this object
+	 *
+	 * @since  2.0.0
+	 */
+	protected $factory;
+
+	/**
+	 * @var  Fuel\Foundation\Application  application this controller belongs to
+	 *
+	 * @since  2.0.0
+	 */
+	protected $app;
+
+	/**
+	 * @var  Request
+	 *
+	 * @since  1.0.0
+	 */
+	protected $request;
+
+	/**
+	 * @var  Response
+	 *
+	 * @since  1.0.0
+	 */
+	protected $response;
+
+
+	/**
+	 * @var  Fuel\Routing\Match  the route that led us to this controller
+	 *
+	 * @since  1.0.0
+	 */
+	protected $route;
+
+	/**
 	 * @var  string  default method to call on empty action input
 	 *
 	 * @since  2.0.0
@@ -39,25 +76,44 @@ abstract class Base
 	protected $actionPrefix = 'action';
 
 	/**
-	 * @var  Fuel\Routing\Match  the route that led us to this controller
-	 *
-	 * @since  1.0.0
-	 */
-	protected $route;
-
-	/**
-	 * @var  Response
-	 *
-	 * @since  1.0.0
-	 */
-	protected $response;
-
-	/**
 	 * @var  string  The format of the response this controller returns
 	 *
 	 * @since  1.0.0
 	 */
-	protected $responseFormat = 'html';
+	protected $responseFormat;
+
+	/**
+	 *
+	 */
+	public function __construct(InjectionFactory $factory)
+	{
+		// store the factory for future use
+		$this->factory = $factory;
+	}
+
+	/**
+	 * Sets this controllers Application instance
+	 *
+	 * @param  Application  $app
+	 *
+	 * @since  1.1.0
+	 */
+	public function setApplication($app)
+	{
+		$this->app = $app;
+	}
+
+	/**
+	 * Sets this controllers Request instance
+	 *
+	 * @param  Request  $request
+	 *
+	 * @since  1.1.0
+	 */
+	public function setRequest($request)
+	{
+		$this->request = $request;
+	}
 
 	/**
 	 * Makes the Controller instance executable, must be given the URI segments to continue
@@ -75,16 +131,7 @@ abstract class Base
 		// get the route that got us here
 		$this->route = array_shift($args);
 
-		// And create a response object
-		if (empty($this->responseFormat))
-		{
-			$this->responseFormat = 'html';
-		}
-		$this->initialResponseFormat = $this->responseFormat;
-
-		$this->response = \Dependency::resolve('response.'.$this->responseFormat, array(\Application::getInstance()));
-
-		// Determine the method to call
+		// determine the method to call
 		$action = $this->route->action ?: $this->defaultAction;
 		if ( ! is_callable(array($this, $method = strtolower($this->route->method).$action)))
 		{
@@ -100,6 +147,19 @@ abstract class Base
 		{
 			throw new NotFound('Unavailable action "'.$method.'" in Controller: \\'.get_class($this));
 		}
+
+		// create a response object
+		if (empty($this->responseFormat))
+		{
+			// pick a default, JSON for ajax calls, HTML for non-ajax requests
+			$this->responseFormat = $this->request->getInput()->isAjax() ? 'json' : 'html';
+		}
+
+		// store the current response format, so we can detect runtime changes
+		$this->initialResponseFormat = $this->responseFormat;
+
+		// construct a new response object
+		$this->response = $this->factory->createResponseInstance($this->responseFormat, array($this->request));
 
 		// execute the request
 		return $this->execute($method, $args);
@@ -166,7 +226,7 @@ abstract class Base
 		// do we need to repackage the response?
 		if ($this->responseFormat !== $this->initialResponseFormat)
 		{
-			$response = \Dependency::resolve('response.'.$this->responseFormat, array(\Application::getInstance()));
+			$response = $this->factory->createResponseInstance($this->responseFormat, array($this->request));
 			$this->response = $response->setContent($this->response->getContent());
 		}
 	}

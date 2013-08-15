@@ -31,9 +31,9 @@ class Local extends Base
 	 *
 	 * @since  1.0.0
 	 */
-	public function __construct($app, $resource = '', $input = null)
+	public function __construct($app, $resource = '', $inputInstance = null, RequestInjectionFactory $factory)
 	{
-		parent::__construct($app, $resource, $input);
+		parent::__construct($app, $resource, $inputInstance, $factory);
 
 		// make sure the request has the correct format
 		$this->request  = '/'.trim(strval($resource), '/');
@@ -50,16 +50,16 @@ class Local extends Base
 	 */
 	public function execute()
 	{
-		\Request::setActive($this);
+		$this->factory->setActiveRequest($this);
 
 		// log the request
-		\Log::info('Executing request');
+		$this->log->info('Executing request');
 
 		// get a route object for this request
-		$this->route = \Router::translate($this->request, \Input::getInstance()->getMethod() );
+		$this->route = $this->translate($this->request, $this->input->getMethod() );
 
 		// log the request destination
-		\Log::info($this->route->method.' request routed to '.$this->route->translation);
+		$this->log->info($this->route->method.' request routed to '.$this->route->translation);
 
 		// store the request parameters
 		$this->params = array_merge($this->params, $this->route->parameters);
@@ -77,7 +77,7 @@ class Local extends Base
 				throw new NotFound('No route match has been found for this request.');
 			}
 
-			$controller = new $this->route->controller;
+			$controller = $this->factory->createControllerInstance($this->route->controller);
 			if ( ! is_callable($controller))
 			{
 				throw new NotFound('The Controller returned by routing is not callable. Does it extend a base controller?');
@@ -87,10 +87,9 @@ class Local extends Base
 			array_unshift($this->route->parameters, $this->route);
 
 			// add the root path to the config, lang and view manager objects
-			$app = \Application::getInstance();
-			$app->getViewManager()->getFinder()->addPath($this->route->path);
-			$app->getConfig()->addPath($this->route->path.'config'.DS);
-			$app->getLanguage()->addPath($this->route->path.'lang'.DS.\Lang::getActive().DS);
+			$this->app->getViewManager()->getFinder()->addPath($this->route->path);
+			$this->app->getConfig()->addPath($this->route->path.'config'.DS);
+			$this->app->getLanguage()->addPath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
 
 			try
 			{
@@ -115,23 +114,98 @@ class Local extends Base
 		catch (\Exception $e)
 		{
 			// log the request termination
-			\Log::info('Request executed, but failed: '.$e->getMessage());
+			$this->log->info('Request executed, but failed: '.$e->getMessage());
 
 			// reset and rethrow
-			\Request::resetActive();
+			$this->factory->resetActiveRequest();
 			throw $e;
 		}
 
 		// remove the root path to the config, lang and view manager objects
-		$app->getLanguage()->removePath($this->route->path.'lang'.DS.\Lang::getActive().DS);
-		$app->getConfig()->removePath($this->route->path.'config'.DS);
-		$app->getViewManager()->getFinder()->removePath($this->route->path);
+		$this->app->getLanguage()->removePath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
+		$this->app->getConfig()->removePath($this->route->path.'config'.DS);
+		$this->app->getViewManager()->getFinder()->removePath($this->route->path);
 
 		// log the request termination
-		\Log::info('Request executed');
+		$this->log->info('Request executed');
 
-		\Request::resetActive();
+		$this->factory->resetActiveRequest();
 
 		return $this;
+	}
+
+	/**
+	 * Find a route for the given Uri and request method
+	 *
+	 * @returns	Input
+	 *
+	 * @since  2.0.0
+	 */
+	public function translate($uri, $method)
+	{
+		// resolve the route
+		$route = $this->router->translate($uri, $method);
+
+		// find a match
+		foreach ($this->app->getNamespaces() as $namespace)
+		{
+			// skip non-routeable namespaces
+			if ( ! $namespace['routeable'] and $this->factory->isMainRequest())
+			{
+				continue;
+			}
+
+			// skip if we don't have a prefix match
+			if ($namespace['prefix'] and strpos($route->translation, $namespace['prefix']) !== 0)
+			{
+				continue;
+			}
+
+			$route->setNamespace($namespace['namespace']);
+
+			// get the segments from the translated route
+			$segments = explode('/', ltrim(substr($route->translation, strlen($namespace['prefix'])),'/'));
+
+			$arguments = array();
+			while(count($segments))
+			{
+				$class = $route->namespace.'Controller\\'.implode('\\', array_map('ucfirst', $segments));
+
+				if ( ! class_exists($class, false))
+				{
+					$file = $namespace['path'].'classes'.DS.'Controller'.DS.implode('/', array_map('ucfirst', $segments)).'.php';
+					if (file_exists($file))
+					{
+						include $file;
+					}
+				}
+
+				if (class_exists($class))
+				{
+					$route->path = $namespace['path'];
+					$route->controller = $class;
+					break;
+				}
+				array_unshift($arguments, array_pop($segments));
+			}
+
+			// did we find a match
+			if ($route->controller)
+			{
+				// then stop looking
+				break;
+			}
+		}
+
+		// any segments left?
+		if ( ! empty($segments))
+		{
+			$route->action = ucfirst(array_shift($arguments));
+		}
+
+		// more? return them as additional segments
+		$route->segments = empty($arguments) ? array() : $arguments;
+
+		return $route;
 	}
 }

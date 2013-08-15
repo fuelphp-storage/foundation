@@ -27,6 +27,13 @@ abstract class Base
 	protected $app;
 
 	/**
+	 * @var  RequestInjectionFactory  this applications object factory
+	 *
+	 * @since  2.0.0
+	 */
+	protected $factory;
+
+	/**
 	 * @var  string
 	 *
 	 * @since  2.0.0
@@ -69,17 +76,16 @@ abstract class Base
 	 *
 	 * @since  1.0.0
 	 */
-	public function __construct($app, $resource = '', $input = null)
+	public function __construct($app, $resource = '', $inputInstance = null, RequestInjectionFactory $factory)
 	{
+		// store the current application
 		$this->app = $app;
 
-		// get the parents input, or the global instance of no parent is active
-		$inputInstance = ($request = \Request::getInstance()) ? $request->getInput() : \Input::getInstance();
+		// store the injecttion factory
+		$this->factory = $factory;
 
-		// and create a new local input instance
-		$input = is_array($input) ? $input : array();
-
-		$this->input = \Input::forge(\Application::getInstance(), $input, $inputInstance);
+		// store the requests input container
+		$this->input = $inputInstance;
 
 		// store the request
 		$this->request = $resource;
@@ -106,6 +112,18 @@ abstract class Base
 	public function getApplication()
 	{
 		return $this->app;
+	}
+
+	/**
+	 * Sets this requests Application instance
+	 *
+	 * @param  Application  $app
+	 *
+	 * @since  1.1.0
+	 */
+	public function setApplication($app)
+	{
+		$this->app = $app;
 	}
 
 	/**

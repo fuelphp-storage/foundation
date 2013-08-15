@@ -10,7 +10,7 @@
 
 namespace Fuel\Foundation;
 
-use Fuel\Common\DataContainer;
+use Fuel\Config\Container;
 
 /**
  * Input
@@ -24,18 +24,18 @@ use Fuel\Common\DataContainer;
 class Input
 {
 	/**
-	 * @var  Application
-	 *
-	 * @since  2.0.0
-	 */
-	protected $app;
-
-	/**
 	 * @var  Input  parent Input object to fall back on
 	 *
 	 * @since  2.0.0
 	 */
 	protected $parent;
+
+	/**
+	 * @var  Fuel\Config\Container  Configuration container
+	 *
+	 * @since  2.0.0
+	 */
+	protected $config;
 
 	/**
 	 * @var  null|string  The URI that was detected automatically
@@ -110,46 +110,35 @@ class Input
 	/**
 	 * Constructor
 	 *
-	 * @param  array  $inputVars  HTTP input overwrites
-	 * @param  Base  $parent     whether this input object falls back to another one
+	 * @param  array                  $inputVars  HTTP input overwrites
+	 * @param  Base                   $parent     whether this input object falls back to another one
+	 * @param  InputInjectionFactory  $factory    factory object to construct external objects
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct($app, array $inputVars = array(), $parent = null)
+	public function __construct(array $inputVars = array(), $parent = null, InputInjectionFactory $factory)
 	{
-		$this->app = $app;
-
 		// pre-process any input vars given to us
-		isset($inputVars['server'])
-			and $this->server = $inputVars['server'];
+		$this->server = isset($inputVars['server']) ? $inputVars['server'] : array();
+		$this->param = isset($inputVars['param']) ? $inputVars['param'] : array();
+		$this->query = isset($inputVars['query']) ? $inputVars['query'] : array();
+		$this->cookie = isset($inputVars['cookie']) ? $inputVars['cookie'] : array();
+		$this->files = isset($inputVars['files']) ? $inputVars['files'] : array();
+		$this->cli = isset($inputVars['cli']) ? $inputVars['cli'] : array();
+		$this->requestBody = isset($inputVars['requestBody']) ? $inputVars['requestBody'] : array();
 
-		isset($inputVars['param'])
-			and $this->param = $inputVars['param'];
+		// convert the arrays into DataContainers
+		$this->server  = $factory->createDataContainer($this->server);
+		$this->param   = $factory->createDataContainer($this->param);
+		$this->query   = $factory->createDataContainer($this->query);
+		$this->files   = $factory->createDataContainer($this->files);
+		$this->cli     = $factory->createDataContainer($this->cli);
+		$this->cookie  = $factory->createCookieJar($this->cookie);
 
-		isset($inputVars['query'])
-			and $this->query = $inputVars['query'];
-
-		isset($inputVars['cookie'])
-			and $this->cookie = $inputVars['cookie'];
-
-		isset($inputVars['files'])
-			and $this->files = $inputVars['files'];
-
-		isset($inputVars['cli'])
-			and $this->cli = $inputVars['cli'];
-
-		isset($inputVars['requestBody'])
-			and $this->requestBody = $inputVars['requestBody'];
-
-		$this->server  = \Dependency::resolve('datacontainer', array($this->server ?: array()));
-		$this->param   = \Dependency::resolve('datacontainer', array($this->param ?: array()));
-		$this->query   = \Dependency::resolve('datacontainer', array($this->query ?: array()));
-		$this->files   = \Dependency::resolve('datacontainer', array($this->files ?: array()));
-		$this->cli     = \Dependency::resolve('datacontainer', array($this->cli ?: array()));
-		$this->cookie  = \Dependency::resolve('cookiejar', array(array(), $this->cookie ?: array()));
-
+		// assign the parent object if given
 		$this->parent = $parent instanceof self ? $parent : null;
 
+		// link our containers to their parents
 		if ($this->parent)
 		{
 			$this->server->setParent($this->parent->getServer());
@@ -258,6 +247,18 @@ class Input
 	}
 
 	/**
+	 * Sets the configuration container to be used by this instance
+	 *
+	 * @param   Fuel\Config\Container  $config
+	 * @return  Input
+	 */
+	public function setConfig(Container $config)
+	{
+		$this->config = $config;
+		return $this;
+	}
+
+	/**
 	 * Detects and returns the current URI based on a number of different server
 	 * variables.
 	 *
@@ -305,7 +306,7 @@ class Input
 			}
 
 			// If we are using an index file (not mod_rewrite) then remove it
-			$indexFile = \Config::get('indexFile');
+			$indexFile = $this->config->get('indexFile', null);
 			if ($indexFile and strncmp($uri, $indexFile, strlen($indexFile)) === 0)
 			{
 				$uri = substr($uri, strlen($indexFile));
@@ -369,7 +370,7 @@ class Input
 	{
 		if ( ! isset($this->detectedExt))
 		{
-			static::getPathInfo();
+			$this->getPathInfo();
 		}
 		return $this->detectedExt;
 	}
