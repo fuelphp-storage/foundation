@@ -8,12 +8,18 @@
  * @link       http://fuelphp.com
  */
 
-use Fuel\Foundation\Facades\Alias;
-use Fuel\Foundation\Facades\Error;
-use Fuel\Foundation\Facades\Package;
+use Fuel\Foundation\Error;
+use Fuel\Foundation\Input;
+use Fuel\Foundation\PackageProvider;
+
+use Fuel\Common\DataContainer;
+
+use Fuel\Foundation\Facades\Dependency;
 
 /**
  * Some handy constants
+ *
+ * @since 1.0.0
  */
 define('DS', DIRECTORY_SEPARATOR);
 define('CRLF', chr(13).chr(10));
@@ -21,57 +27,157 @@ define('CRLF', chr(13).chr(10));
 /**
  * Do we have access to mbstring?
  * We need this in order to work with UTF-8 strings
+ *
+ * @since 1.0.0
  */
 define('MBSTRING', function_exists('mb_get_info'));
 
 /**
- * Create some class aliases to get the bootstrapping to work
- */
-class_alias('Fuel\Foundation\Facades\Composer', 'Composer');
-class_alias('Fuel\Foundation\Facades\Dependency', 'Dependency');
-class_alias('Fuel\Foundation\Facades\Alias', 'Alias');
+* Insane workaround for https://bugs.php.net/bug.php?id=64761
+*/
+function InputClosureBindStupidWorkaround($event, $input)
+{
+	// setup a shutdown event for writing cookies
+	$event->on('shutdown', function($event) { $this->getCookie()->send(); }, $input);
+}
 
 /**
- * Get the Composer autoloader instance and allow the framework to use it
+ * Framework bootstrap, encapsulated to keep the global scope clean and prevent
+ * interference with Composer, as this runs in the scope of the autoloader
  */
-Composer::initialize(self::$loader);
+$bootstrapFuel = function()
+{
+	/**
+	 * Setup the shutdown, error & exception handlers
+	 */
+	$errorhandler = new Error;
 
-/**
- * Setup the shutdown, error & exception handlers
- */
-Error::initialize();
+	/**
+	 * Setup the Dependency Container of none was setup yet
+	 */
+	$dic = $dic->setup();
 
-/**
- * Setup the Dependency Container
- */
-Dependency::initialize();
+	/**
+	 * Get the Composer autoloader instance and allow the framework to use it
+	 */
+	$dic->inject('autoloader', self::$loader);
 
-/**
- * Run the composer package bootstraps
- */
-Package::initialize();
+	/**
+	 * Setup the shutdown, error & exception handlers
+	 */
+	$dic->inject('errorhandler', $errorhandler);
 
-/**
- * Alias all Facades to global
- */
-Dependency::resolve('alias')->aliasNamespace('Fuel\Foundation\Facades', '');
+	/**
+	 * Create the packages container, and load all already loaded ones
+	 */
+	$dic->register('packageprovider', function($container, $namespace, $paths = array())
+	{
+		// TODO: hardcoded class name
+		return new PackageProvider($container, $namespace, $paths);
+	});
 
-/**
- * Create the global Input instance and import globals
- */
-Input::loadGlobals();
+	$dic->registerSingleton('packages', function($container)
+	{
+		// TODO: hardcoded class name
+		return new DataContainer();
+	});
 
-/**
- * Create the global Config instance and import global configuration
- */
-Config::loadGlobals();
+	// create the packages container
+	$packages = $dic->resolve('packages');
 
-/**
- * Alias all Base controllers to Fuel\Controller
- */
-Alias::aliasNamespace('Fuel\Foundation\Controller', 'Fuel\Controller');
+	// process all known composer libraries, and register them as Fuel packages
+	foreach (self::$loader->getPrefixes() as $namespace => $paths)
+	{
+		// check if this package has a PackageProvider for us
+		if (class_exists($class = trim($namespace, '\\').'\\Providers\\FuelPackageProvider'))
+		{
+			// load the package provider
+			$provider = new $class($namespace, $paths);
+		}
+		else
+		{
+			// create a base provider instance
+			$provider = $dic->resolve('packageprovider', array($namespace, $paths));
+		}
 
-/**
- * And get the framework going
- */
-Fuel::initialize();
+		// validate the provider
+		if ( ! $provider instanceOf PackageProvider)
+		{
+			throw new RuntimeException('PackageProvider for '.$namespace.' must be an instance of \Fuel\Foundation\PackageProvider');
+		}
+
+		// initialize the loaded package
+		$provider->initPackage();
+
+		// and store it in the container
+		$packages->set($namespace, $provider);
+	}
+
+	// disable write access to the package container
+	$packages->setReadOnly();
+
+	/**
+	 * Alias all Facades to global
+	 */
+	$dic->resolve('alias')->aliasNamespace('Fuel\Foundation\Facades', '');
+
+	/**
+	 * Create the global Config instance
+	 */
+	$config = $dic->resolve('config');
+	$dic->inject('config.global', $config);
+
+	// load the global framework configuration
+	$config->addPath(APPSPATH);
+	$config->load('config', null);
+
+	/**
+	 * Create the global Input instance
+	 */
+	$input = $dic->resolve('input');
+	$dic->inject('input.global', $input);
+
+	// import global data
+	$input->fromGlobals();
+
+	// assign the configuration container to this input instance
+	$input->setConfig($config);
+
+	/**
+	 * Create the global Event instance
+	 */
+	$event = $dic->resolve('event');
+	$dic->inject('event.global', $event);
+
+	// setup a global shutdown event for this event container
+	register_shutdown_function(function($event) { $event->trigger('shutdown'); }, $event);
+
+	// setup a shutdown event for saving cookies
+	InputClosureBindStupidWorkaround($event, $input);
+
+	/**
+	 * Do the remainder of the framework initialisation
+	 */
+	// TODO: not sure this belongs here
+	Fuel::initialize($config);
+
+	/**
+	 * Run the global applications bootstrap, if present
+	 */
+	if (file_exists($file = APPSPATH.'bootstrap.php'))
+	{
+		$bootstrap = function($file) {
+			include $file;
+		};
+		$bootstrap($file);
+	}
+
+	/**
+	 * Alias all Base controllers to Fuel\Controller
+	 */
+	// TODO: move to a separate Fuel\Controller package?
+	$dic->resolve('alias')->aliasNamespace('Fuel\Foundation\Controller', 'Fuel\Controller');
+};
+
+// call and cleanup
+$bootstrapFuel(); unset($bootstrapFuel);
