@@ -20,14 +20,17 @@ namespace Fuel\Foundation\Facades;
 class Upload extends Base
 {
 	/**
-	 * Create and retrieve an instance.
+	 * Get a new Container instance.
 	 *
-	 * @param   string  $name    instance reference
-	 *
-	 * @return  Fuel\Upload\Upload
+	 * @return  Fuel\Upload\Upload  new Upload instance
 	 */
-	public static function instance($name = '__default__')
+	public static function forge()
 	{
+		if ($name === null)
+		{
+			$name = uniqid(true);
+		}
+
 		return \Dependency::multiton('upload', $name);
 	}
 
@@ -41,18 +44,9 @@ class Upload extends Base
 		return \Dependency::remove('upload::'.$name);
 	}
 
-	/**
-	 * Get a new Container instance.
-	 *
-	 * @return  Fuel\Upload\Upload  new Upload instance
-	 */
-	public static function forge()
-	{
-		return \Dependency::resolve('upload');
-	}
 
 	/**
-	 * Get the default instance for this Facade
+	 * Get an instance for this Facade
 	 *
 	 * @return  Fuel\Upload\Upload
 	 *
@@ -60,6 +54,6 @@ class Upload extends Base
 	 */
 	public static function getInstance()
 	{
-		return static::instance('__default__');
+		return static::forge();
 	}
 }

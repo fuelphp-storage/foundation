@@ -177,10 +177,9 @@ class Application
 
 		// setup the input container...
 		$this->input = $factory->createInputContainer();
-		$this->input->setConfig($this->config);
 
 		// create the environment for this application
-		$this->env = $factory->createEnvironmentContainer($this, $environment, $this->input, $this->config);
+		$this->env = $factory->createEnvironmentContainer($this, $environment);
 
 		// create the log instance for this application
 		$this->log = $factory->createLogInstance('fuelphp-'.$this->appName);
@@ -214,12 +213,6 @@ class Application
 		{
 			// create a session instance
 			$this->session = $factory->createSessionInstance();
-
-			// start the session
-			$this->session->start();
-
-			// and make sure it ends too
-			$this->event->on('shutdown', function($event) { $this->getSession()->stop(); }, $this);
 		}
 
 		// create the view manager instance for this application
@@ -380,6 +373,18 @@ class Application
 	}
 
 	/**
+	 * Return the applications Input instance
+	 *
+	 * @return  Input
+	 *
+	 * @since  2.0.0
+	 */
+	public function getInput()
+	{
+		return $this->input;
+	}
+
+	/**
 	 * Return the applications session manager
 	 *
 	 * @return  Fuel\Session\Manager
@@ -469,7 +474,7 @@ class Application
 		$this->log->info('Application "'.$this->appName.'" is creating new "'.$this->input->getMethod().'" Request for URI: '.(empty($uri) ? '/' : $uri));
 
 		// forge a new request
-		return $this->factory->createRequestInstance($this, $uri, $input);
+		return $this->factory->createRequestInstance($uri, $input);
 	}
 
 	/**

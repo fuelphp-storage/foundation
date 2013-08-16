@@ -10,13 +10,22 @@
 
 namespace Fuel\Foundation\Facades;
 
-use Fuel\Common\DateRange as DateRangeHelper;
-
 /**
- * DateRange Facade class
+ * Autoloader, a Facade class on the Composer loader instance
  *
  * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
-class DateRange extends DateRangeHelper {}
+class Autoloader extends Base
+{
+	/**
+	 * Get the object instance for this Facade
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getInstance()
+	{
+		return \Dependency::resolve('autoloader');
+	}
+}

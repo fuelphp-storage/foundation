@@ -11,10 +11,23 @@
 namespace Fuel\Foundation\Facades;
 
 /**
- * Inflector Facade class
+ * Router Facade class
  *
  * @package  Fuel\Foundation
  *
- * @since  2.0.0
+ * @since  1.0.0
  */
-class Inflector extends \Fuel\Common\Inflector {}
+class Router extends Base
+{
+	/**
+	 * Get the object instance for this Facade
+	 *
+	 * @returns	Fuel/Routing/Router
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getInstance()
+	{
+		return \Application::getInstance()->getRouter();
+	}
+}

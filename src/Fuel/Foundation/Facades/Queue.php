@@ -20,14 +20,17 @@ namespace Fuel\Foundation\Facades;
 class Queue extends Base
 {
 	/**
-	 * Create and retrieve an instance.
+	 * Get a new Event Queue instance.
 	 *
-	 * @param   string  $name    instance reference
-	 *
-	 * @return  Fuel\Event\Queue
+	 * @return  Fuel\Event\Queue  new Event Queue instance
 	 */
-	public static function instance($name = '__default__')
+	public static function forge()
 	{
+		if ($name === null)
+		{
+			$name = uniqid(true);
+		}
+
 		return \Dependency::multiton('queue', $name);
 	}
 
@@ -42,17 +45,7 @@ class Queue extends Base
 	}
 
 	/**
-	 * Get a new Event Queue instance.
-	 *
-	 * @return  Fuel\Event\Queue  new Event Queue instance
-	 */
-	public static function forge()
-	{
-		return \Dependency::resolve('queue');
-	}
-
-	/**
-	 * Get the default instance for this Facade
+	 * Get an instance for this Facade
 	 *
 	 * @return  Fuel\Event\Queue
 	 *
@@ -60,6 +53,6 @@ class Queue extends Base
 	 */
 	public static function getInstance()
 	{
-		return static::instance('__default__');
+		return static::forge();
 	}
 }

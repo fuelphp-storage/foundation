@@ -11,6 +11,7 @@
 namespace Fuel\Foundation\Providers;
 
 use Fuel\Dependency\ServiceProvider;
+use Fuel\Dependency\ResolveException;
 
 /**
  * FuelPHP ServiceProvider class for this package
@@ -26,8 +27,8 @@ class FuelServiceProvider extends ServiceProvider
 	 */
 	public $provides = array(
 		'application', 'environment', 'input', 'log',
-		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml', 'response.redirect',
 		'request', 'request.local',
+		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml', 'response.redirect',
 	);
 
 	/**
@@ -104,16 +105,26 @@ class FuelServiceProvider extends ServiceProvider
 			}
 			else
 			{
-				$config = $this->container->resolve('application.main')->getConfig();
+				try
+				{
+					$config = $this->container->resolve('application.main')->getConfig();
+				}
+				catch (ResolveException $e)
+				{
+					$config = $this->container->resolve('config.global');
+				}
 			}
 
-			if (is_callable(array($instance, 'setConfig')))
+			if ($config)
 			{
-				$instance->setConfig($config);
-			}
-			else
-			{
-				$instance->config = $config;
+				if (is_callable(array($instance, 'setConfig')))
+				{
+					$instance->setConfig($config);
+				}
+				else
+				{
+					$instance->config = $config;
+				}
 			}
 		});
 
@@ -171,22 +182,56 @@ class FuelServiceProvider extends ServiceProvider
 		 */
 
 		// \Fuel\Foundation\Input
-		$this->register('input', function ($dic, array $inputVars = array(), $parent = null)
+		$this->register('input', function ($dic, array $inputVars = array())
 		{
+			// find the parent input container
+			$stack = $this->container->resolve('requeststack');
+			if ($request = $stack->top())
+			{
+				$parent = $request->getApplication()->getInput();
+			}
+			else
+			{
+				try
+				{
+					$parent = $this->container->resolve('application.main')->getInput();
+					if ( ! $parent)
+					{
+						$parent = $this->container->resolve('input.global');
+					}
+				}
+				catch (ResolveException $e)
+				{
+					$parent = null;
+				}
+			}
+
 			return $dic->resolve('Fuel\Foundation\Input', array($inputVars, $parent));
 		});
+		$this->extend('input', 'getConfigInstance');
 
 		// \Fuel\Foundation\Application
-		$this->register('application', function ($dic, $appName, $appPath, $namespace, $environment)
+		$this->register('application', function ($dic, $name, $path = null, $namespace = null, $environment = null)
 		{
-			// application path
-			if (empty($appPath))
+			// config was passed as an array, extract the data
+			if (is_array($path))
 			{
-				$appPath = APPSPATH.$appName;
+				// make sure the required fields exist
+				$path = array_merge(array('path' => null, 'namespace' => '', 'environment' => ''), $path);
+
+				// and extract them
+				extract($path);
 			}
-			if ( ! is_dir($appPath = realpath($appPath)))
+
+			// application path
+			if (empty($path))
 			{
-				throw new \InvalidArgumentException('The path "'.$appPath.'" does not exist for application "'.$appName.'".');
+				$path = APPSPATH.$name;
+			}
+			$appPath = realpath($path);
+			if ( ! is_dir($appPath))
+			{
+				throw new \InvalidArgumentException('The path "'.$path.'" does not exist for application "'.$name.'".');
 			}
 
 			// application namespace, defaults to global
@@ -205,13 +250,24 @@ class FuelServiceProvider extends ServiceProvider
 			$dic->resolve('autoloader')->add($namespace, $appPath.DS.'classes', true);
 
 
-			return $dic->resolve('Fuel\Foundation\Application', array($appName, $appPath, $namespace, $environment));
+			return $dic->resolve('Fuel\Foundation\Application', array($name, $appPath, $namespace, $environment));
 		});
 
 		// \Fuel\Foundation\Environment
-		$this->register('environment', function ($dic, $app, $environment, $input, $config)
+		$this->register('environment', function ($dic, $environment)
 		{
-			return $dic->resolve('Fuel\Foundation\Environment', array($app, $environment, $input, $config));
+			// get current application and input objects
+			$stack = $this->container->resolve('requeststack');
+			if ($request = $stack->top())
+			{
+				$app = $request->getApplication();
+			}
+			else
+			{
+				$app = $this->container->resolve('application.main');
+			}
+
+			return $dic->resolve('Fuel\Foundation\Environment', array($environment, $app, $app->getInput(), $app->getConfig()));
 		});
 
 		$this->registerSingleton('requeststack', function ($dic)
@@ -220,8 +276,22 @@ class FuelServiceProvider extends ServiceProvider
 		});
 
 		// \Fuel\Foundation\Request\...
-		$this->register('request', function ($dic, $app, $resource = '', Array $input = array(), $type = null)
+		$this->register('request', function ($dic, $resource, Array $input = array(), $type = null)
 		{
+			// get current application and input objects
+			$stack = $this->container->resolve('requeststack');
+			if ($request = $stack->top())
+			{
+				$app = $request->getApplication();
+				$parentInput = $request->getInput();
+			}
+			else
+			{
+				$app = $this->container->resolve('application.main');
+				$parentInput = $app->getInput();
+			}
+
+			// determine the type of request to return
 			if ($type === null)
 			{
 				$url = parse_url($resource = rtrim($resource, '/').'/');
@@ -255,11 +325,8 @@ class FuelServiceProvider extends ServiceProvider
 				$type = 'local';
 			}
 
-// TODO: find the parent request, get it's input container, and assign this to $inp
-			$parent = null;
-
 			// construct an input instance for this request
-			$input = $dic->resolve('input', array($input, $parent));
+			$input = $dic->resolve('input', array($input, $parentInput));
 
 			// return the constructed request
 			return $dic->resolve('request.'.$type, array($app, $resource, $input));
@@ -276,9 +343,9 @@ class FuelServiceProvider extends ServiceProvider
 		$this->extend('request.local', 'getLogInstance');
 
 		// \Fuel\Foundation\Response\Html
-		$this->register('response', function ($dic, $content = '', $status = 200, array $headers = array())
+		$this->register('response', function ($dic, $type = 'html', $content = '', $status = 200, array $headers = array())
 		{
-			return $dic->resolve('Fuel\Foundation\Response\Html', array($content, $status, $headers));
+			return $dic->resolve('Fuel\Foundation\Response\\'.ucfirst($type), array($content, $status, $headers));
 		});
 		$this->extend('response', 'getRequestInstance');
 
@@ -332,9 +399,9 @@ class FuelServiceProvider extends ServiceProvider
 		 */
 
 		// \Monolog\Logger
-		$this->register('log', function ($dic, $name)
+		$this->register('log', function ($dic, $name, array $handlers = array(), array $processors = array())
 		{
-			return new \Monolog\Logger($name);
+			return new \Monolog\Logger($name, $handlers, $processors);
 		});
 	}
 }

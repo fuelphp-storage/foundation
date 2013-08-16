@@ -26,6 +26,6 @@ class Error extends Base
 	 */
 	public static function getInstance()
 	{
-		return \Dependency::getInstance()->resolve('errorhandler');
+		return \Dependency::resolve('errorhandler');
 	}
 }

@@ -11,10 +11,23 @@
 namespace Fuel\Foundation\Facades;
 
 /**
- * Inflector Facade class
+ * Event Facade class
  *
  * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
-class Inflector extends \Fuel\Common\Inflector {}
+class Event extends Base
+{
+	/**
+	 * Get the object instance for this Facade
+	 *
+	 * @returns	Input
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getInstance()
+	{
+		return \Application::getInstance()->getEvent();
+	}
+}

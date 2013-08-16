@@ -10,9 +10,6 @@
 
 namespace Fuel\Foundation\Facades;
 
-use Fuel\Foundation\Application as AppInstance;
-use Fuel\Foundation\Request\Base as RequestBase;
-
 /**
  * Request Facade class
  *
@@ -23,6 +20,46 @@ use Fuel\Foundation\Request\Base as RequestBase;
 class Request extends Base
 {
 	/**
+	 * Returns an instance of a Request.
+	 *
+	 * @param   string  URI to request
+	 * @param   array   optional array of input variables
+	 * @param   string  type of request instance required, null to autodetect
+	 *
+	 * @return  Request\Base
+	 */
+	public static function forge($resource, Array $input = array(), $type = null)
+	{
+		return \Dependency::resolve('request', func_get_args());
+	}
+
+	/**
+	 * Check if the current request is the main request
+	 *
+	 * @return  bool  Whether or not this is the main request
+	 *
+	 * @since  2.0.0
+	 */
+	public static function isMainRequest()
+	{
+		$stack = Dependency::resolve('requeststack');
+		return count($stack) === 1;
+	}
+
+	/**
+	 * Check if the current request is an HMVC request
+	 *
+	 * @return  bool  Whether or not this is an HMVC request
+	 *
+	 * @since  2.0.0
+	 */
+	public static function isHMVCRequest()
+	{
+		$stack = Dependency::resolve('requeststack');
+		return count($stack) !== 1;
+	}
+
+	/**
 	 * Returns current active Request
 	 *
 	 * @return  Request
@@ -31,7 +68,7 @@ class Request extends Base
 	 */
 	public static function getInstance()
 	{
-		$stack = \Dependency::resolve('requeststack');
+		$stack = Dependency::resolve('requeststack');
 		return $stack->top();
 	}
 }

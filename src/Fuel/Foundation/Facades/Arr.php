@@ -10,8 +10,6 @@
 
 namespace Fuel\Foundation\Facades;
 
-use Fuel\Common\Arr as ArrHelper;
-
 /**
  * Arr Facade class
  *
@@ -19,4 +17,4 @@ use Fuel\Common\Arr as ArrHelper;
  *
  * @since  2.0.0
  */
-class Arr extends ArrHelper {}
+class Arr extends \Fuel\Common\Arr {}

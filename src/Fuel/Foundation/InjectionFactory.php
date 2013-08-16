@@ -49,13 +49,9 @@ class InjectionFactory
 	/**
 	 *
 	 */
-	public function createInputContainer($parent = null)
+	public function createInputContainer(Array $input = array())
 	{
-		if ($parent === null)
-		{
-			$parent = $this->container->resolve('input.global');
-		}
-		return $this->container->resolve('input', array(array(), $parent));
+		return $this->container->resolve('input', func_get_args());
 	}
 
 	/**
@@ -101,9 +97,9 @@ class InjectionFactory
 	/**
 	 *
 	 */
-	public function createRequestInstance($app, $uri, $input)
+	public function createRequestInstance($uri, $input)
 	{
-		return $this->container->resolve('request', array($app, $uri, $input));
+		return $this->container->resolve('request', array($uri, $input));
 	}
 
 	/**

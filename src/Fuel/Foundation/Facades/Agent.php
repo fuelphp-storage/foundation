@@ -29,17 +29,19 @@ class Agent extends Base
 	 *
 	 * @return  Fuel\Agent\Agent  new Agent instance
 	 */
-	public static function forge($name = '__default__', Array $config = array(), $method = 'browscap')
+	public static function forge($name = null)
 	{
 		// get the current application name via the active request instance
-		if ($name === '__default__' and $request = \Request::getInstance())
+		if ( ! $name)
 		{
-			$name = $request->getApplication()->getName();
+			$name = \Application::getInstance()->getName();
 		}
 
-		// fetch the application agent config, and merge it with the one passed
-		$config = array_merge(\Config::load('agent', true), $config);
-		return \Dependency::multiton('agent', $name, array($config, $method));
+		// get the arguments, and remove the name
+		$args = func_get_args();
+		array_shift($args);
+
+		return \Dependency::multiton('agent', $name, $args);
 	}
 
 	/**

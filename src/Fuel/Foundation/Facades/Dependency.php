@@ -46,15 +46,16 @@ class Dependency extends Base
 		{
 			// get us a Dependency Container instance
 			static::$dic = new Container;
+
+			// register the DiC on classname so it can be auto-resolved
+			static::$dic->registerSingleton('Fuel\Dependency\Container', function($container)
+			{
+				return $container;
+			});
+
 		}
 
-		// register the DiC on classname so it can be auto-resolved
-		static::$dic->registerSingleton('Fuel\Dependency\Container', function($container)
-		{
-			return $container;
-		});
-
-		// and on alias for manual resolving
+		// regitser the dic manual resolving
 		static::$dic->registerSingleton('dic', function($container)
 		{
 			return $container;

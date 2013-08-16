@@ -11,10 +11,10 @@
 namespace Fuel\Foundation\Facades;
 
 /**
- * Inflector Facade class
+ * DateRange Facade class
  *
  * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
-class Inflector extends \Fuel\Common\Inflector {}
+class DateRange extends \Fuel\Common\DateRange {}

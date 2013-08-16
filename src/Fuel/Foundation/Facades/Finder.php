@@ -28,9 +28,9 @@ class Finder extends Base
 
 	 * @return  Fuel\Filesystem\Finder
 	 */
-	public static function forge($paths = array(), $defaultExtension = null, $root = null)
+	public static function forge()
 	{
-		return \Dependency::resolve('finder', array($paths));
+		return \Dependency::resolve('finder', func_get_args());
 	}
 
 	/**
@@ -58,5 +58,16 @@ class Finder extends Base
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Get the object instance for this Facade
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getInstance()
+	{
+		// this facade provides no instances
+		return null;
 	}
 }

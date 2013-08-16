@@ -30,7 +30,7 @@ class Lang extends Base
 	 */
 	public static function forge($name)
 	{
-		$instance = \Dependency::multiton('config', $name);
+		$instance = \Dependency::multiton('config', 'lang-'.$name);
 		return $instance;
 	}
 

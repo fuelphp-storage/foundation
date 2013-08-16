@@ -10,44 +10,45 @@
 
 namespace Fuel\Foundation\Facades;
 
-use Monolog\Logger;
-use Psr\Log\LoggerInterface;
-
 /**
- * Log Facade class
+ * Input Facade class
  *
  * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
-
-class Log extends Base
+class Input extends Base
 {
 	/**
-	 * Create a new Monolog Logger instance.
+	 * Forge a new Input object
 	 *
-	 * @param  $name  name of the log instance
+	 * @param  $input  array with input variables
 	 *
-	 * @return  Logger  new Monolog instance
+	 * @returns	Input
+	 *
+	 * @since  2.0.0
 	 */
-	public static function forge($name)
+	public static function forge(Array $input = array())
 	{
-		return \Dependency::multiton('log', $name, array($name));
+		return \Dependency::resolve('input', func_get_args());
 	}
 
 	/**
 	 * Get the object instance for this Facade
 	 *
+	 * @returns	Input
+	 *
 	 * @since  2.0.0
 	 */
 	public static function getInstance()
 	{
-		// get the current environment via the active request instance
+		// get the current request instance
 		if ($request = \Request::getInstance())
 		{
-			return $request->getApplication()->getLog();
+			return $request->getInput();
 		}
 
-		return null;
+		// no active request, return the current application instance
+		return \Application::getInstance()->getInput();
 	}
 }

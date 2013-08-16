@@ -24,19 +24,19 @@ class Format extends Base
 	 *
 	 *     echo Format::forge(array('foo' => 'bar'))->toXml();
 	 *
-	 * @param   mixed  general date to be converted
-	 * @param   string  data format the file was provided in
-	 * @return  Format
+	 * @return  \Fuel\Common\Format
+	 *
+	 * @since  2.0.0
 	 */
-	public static function forge($data = null, $from_type = null)
+	public static function forge()
 	{
-		return \Dependency::resolve('format', array($data, $from_type, \Config::load('format', true) ?: array(), \Input::getInstance()));
+		return \Dependency::resolve('format', func_get_args());
 	}
 
 	/**
 	 * Get the default instance for this Facade
 	 *
-	 * @return  Fuel\Event\Queue
+	 * @return  \Fuel\Common\Format
 	 *
 	 * @since  2.0.0
 	 */

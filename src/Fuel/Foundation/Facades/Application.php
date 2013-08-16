@@ -34,11 +34,8 @@ class Application extends Base
 	 */
 	public static function forge($name, array $config = array())
 	{
-		// make sure the required fields exist
-		$config = array_merge(array('path' => null, 'namespace' => '', 'environment' => ''), $config);
-
-		// create and return this application
-		return \Dependency::multiton('application', $name, array($name, $config['path'], $config['namespace'], $config['environment']));
+		// create and return this application instance
+		return \Dependency::multiton('application', $name, func_get_args());
 	}
 
 	/**
@@ -54,11 +51,13 @@ class Application extends Base
 	 */
 	public static function get($name)
 	{
+		// make sure we have this application instance
 		if ( ! \Dependency::isInstance('application', $name))
 		{
 			throw new \RuntimeException('There is no application defined named "'.$name.'".');
 		}
 
+		// return the application instance
 		return \Dependency::multiton('application', $name);
 	}
 
@@ -71,6 +70,7 @@ class Application extends Base
 	 */
 	public static function getInstance()
 	{
+		// get the current requests' application object
 		$stack = \Dependency::resolve('requeststack');
 		if ($request = $stack->top())
 		{
@@ -78,6 +78,7 @@ class Application extends Base
 		}
 		else
 		{
+			// fall back to the main application
 			$app = $this->container->resolve('application.main');
 		}
 

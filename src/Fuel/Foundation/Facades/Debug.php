@@ -10,8 +10,6 @@
 
 namespace Fuel\Foundation\Facades;
 
-use Fuel\Common\Debug as DebugHelper;
-
 /**
  * Debug Facade class
  *
@@ -19,4 +17,4 @@ use Fuel\Common\Debug as DebugHelper;
  *
  * @since  2.0.0
  */
-class Debug extends DebugHelper {}
+class Debug extends \Fuel\Common\Debug {}

@@ -26,9 +26,9 @@ class ApplicationInjectionFactory extends InjectionFactory
 	/**
 	 *
 	 */
-	public function createEnvironmentContainer($app, $environment, $input, $config)
+	public function createEnvironmentContainer($app, $environment)
 	{
-		return $this->container->multiton('environment', $app->getName(), array($app, $environment, $input, $config));
+		return $this->container->multiton('environment', $app->getName(), array($environment));
 	}
 
 	/**

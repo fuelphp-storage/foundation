@@ -11,14 +11,27 @@
 namespace Fuel\Foundation\Facades;
 
 /**
- * Composer Facade class
+ * Log Facade class
  *
  * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
-class Composer extends Base
+
+class Log extends Base
 {
+	/**
+	 * Create a new Monolog Logger instance.
+	 *
+	 * @param  $name  name of the log instance
+	 *
+	 * @return  Logger  new Monolog instance
+	 */
+	public static function forge($name)
+	{
+		return \Dependency::multiton('log', $name, func_get_args());
+	}
+
 	/**
 	 * Get the object instance for this Facade
 	 *
@@ -26,6 +39,7 @@ class Composer extends Base
 	 */
 	public static function getInstance()
 	{
-		return \Dependency::getInstance()->resolve('autoloader');
+		// return the current applications' log instance
+		return \Application::getInstance()->getLog();
 	}
 }

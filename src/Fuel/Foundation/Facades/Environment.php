@@ -34,16 +34,10 @@ class Environment extends Base
 	 *
 	 * @since  2.0.0
 	 */
-	public static function forge(AppInstance $app, $environment)
+	public static function forge($environment)
 	{
-		// do we already have this instance?
-		$name = $app->getName();
-		if (\Dependency::isInstance('environment', $name))
-		{
-			throw new \RuntimeException('The environment "'.$name.'" is already forged.');
-		}
-
-		return \Dependency::multiton('environment', $name, array($app, $environment, $app->getConfig()));
+		$name = \Application::getInstance()->getName();
+		return \Dependency::multiton('environment', $name, func_get_args());
 	}
 
 	/**
@@ -80,6 +74,7 @@ class Environment extends Base
 			return $request->getApplication()->getEnvironment();
 		}
 
-		return null;
+		// no active request, return the main applications' environment
+		return \Application::getInstance()->getEnvironment();
 	}
 }

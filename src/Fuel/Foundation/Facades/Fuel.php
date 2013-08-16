@@ -13,13 +13,13 @@ namespace Fuel\Foundation\Facades;
 use Fuel\Config\Container;
 
 /**
- * Fuel Facade class
+ * Fuel class
  *
  * @package  Fuel\Foundation
  *
  * @since  1.0.0
  */
-class Fuel extends Base
+class Fuel
 {
 	/**
 	 * @var  string  The global version of framework
@@ -70,9 +70,6 @@ class Fuel extends Base
 	 */
 	public static function initialize(Container $config)
 	{
-		// Start up output buffering
-		ob_start($config->get('ob_callback', null));
-
 		// configure the localization options for PHP
 		static::$encoding = $config->get('encoding', static::$encoding);
 		static::setEncoding(static::$encoding);
@@ -86,6 +83,13 @@ class Fuel extends Base
 		// determine the Cli state
 		static::$isCli = (bool) defined('STDIN');
 		static::$isCli and static::$readlineSupport = extension_loaded('readline');
+
+		// Start up output buffering
+		if ( ! static::$isCli)
+		{
+			ob_start($config->get('ob_callback', null));
+		}
+
 	}
 
 	/**
@@ -214,8 +218,9 @@ class Fuel extends Base
 	 *
 	 * @since  2.0.0
 	 */
-	protected static function getInstance()
+	public static function getInstance()
 	{
+		// this facade provides no instances
 		return null;
 	}
 }

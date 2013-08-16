@@ -30,8 +30,7 @@ class Security extends Base
 	 */
 	public static function forge()
 	{
-		$name = ($app = \Application::getInstance()) ? $app->getName() : '__default__';
-		return \Dependency::multiton('security', $name, array(\Config::load('security', true)));
+		return \Dependency::multiton('security', \Application::getInstance()->getName(), func_get_args());
 	}
 
 	/**
@@ -68,13 +67,7 @@ class Security extends Base
 	 */
 	public static function getInstance()
 	{
-		// get the current request instance
-		if ($app = \Application::getInstance())
-		{
-			return static::forge();
-		}
-
-		// no active application, so no instance available
-		return null;
+		// get the application instance
+		return static::forge();
 	}
 }

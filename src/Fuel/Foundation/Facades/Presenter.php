@@ -30,46 +30,61 @@ class Presenter extends Base
 	 * @throws  RuntimeException if the the presenter class could not be loaded
 	 * @return  \Fuel\Display\Presenter
 	 */
-	public static function forge($presenter, $method = 'view', $autoFilter = null, $view = null)
+	public static function forge($uri, $method = 'view', $autoFilter = null, $view = null)
 	{
 		// was a custom view string passed?
 		if ($view === null)
 		{
-			$view = $presenter;
+			$view = $uri;
 		}
 
-		// get the root namespace if the correct controller
-		$namespace = \Request::getInstance()->getRoute()->namespace;
-		$path = \Request::getInstance()->getRoute()->path;
+		// get the active namespace list
+		$namespaces = \Request::getInstance()->getApplication()->getNamespaces();
 
-		// get the segments from the presenter string passed
-		$segments = explode('/', $presenter);
-		while(count($segments))
+		// prepend the current namespace, we'll check that first
+		$currentNamespace = \Request::getInstance()->getRoute()->namespace;
+
+		// find the matching presenter
+		$presenter = null;
+		foreach ($namespaces as $namespace)
 		{
-			$class = $namespace.'Presenter\\'.implode('\\', array_map('ucfirst', $segments));
+			// normalize the namespace
+			$namespace['namespace'] = trim($namespace['namespace'], '\\').'\\';
 
-			if ( ! class_exists($class, false))
+			// get the segments from the presenter string passed
+			$segments = explode('/', $uri);
+			while(count($segments))
 			{
-				$file = $path.'classes'.DS.'Presenter'.DS.implode('/', array_map('ucfirst', $segments)).'.php';
-				if (file_exists($file))
+				$class = $namespace['namespace'].'Presenter\\'.implode('\\', array_map('ucfirst', $segments));
+
+				if ( ! class_exists($class, false))
 				{
-					include $file;
+					$file = $namespace['path'].'classes'.DS.'Presenter'.DS.implode('/', array_map('ucfirst', $segments)).'.php';
+					if (file_exists($file))
+					{
+						include $file;
+					}
 				}
+
+				if (class_exists($class))
+				{
+					$presenter = new $class(\View::getInstance(), $method, $autoFilter, $view);
+					break;
+				}
+
+				array_pop($segments);
 			}
 
-			if (class_exists($class))
+			if ($presenter)
 			{
-				$presenter = new $class(\View::getInstance(), $method, $autoFilter, $view);
 				break;
 			}
-
-			array_pop($segments);
 		}
 
 		// bail out if the presenter class could not be loaded
 		if ( ! is_object($presenter))
 		{
-			throw new \RuntimeException('Presenter class identified by "'.$presenter.'" could not be found.');
+			throw new \RuntimeException('Presenter class identified by "'.$uri.'" could not be found.');
 		}
 
 		// or is not a valid Presenter

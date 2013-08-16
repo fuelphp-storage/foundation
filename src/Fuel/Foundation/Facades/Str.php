@@ -10,8 +10,6 @@
 
 namespace Fuel\Foundation\Facades;
 
-use Fuel\Common\Str as StrHelper;
-
 /**
  * Str Facade class
  *
@@ -19,4 +17,4 @@ use Fuel\Common\Str as StrHelper;
  *
  * @since  2.0.0
  */
-class Str extends StrHelper {}
+class Str extends \Fuel\Common\Str {}

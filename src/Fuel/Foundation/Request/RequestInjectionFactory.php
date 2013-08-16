@@ -27,7 +27,7 @@ use Fuel\Foundation\InjectionFactory;
 class RequestInjectionFactory extends InjectionFactory
 {
 	/**
-	 *
+	 * Set a Request as the active request
 	 */
 	public function setActiveRequest($request)
 	{
@@ -36,7 +36,7 @@ class RequestInjectionFactory extends InjectionFactory
 	}
 
 	/**
-	 *
+	 * Pop the current active request from the stack
 	 */
 	public function resetActiveRequest()
 	{
@@ -45,9 +45,9 @@ class RequestInjectionFactory extends InjectionFactory
 	}
 
 	/**
-	 * get the current active request
+	 * Check if the current request is the main request
 	 *
-	 * @return  RequestInstance
+	 * @return  bool  Whether or not this is the main request
 	 *
 	 * @since  2.0.0
 	 */

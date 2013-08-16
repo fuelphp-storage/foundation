@@ -31,10 +31,9 @@ class Date extends Base
 	 *
 	 * @return  Date
 	 */
-	public static function forge($time = "now", $timezone = null, Array $config = array())
+	public static function forge()
 	{
-		$config = array_merge(\Config::load('date', true), $config);
-		return \Dependency::resolve('date', array($time, $timezone, $config));
+		return \Dependency::resolve('date', func_get_args());
 	}
 
 	/**
@@ -170,7 +169,7 @@ class Date extends Base
 	 *
 	 * @since  2.0.0
 	 */
-	public static function getInstance($lang = null)
+	public static function getInstance()
 	{
 		return static::forge();
 	}
