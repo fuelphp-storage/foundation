@@ -33,7 +33,7 @@ class Date extends Base
 	 */
 	public static function forge()
 	{
-		return \Dependency::resolve('date', func_get_args());
+		return static::$dic->resolve('date', func_get_args());
 	}
 
 	/**

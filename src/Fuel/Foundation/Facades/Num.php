@@ -28,7 +28,7 @@ class Num extends Base
 	 */
 	public static function forge()
 	{
-		return \Dependency::resolve('num', func_get_args());
+		return static::$dic->resolve('num', func_get_args());
 	}
 
 	/**

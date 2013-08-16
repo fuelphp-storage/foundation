@@ -31,7 +31,7 @@ class Upload extends Base
 			$name = uniqid(true);
 		}
 
-		return \Dependency::multiton('upload', $name);
+		return static::$dic->multiton('upload', $name);
 	}
 
 	/**
@@ -41,7 +41,7 @@ class Upload extends Base
 	 */
 	public static function delete($name)
 	{
-		return \Dependency::remove('upload::'.$name);
+		return static::$dic->remove('upload::'.$name);
 	}
 
 

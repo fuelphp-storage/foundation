@@ -30,7 +30,7 @@ class Format extends Base
 	 */
 	public static function forge()
 	{
-		return \Dependency::resolve('format', func_get_args());
+		return static::$dic->resolve('format', func_get_args());
 	}
 
 	/**

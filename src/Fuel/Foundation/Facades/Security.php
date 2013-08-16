@@ -30,7 +30,7 @@ class Security extends Base
 	 */
 	public static function forge()
 	{
-		return \Dependency::multiton('security', \Application::getInstance()->getName(), func_get_args());
+		return static::$dic->multiton('security', \Application::getInstance()->getName(), func_get_args());
 	}
 
 	/**

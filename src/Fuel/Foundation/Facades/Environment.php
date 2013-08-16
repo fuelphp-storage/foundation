@@ -37,7 +37,7 @@ class Environment extends Base
 	public static function forge($environment)
 	{
 		$name = \Application::getInstance()->getName();
-		return \Dependency::multiton('environment', $name, func_get_args());
+		return static::$dic->multiton('environment', $name, func_get_args());
 	}
 
 	/**
@@ -53,12 +53,12 @@ class Environment extends Base
 	 */
 	public static function get($name)
 	{
-		if ( ! \Dependency::isInstance('environment', $name))
+		if ( ! static::$dic->isInstance('environment', $name))
 		{
 			throw new \InvalidArgumentException('There is no environment defined named "'.$name.'".');
 		}
 
-		return \Dependency::multiton('environment', $name);
+		return static::$dic->multiton('environment', $name);
 	}
 
 	/**

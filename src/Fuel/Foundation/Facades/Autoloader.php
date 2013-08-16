@@ -26,6 +26,6 @@ class Autoloader extends Base
 	 */
 	public static function getInstance()
 	{
-		return \Dependency::resolve('autoloader');
+		return static::$dic->resolve('autoloader');
 	}
 }

@@ -20,6 +20,13 @@ namespace Fuel\Foundation\Facades;
 abstract class Base
 {
 	/**
+	 * @var  Container  the DiC
+	 *
+	 * @since  2.0.0
+	 */
+	protected static $dic;
+
+	/**
 	* Static method interface on dynamic objects
 	*
 	* @param  string  $method  method to call on the instance

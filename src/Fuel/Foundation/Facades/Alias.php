@@ -26,6 +26,6 @@ class Alias extends Base
 	 */
 	public static function getInstance()
 	{
-		return \Dependency::resolve('alias');
+		return static::$dic->resolve('alias');
 	}
 }

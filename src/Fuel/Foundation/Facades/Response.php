@@ -30,7 +30,7 @@ class Response extends Base
 	 */
 	public static function forge()
 	{
-		return \Dependency::resolve('response', func_get_args());
+		return static::$dic->resolve('response', func_get_args());
 	}
 
 }

@@ -30,7 +30,7 @@ class Request extends Base
 	 */
 	public static function forge($resource, Array $input = array(), $type = null)
 	{
-		return \Dependency::resolve('request', func_get_args());
+		return static::$dic->resolve('request', func_get_args());
 	}
 
 	/**

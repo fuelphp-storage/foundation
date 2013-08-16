@@ -41,7 +41,7 @@ class Package extends Base
 		is_array($paths) or $paths = array($paths);
 
 		// get the packages container
-		$packages = \Dependency::resolve('packages');
+		$packages = static::$dic->resolve('packages');
 
 		// check if this package has a PackageProvider for us
 		if (class_exists($class = trim($prefix, '\\').'\\Providers\\FuelPackageProvider'))
@@ -86,7 +86,7 @@ class Package extends Base
 	public static function enable($prefix)
 	{
 		// get the packages container
-		$packages = \Dependency::resolve('packages');
+		$packages = static::$dic->resolve('packages');
 
 		if ($provider = $packages->get($prefix, null))
 		{
@@ -106,7 +106,7 @@ class Package extends Base
 	public static function disable($prefix)
 	{
 		// get the packages container
-		$packages = \Dependency::resolve('packages');
+		$packages = static::$dic->resolve('packages');
 
 		if ($provider = $packages->get($prefix, null))
 		{

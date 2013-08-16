@@ -30,7 +30,7 @@ class Input extends Base
 	 */
 	public static function forge(Array $input = array())
 	{
-		return \Dependency::resolve('input', func_get_args());
+		return static::$dic->resolve('input', func_get_args());
 	}
 
 	/**

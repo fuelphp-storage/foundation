@@ -22,13 +22,6 @@ use Fuel\Dependency\Container;
 class Dependency extends Base
 {
 	/**
-	 * @var  Container  the DiC
-	 *
-	 * @since  2.0.0
-	 */
-	protected static $dic;
-
-	/**
 	 * setup the Dependency Container we're going to use
 	 *
 	 * @since  2.0.0
