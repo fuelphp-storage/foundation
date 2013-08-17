@@ -35,10 +35,30 @@ define('MBSTRING', function_exists('mb_get_info'));
 /**
 * Insane workaround for https://bugs.php.net/bug.php?id=64761
 */
-function InputClosureBindStupidWorkaround($event, $input)
+function InputClosureBindStupidWorkaround($event, $input, $autoloader)
 {
 	// setup a shutdown event for writing cookies
 	$event->on('shutdown', function($event) { $this->getCookie()->send(); }, $input);
+
+	// and one to write the classmap cache
+	// TODO: better way to determine the location of the class cache
+	$event->on('shutdown', function($event) {
+		$classMap = array_filter($this->getClassMap());
+		if (isset($classMap['FuelPHPexpirationTimestamp']))
+		{
+			if ($classMap['FuelPHPexpirationTimestamp'] < time())
+			{
+				unlink(APPSPATH.'demo/cache/class_cache.php');
+				return;
+			}
+		}
+		else
+		{
+			// have it expire at least once a day
+			$classMap['FuelPHPexpirationTimestamp'] = time() + (defined('CLASS_CACHE_EXPIRE') ? CLASS_CACHE_EXPIRE : 86400);
+		}
+		file_put_contents(APPSPATH.'demo/cache/class_cache.php', '<?php'."\n\n".'return '.var_export($classMap, true).';');
+	}, $autoloader);
 }
 
 /**
@@ -47,6 +67,14 @@ function InputClosureBindStupidWorkaround($event, $input)
  */
 $bootstrapFuel = function()
 {
+	/**
+	 * Load the cached class map if present
+	 */
+	if (file_exists(APPSPATH.'demo/cache/class_cache.php'))
+	{
+		self::$loader->addClassMap(include  APPSPATH.'demo/cache/class_cache.php');
+	}
+
 	/**
 	 * Setup the shutdown, error & exception handlers
 	 */
@@ -152,8 +180,8 @@ $bootstrapFuel = function()
 	// setup a global shutdown event for this event container
 	register_shutdown_function(function($event) { $event->trigger('shutdown'); }, $event);
 
-	// setup a shutdown event for saving cookies
-	InputClosureBindStupidWorkaround($event, $input);
+	// setup a shutdown event for saving cookies and to cache the classmap
+	InputClosureBindStupidWorkaround($event, $input, self::$loader);
 
 	/**
 	 * Do the remainder of the framework initialisation
