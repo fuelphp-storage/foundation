@@ -338,7 +338,6 @@ class FuelServiceProvider extends ServiceProvider
 			return $dic->resolve('Fuel\Foundation\Request\Local', array($app, $resource, $inputInstance));
 		});
 		$this->extend('request.local', 'getApplicationInstance');
-		$this->extend('request.local', 'getConfigInstance');
 		$this->extend('request.local', 'getRouterInstance');
 		$this->extend('request.local', 'getLogInstance');
 
