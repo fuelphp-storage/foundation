@@ -342,6 +342,12 @@ class FuelServiceProvider extends ServiceProvider
 		$this->extend('request.local', 'getRouterInstance');
 		$this->extend('request.local', 'getLogInstance');
 
+		// \Fuel\Foundation\Uri
+		$this->register('uri', function ($dic, $uri)
+		{
+			return $dic->resolve('Fuel\Foundation\Uri', array($uri));
+		});
+
 		// \Fuel\Foundation\Response\Html
 		$this->register('response', function ($dic, $type = 'html', $content = '', $status = 200, array $headers = array())
 		{
