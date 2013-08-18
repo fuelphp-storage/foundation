@@ -17,7 +17,7 @@ namespace Fuel\Foundation\Facades;
  *
  * @since  2.0.0
  */
-class Uri
+class Uri extends Base
 {
 	/**
 	 * Creates a url with the given uri, including the base url
