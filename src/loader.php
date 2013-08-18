@@ -54,7 +54,6 @@ $bootstrapFuel = function()
 // TODO: cache file name must be configurable
 	$autoloader = new Autoloader(self::$loader, APPSPATH.'demo/cache/class_cache.php');
 	self::$loader->unregister();
-
 	/**
 	 * Setup the Dependency Container of none was setup yet
 	 */

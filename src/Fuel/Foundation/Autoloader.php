@@ -39,17 +39,22 @@ class Autoloader
     protected $cacheFile;
 
 	/**
+	 */
+    protected $cacheExpire;
+
+	/**
 	 *
 	 */
-	public function __construct($composer, $cacheFile)
+	public function __construct($composer, $cacheFile, $cacheExpire = 86400)
 	{
 		// Import composer data
 		$this->fallbackPaths = $composer->getFallbackDirs();
 		$this->prefixes = $composer->getPrefixes();
 		$this->classMap = $composer->getClassMap();
 
-		// store the cache filename
+		// store the cache filename and expiration
 		$this->cacheFile = $cacheFile;
+		$this->cacheExpire = $cacheExpire;
 
 		// Load the cached class map if present
 		if (file_exists($this->cacheFile))
@@ -66,9 +71,9 @@ class Autoloader
 	 */
 	public function __destruct()
 	{
-		if (isset($classMap['FuelPHPexpirationTimestamp']))
+		if (isset($classMap['FuelExpirationTimestamp']))
 		{
-			if ($classMap['FuelPHPexpirationTimestamp'] < time())
+			if ($classMap['FuelExpirationTimestamp'] < time())
 			{
 				unlink($this->cacheFile);
 				return;
@@ -76,8 +81,11 @@ class Autoloader
 		}
 		else
 		{
-			// have it expire at least once a day
-			$classMap['FuelPHPexpirationTimestamp'] = time() + (defined('CLASS_CACHE_EXPIRE') ? CLASS_CACHE_EXPIRE : 86400);
+			// set an expiration if needed
+			if ($this->cacheExpire)
+			{
+				$classMap['FuelExpirationTimestamp'] = time() + $this->cacheExpire;
+			}
 		}
 		file_put_contents($this->cacheFile, '<?php'."\n\n".'return '.var_export($this->classMap, true).';');
 	}
