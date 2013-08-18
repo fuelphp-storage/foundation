@@ -58,9 +58,9 @@ class RequestInjectionFactory extends InjectionFactory
 	}
 
 	/**
-	 * get the current active request
+	 * create an instance of the controller
 	 *
-	 * @return  RequestInstance
+	 * @return  Controller\Base
 	 *
 	 * @since  2.0.0
 	 */
@@ -71,5 +71,17 @@ class RequestInjectionFactory extends InjectionFactory
 		$this->container->extend('controller', 'getRequestInstance');
 
 		return $this->container->resolve('controller');
+	}
+
+	/**
+	 * create an instance of the controller
+	 *
+	 * @return  Controller\Base
+	 *
+	 * @since  2.0.0
+	 */
+	public function createUriInstance($uri)
+	{
+		return $this->container->resolve('uri', array($uri));
 	}
 }

@@ -24,6 +24,13 @@ use Fuel\Foundation\Exception\NotFound;
 class Local extends Base
 {
 	/**
+	 * @var  \Fuel\Config\Container
+	 *
+	 * @since  2.0.0
+	 */
+	protected $config;
+
+	/**
 	 * Constructor
 	 *
 	 * @param  string  $resource
@@ -35,8 +42,23 @@ class Local extends Base
 	{
 		parent::__construct($app, $resource, $inputInstance, $factory);
 
+		// store this requests config container
+		$this->config = $app->getConfig();
+
 		// make sure the request has the correct format
 		$this->request  = '/'.trim(strval($resource), '/');
+	}
+
+	/**
+	 * Returns this requests current Config object
+	 *
+	 * @return  Uri
+	 *
+	 * @since  1.1.0
+	 */
+	public function getConfig()
+	{
+		return $this->config;
 	}
 
 	/**
@@ -88,7 +110,7 @@ class Local extends Base
 
 			// add the root path to the config, lang and view manager objects
 			$this->app->getViewManager()->getFinder()->addPath($this->route->path);
-			$this->app->getConfig()->addPath($this->route->path.'config'.DS);
+			$this->config->addPath($this->route->path.'config'.DS);
 			$this->app->getLanguage()->addPath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
 
 			try
@@ -123,7 +145,7 @@ class Local extends Base
 
 		// remove the root path to the config, lang and view manager objects
 		$this->app->getLanguage()->removePath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
-		$this->app->getConfig()->removePath($this->route->path.'config'.DS);
+		$this->config->removePath($this->route->path.'config'.DS);
 		$this->app->getViewManager()->getFinder()->removePath($this->route->path);
 
 		// log the request termination
@@ -145,6 +167,9 @@ class Local extends Base
 	{
 		// resolve the route
 		$route = $this->router->translate($uri, $method);
+
+		// create a URI object
+		$this->uri = $this->factory->createUriInstance($route->uri);
 
 		// find a match
 		foreach ($this->app->getNamespaces() as $namespace)

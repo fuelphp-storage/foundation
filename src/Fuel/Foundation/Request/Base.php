@@ -41,11 +41,16 @@ abstract class Base
 	protected $request = '';
 
 	/**
-	 * @var  \Fuel\Kernel\Request\Input\Base
+	 * @var  \Fuel\Foundation\Input
 	 *
 	 * @since  2.0.0
 	 */
 	protected $input;
+
+	/**
+	 * @var  \Fuel\Foundation\Uri
+	 */
+	protected $uri;
 
 	/**
 	 * @var  array  associative array of named params in the URI
@@ -179,6 +184,18 @@ abstract class Base
 	public function getRoute()
 	{
 		return $this->route;
+	}
+
+	/**
+	 * Returns this requests current Uri object
+	 *
+	 * @return  Uri
+	 *
+	 * @since  1.1.0
+	 */
+	public function getUri()
+	{
+		return $this->uri;
 	}
 
 	/**
