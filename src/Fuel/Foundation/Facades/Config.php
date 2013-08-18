@@ -35,5 +35,4 @@ class Config extends Base
 		// no active request, return the current application instance
 		return \Application::getInstance()->getConfig();
 	}
-	}
 }
