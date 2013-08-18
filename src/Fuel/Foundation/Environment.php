@@ -51,20 +51,6 @@ class Environment
 	protected $name = 'development';
 
 	/**
-	 * @var  string  base url
-	 *
-	 * @since  2.0.0
-	 */
-	protected $baseUrl = null;
-
-	/**
-	 * @var  string
-	 *
-	 * @since  2.0.0
-	 */
-	protected $indexFile = null;
-
-	/**
 	 * @var  array  container for environment variables
 	 *
 	 * @since  2.0.0
@@ -98,11 +84,15 @@ class Environment
 		$this->config = $config;
 
 		// fetch URL data from the config, construct it if not set
-		if ($this->baseUrl = $this->config->baseUrl === null)
+		if ($this->config->baseUrl === null)
 		{
-			$this->baseUrl = $this->input->getBaseUrl();
+			if (\Fuel::isCli())
+			{
+				throw new \Exception('TODO');
+			}
+
+			$this->config->baseUrl = $this->input->getBaseUrl();
 		}
-		$this->indexFile = $this->config->indexFile;
 
 		// store the application path
 		$this->addPath($this->app->getName(), $this->app->getPath());
@@ -129,19 +119,6 @@ class Environment
 		if (isset($environments[$environment]))
 		{
 			$finishCallbacks[] = call_user_func($environments[$environment], $this);
-		}
-
-		// detect the base URL from global when not given
-		if (is_null($this->baseUrl))
-		{
-			if (\Fuel::isCli())
-			{
-				throw new \Exception('TODO');
-			}
-			else
-			{
-				$this->baseUrl = $this->input->getBaseUrl();
-			}
 		}
 
 		// run environment callbacks to finish up
@@ -286,17 +263,5 @@ class Environment
 		$this->paths[$name] = rtrim(str_replace('\\', '/', $path), '/\\').'/';
 
 		return $this;
-	}
-
-	/**
-	 * Get the baseUrl
-	 *
-	 * @return  string|null  determined base url
-	 *
-	 * @since  2.0.0
-	 */
-	public function getBaseUrl()
-	{
-		return $this->baseUrl;
 	}
 }
