@@ -41,14 +41,11 @@ class Error
 		$pagehandler = new PrettyPageHandler;
 		$pagehandler->setResourcesPath(__DIR__.DS.'Exception'.DS.'resources');
 
-/**
- * TODO
- *
 		$pagehandler->addDataTableCallback('Current Request', function()
 		{
 			$application = \Application::getInstance();
-			$environment = \Environment::getInstance();
-			$request     = \Request::getActive();
+			$environment = $application->getEnvironment();
+			$request     = \Request::getInstance();
 			$route = $request ? $request->getRoute() : null;
 			$controller = $route ? $route->controller : '';
 			$parameters = $route ? $route->parameters : array();
@@ -56,7 +53,7 @@ class Error
 
 			return array(
 				'Application'  => $application ? $application->getName() : '',
-				'Environment'  => $environment ? $environment->getName() : '',
+ 				'Environment'  => $environment ? $environment->getName() : '',
 				'Original URI' => $route ? $route->uri : '',
 				'Mapped URI'   => $route ? $route->translation : '',
 				'Namespace'    => $route ? $route->namespace : '',
@@ -73,13 +70,25 @@ class Error
 		});
 		$pagehandler->addDataTableCallback('Permanent Session Data', function()
 		{
-			$application = \Application::getInstance();
-			return $application ? $application->getSession()->getContents() : '';
+			if ($application = \Application::getInstance())
+			{
+				if ($session = $application->getSession())
+				{
+					return $session->getContents();
+				}
+			}
+			return 'no session active';
 		});
 		$pagehandler->addDataTableCallback('Flash Session Data', function()
 		{
-			$application = \Application::getInstance();
-			return $application ? $application->getSession()->getContentsFlash() : '';
+			if ($application = \Application::getInstance())
+			{
+				if ($session = $application->getSession())
+				{
+					return $session->getContentsFlash();
+				}
+			}
+			return 'no session active';
 		});
 		$pagehandler->addDataTableCallback('Defined Cookies', function()
 		{
@@ -95,7 +104,6 @@ class Error
 		{
 			return $_SERVER;
 		});
-*/
 
 		$this->whoops->pushHandler($pagehandler);
 
