@@ -91,7 +91,7 @@ class InjectionFactory
 	 */
 	public function createLanguageInstance($name)
 	{
-		return $this->container->multiton('config', $name);
+		return $this->container->multiton('config', $name)->setConfigFolder('');
 	}
 
 	/**

@@ -426,7 +426,9 @@ class Application
 		if ( ! isset($this->languages[$language]))
 		{
 			$this->languages[$language] = $this->factory->createLanguageInstance($this->appName.'-'.$language);
-			$this->languages[$language]->addPath($this->appPath.'lang'.DS.$language.DS);
+			$this->languages[$language]
+				->addPath(realpath(__DIR__.DS.'..'.DS.'..'.DS.'..'.DS.'defaults'.DS.'lang'.DS.$language).DS)
+				->addPath($this->appPath.'lang'.DS.$language.DS);
 		}
 
 		return $this->languages[$language];
