@@ -37,7 +37,7 @@ class ApplicationInjectionFactory extends InjectionFactory
 	public function createViewmanagerInstance($name, $path)
 	{
 		return $this->container->multiton('viewmanager', $name, array(
-			$this->container->resolve('finder', array(array($path))),
+			$this->container->resolve('finder', array(array(realpath(__DIR__.DS.'..'.DS.'..'.DS.'../defaults'), $path))),
 			array('cache' => $path.'cache'),
 		));
 	}
