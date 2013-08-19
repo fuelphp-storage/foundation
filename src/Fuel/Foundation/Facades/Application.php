@@ -79,7 +79,7 @@ class Application extends Base
 		else
 		{
 			// fall back to the main application
-			$app = $this->container->resolve('application.main');
+			$app = static::$dic->resolve('application.main');
 		}
 
 		return $app;
