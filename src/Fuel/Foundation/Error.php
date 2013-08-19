@@ -108,5 +108,38 @@ class Error
 		$this->whoops->pushHandler($pagehandler);
 
 		$this->whoops->register();
+
+		// set a custom handler, so we can deal with translations
+		$current_handler = set_exception_handler(function($e) use(&$current_handler)
+		{
+			// get the locale
+			if (($locale = setlocale(LC_MESSAGES, 0)) == 'C')
+			{
+				// default to en_US if LANG=C is detected
+				$locale = 'en_US';
+			}
+
+			// get access to the exception's error message
+			$reflection = new \ReflectionClass($e);
+			$property = $reflection->getProperty("message");
+			$property->setAccessible(true);
+
+			// load the translator class, and translate if found
+			$class = 'Fuel\Translations\\'.$locale;
+			if (class_exists($class, true))
+			{
+				$property->setValue($e, $class::get($e->getMessage()));
+			}
+			else
+			{
+				$class = 'Fuel\Translations\\'.ucfirst(substr($locale,0,2));
+				if (class_exists($class, true))
+				{
+					$property->setValue($e, $class::get($e->getMessage()));
+				}
+			}
+
+			call_user_func($current_handler, $e);
+		});
 	}
 }
