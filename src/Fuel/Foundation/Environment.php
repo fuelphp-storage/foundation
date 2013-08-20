@@ -144,7 +144,7 @@ class Environment
 			return $this->{$method}();
 		}
 
-		throw new \OutOfBoundsException('Property "'.$property.'" not available on the environment.');
+		throw new \OutOfBoundsException('FOU-005: Property ['.$property.'] not available on the environment.');
 	}
 
 	/**
@@ -203,7 +203,7 @@ class Environment
 	{
 		if ( ! isset($this->paths[$name]))
 		{
-			throw new \OutOfBoundsException('Unknown path requested: '.$name);
+			throw new \OutOfBoundsException('FOU-006: ['.$name.']: Unknown path requested.');
 		}
 
 		return $this->paths[$name];
@@ -257,7 +257,7 @@ class Environment
 	{
 		if ( ! $overwrite and isset($this->paths[$name]))
 		{
-			throw new \OutOfBoundsException('Already a path registered for name: '.$name);
+			throw new \OutOfBoundsException('FOU-007: A path is already registered for name ['.$name.'].');
 		}
 
 		$this->paths[$name] = rtrim(str_replace('\\', '/', $path), '/\\').'/';

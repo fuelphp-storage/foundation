@@ -295,7 +295,7 @@ class Input
 			}
 			else
 			{
-				throw new \FuelException('Unable to detect the URI.');
+				throw new \FuelException('FOU-002: Unable to detect the URI.');
 			}
 
 			// Remove the base URL from the URI
@@ -675,7 +675,7 @@ class Input
 			return $this->{$method}();
 		}
 
-		throw new \OutOfBoundsException('Property "'.$prop.'" not set on Input.');
+		throw new \OutOfBoundsException('FOU-003: Property ['.$prop.'] not set on Input.');
 	}
 
 	/**

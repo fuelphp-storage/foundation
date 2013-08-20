@@ -150,7 +150,7 @@ class Application
 		// check if the path is valid, and if so, store it
 		if ( ! is_dir($appPath))
 		{
-			throw new \InvalidArgumentException('Application path "'.$appPath.'" does not exist.');
+			throw new \InvalidArgumentException('FOU-008: Application path ['.$appPath.'] does not exist.');
 		}
 		$this->appPath = realpath($appPath).DS;
 
@@ -262,7 +262,7 @@ class Application
 			return $this->{$method}();
 		}
 
-		throw new \OutOfBoundsException('Property "'.$property.'" not available on the application.');
+		throw new \OutOfBoundsException('FOU-009: Property ['.$property.'] not available on the application.');
 	}
 
 	/**
@@ -494,7 +494,7 @@ class Application
 	{
 		if ( ! is_dir($path))
 		{
-			throw new \InvalidArgumentException('Module path "'.$path.'" does not exist.');
+			throw new \InvalidArgumentException('FOU-010: Module path ['.$path.'] does not exist.');
 		}
 		$path = realpath($path).DS;
 
@@ -535,7 +535,7 @@ class Application
 	{
 		if ( ! is_dir($path))
 		{
-			throw new \InvalidArgumentException('Module path "'.$path.'" does not exist.');
+			throw new \InvalidArgumentException('FOU-011: Module path ['.$path.'] does not exist.');
 		}
 
 		$folder = new \GlobIterator(realpath($path).DS.'*', \GlobIterator::SKIP_DOTS | \GlobIterator::CURRENT_AS_PATHNAME);

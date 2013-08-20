@@ -231,7 +231,7 @@ class FuelServiceProvider extends ServiceProvider
 			$appPath = realpath($path);
 			if ( ! is_dir($appPath))
 			{
-				throw new \InvalidArgumentException('The path "'.$path.'" does not exist for application "'.$name.'".');
+				throw new \InvalidArgumentException('FOU-004: The path ['.$path.'] does not exist for application ['.$name.'].');
 			}
 
 			// application namespace, defaults to global

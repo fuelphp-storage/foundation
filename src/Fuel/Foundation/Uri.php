@@ -121,7 +121,7 @@ class Uri
 				$wildcards++;
 				if (($new = $this->getSegment($index+1)) === null)
 				{
-					throw new \OutofBoundsException('Segment replace on "'.$url.'" failed. No segment exists for wildcard '.$wildcards.'.');
+					throw new \OutofBoundsException('FOU-001: Segment replace on ['.$url.'] failed. No segment exists for wildcard ['.$wildcards.'].');
 				}
 				$segment = str_replace('*', $new, $segment);
 			}
