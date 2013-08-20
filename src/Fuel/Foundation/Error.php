@@ -113,7 +113,7 @@ class Error
 		$current_handler = set_exception_handler(function($e) use(&$current_handler)
 		{
 			// get the locale
-			if (($locale = setlocale(LC_MESSAGES, 0)) == 'C')
+			if (($locale = setlocale(LC_MESSAGES, null)) == 'C')
 			{
 				// default to en_US if LANG=C is detected
 				$locale = 'en_US';
