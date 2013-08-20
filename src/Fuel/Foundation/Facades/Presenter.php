@@ -84,13 +84,13 @@ class Presenter extends Base
 		// bail out if the presenter class could not be loaded
 		if ( ! is_object($presenter))
 		{
-			throw new \RuntimeException('Presenter class identified by "'.$uri.'" could not be found.');
+			throw new \RuntimeException('FOU-012: Presenter class identified by ['.$uri.'] could not be found.');
 		}
 
 		// or is not a valid Presenter
 		elseif ( ! $presenter instanceOf \Fuel\Display\Presenter)
 		{
-			throw new \RuntimeException('Presenter class "'.get_class($presenter).'" does not extend "Fuel\Display\Presenter".');
+			throw new \RuntimeException('FOU-013: Presenter class ['.get_class($presenter).'] does not extend "Fuel\Display\Presenter".');
 		}
 
 		return $presenter;

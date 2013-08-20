@@ -51,7 +51,7 @@ class Markdown
 			}
 			else
 			{
-				throw new \RuntimeException('Unable to create a Markdown instance. Did you install the "dflydev\markdown" composer package?');
+				throw new \RuntimeException('FOU-021: Unable to create a Markdown instance. Did you install the "dflydev\markdown" composer package?');
 			}
 		}
 

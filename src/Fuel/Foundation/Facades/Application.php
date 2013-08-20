@@ -54,7 +54,7 @@ class Application extends Base
 		// make sure we have this application instance
 		if ( ! static::$dic->isInstance('application', $name))
 		{
-			throw new \RuntimeException('There is no application defined named "'.$name.'".');
+			throw new \RuntimeException('FOU-014: There is no application defined named ['.$name.'].');
 		}
 
 		// return the application instance

@@ -337,7 +337,7 @@ abstract class Base
 
 		if (headers_sent())
 		{
-			throw new \RuntimeException('Cannot send headers, headers already sent.');
+			throw new \RuntimeException('FOU-023: Cannot send headers, headers already sent.');
 		}
 
 		// Send the protocol/status line first, FCGI servers need different status header

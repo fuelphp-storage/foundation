@@ -41,11 +41,11 @@ abstract class Base
 		// get the instance to call the method on
 		if ( ! $instance = static::getInstance())
 		{
-			throw new \ErrorException('No instance available to call: '.get_called_class().'::'.$method.'()');
+			throw new \ErrorException('FOU-019: No instance available to call: ['.get_called_class().'::'.$method.'()].');
 		}
 		elseif ( ! is_callable(array($instance, $method)))
 		{
-			throw new \ErrorException('Method '.get_called_class().'::'.$method.'() does not exist.');
+			throw new \ErrorException('FOU-020: Method ['.get_called_class().'::'.$method.'()] does not exist.');
 		}
 
 		// calling the method directly is faster then call_user_func_array() !

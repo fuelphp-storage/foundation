@@ -85,7 +85,7 @@ class Date extends Base
 
 		if ($month < 1 or $month > 12)
 		{
-			throw new \InvalidArgumentException('Invalid input for month given.');
+			throw new \InvalidArgumentException('FOU-016: Invalid input for month given.');
 		}
 		elseif ($month == 2)
 		{

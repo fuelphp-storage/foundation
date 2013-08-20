@@ -130,7 +130,7 @@ class Local extends Base
 			// make sure we got a proper response object back
 			if ( ! $this->response instanceOf \Fuel\Foundation\Response\Base)
 			{
-				throw new \DomainException('A Controller must return a Response object that extends \Fuel\Foundation\Response\Base.');
+				throw new \DomainException('FOU-024: A Controller must return a Response object that extends "\Fuel\Foundation\Response\Base".');
 			}
 		}
 		catch (\Exception $e)

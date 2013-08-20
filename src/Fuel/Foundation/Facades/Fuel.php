@@ -136,7 +136,7 @@ class Fuel
 		{
 			if ( ! setlocale(LC_ALL, static::$locale))
 			{
-				throw new \Exception('The locale "'.$locale.'" is not installed on this server');
+				throw new \Exception('FOU-018: The locale ['.$locale.'] is not installed on this server');
 			}
 		}
 	}

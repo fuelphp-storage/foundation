@@ -58,7 +58,7 @@ class Package extends Base
 		// validate the provider
 		if ( ! $provider instanceOf PackageProvider)
 		{
-			throw new RuntimeException('PackageProvider for '.$prefix.' must be an instance of \Fuel\Foundation\PackageProvider');
+			throw new RuntimeException('FOU-017: PackageProvider for ['.$prefix.'] must be an instance of "\Fuel\Foundation\PackageProvider".');
 		}
 
 		// initialize the loaded package

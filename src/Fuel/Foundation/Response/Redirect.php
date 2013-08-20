@@ -50,7 +50,7 @@ class Redirect extends Base
 		}
 		else
 		{
-			throw new \InvalidArgumentException('"'.$method.'" is not a valid redirect method');
+			throw new \InvalidArgumentException('FOU-022: ['.$method.'] is not a valid redirect method.');
 		}
 	}
 
@@ -77,6 +77,7 @@ class Redirect extends Base
 	 */
 	public function __toString()
 	{
+		// can't throw an Exception in a __toString(), so we'll have to do it like this...
 		die('A redirect response does not have any content to display. Did you forget to return it?');
 	}
 }

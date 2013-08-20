@@ -55,7 +55,7 @@ class Environment extends Base
 	{
 		if ( ! static::$dic->isInstance('environment', $name))
 		{
-			throw new \InvalidArgumentException('There is no environment defined named "'.$name.'".');
+			throw new \InvalidArgumentException('FOU-015: There is no environment defined named ['.$name.'].');
 		}
 
 		return static::$dic->multiton('environment', $name);
