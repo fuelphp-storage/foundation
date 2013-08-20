@@ -12,6 +12,8 @@ namespace Fuel\Foundation;
 
 use Whoops\Run;
 use Whoops\Handler\PrettyPageHandler;
+use Whoops\Handler\JsonResponseHandler;
+use Fuel\Foundation\Whoops\ProductionHandler;
 
 /**
  * Error class, implements the Whoops error handler
@@ -37,9 +39,9 @@ class Error
 		// use the framework default Whoops error handler
 		$this->whoops = new Run;
 
-		// define the page handler TODO (deal with AJAX/JSON)
+		// define the default page handler
 		$pagehandler = new PrettyPageHandler;
-		$pagehandler->setResourcesPath(__DIR__.DS.'Exception'.DS.'resources');
+		$pagehandler->setResourcesPath(__DIR__.DS.'Whoops'.DS.'resources');
 
 		$pagehandler->addDataTableCallback('Current Request', function()
 		{
@@ -107,6 +109,18 @@ class Error
 
 		$this->whoops->pushHandler($pagehandler);
 
+		// next on the stack goes the JSON handler, to deal with AJAX reqqests
+		$jsonHandler = new JsonResponseHandler;
+		$jsonHandler->onlyForAjaxRequests(true);
+		// $jsonHandler->addTraceToOutput(true);
+
+		$this->whoops->pushHandler($jsonHandler);
+
+		// add the Fuel production handler
+		$productionHandler = new ProductionHandler;
+		$this->whoops->pushHandler($productionHandler);
+
+		// activate the error handler
 		$this->whoops->register();
 
 		// set a custom handler, so we can deal with translations
