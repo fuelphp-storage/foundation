@@ -98,7 +98,7 @@ class Error
 			return $input ? $input->getCookie() : '';
 		});
 		$pagehandler->addDataTableCallback('Uploaded Files', function()
-		{
+		{                    
 			$input = \Input::getInstance();
 			return $input ? $input->getFile() : '';
 		});
@@ -127,7 +127,14 @@ class Error
 		$current_handler = set_exception_handler(function($e) use(&$current_handler)
 		{
 			// get the locale
-			if (($locale = setlocale(LC_MESSAGES, null)) == 'C')
+			if (defined('LC_MESSAGES')) {
+				$locale = setlocale(LC_MESSAGES, null);                           
+			}
+			else {
+				$locale = setlocale(LC_ALL, null);
+			}
+
+			if ($locale == 'C')
 			{
 				// default to en_US if LANG=C is detected
 				$locale = 'en_US';
