@@ -52,7 +52,7 @@ $bootstrapFuel = function()
 	 * Setup the autoloader instance, and disable composers autoloader
 	 */
 // TODO: cache file name must be configurable
-	$autoloader = new Autoloader(self::$loader, APPSPATH.'demo/cache/class_cache.php');
+	$autoloader = new Autoloader(self::$loader);
 	self::$loader->unregister();
 	/**
 	 * Setup the Dependency Container of none was setup yet
@@ -110,7 +110,7 @@ $bootstrapFuel = function()
 		// validate the provider
 		if ( ! $provider instanceOf PackageProvider)
 		{
-			throw new RuntimeException('PackageProvider for '.$namespace.' must be an instance of \Fuel\Foundation\PackageProvider');
+			throw new RuntimeException('FOU-025: PackageProvider for ['.$namespace.'] must be an instance of \Fuel\Foundation\PackageProvider');
 		}
 
 		// initialize the loaded package
@@ -135,8 +135,11 @@ $bootstrapFuel = function()
 	$dic->inject('config.global', $config);
 
 	// load the global framework configuration
-	$config->addPath(APPSPATH);
+	$config->setConfigFolder('')->addPath(__DIR__.'/../defaults/global/ ')->addPath(APPSPATH);
 	$config->load('config', null);
+
+	// configure the autoloader
+	$autoloader->setCache($config->get('autoloader'));
 
 	/**
 	 * Create the global Input instance

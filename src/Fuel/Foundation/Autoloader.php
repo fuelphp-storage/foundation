@@ -43,9 +43,9 @@ class Autoloader
     protected $cacheExpire;
 
 	/**
-	 *
+	 * Import the Composer data and activate the Fuel autoloader
 	 */
-	public function __construct($composer, $cacheFile, $cacheExpire = 86400)
+	public function __construct($composer, $cacheFile = null, $cacheExpire = 86400)
 	{
 		// Import composer data
 		$this->fallbackPaths = $composer->getFallbackDirs();
@@ -53,6 +53,51 @@ class Autoloader
 		$this->classMap = $composer->getClassMap();
 
 		// store the cache filename and expiration
+		$this->setCache($cacheFile, $cacheExpire);
+
+		// register outselfs as an autoloader
+		$this->register();
+	}
+
+	/**
+	 * Flush the class map to cache if configured
+	 */
+	public function __destruct()
+	{
+		if ($this->cacheFile and is_writable($this->cacheFile))
+		{
+			if (isset($classMap['FuelExpirationTimestamp']))
+			{
+				if ($classMap['FuelExpirationTimestamp'] < time())
+				{
+					unlink($this->cacheFile);
+					return;
+				}
+			}
+			else
+			{
+				// set an expiration if needed
+				if ($this->cacheExpire)
+				{
+					$classMap['FuelExpirationTimestamp'] = time() + $this->cacheExpire;
+				}
+			}
+			file_put_contents($this->cacheFile, '<?php'."\n\n".'return '.var_export($this->classMap, true).';');
+		}
+	}
+
+	/**
+	 * Define the autoloader cache file, and it's expiry
+	 */
+	public function setCache($cacheFile, $cacheExpire = 86400)
+	{
+		// if an array is passed, get it's data out
+		if (is_array($cacheFile))
+		{
+			extract($cacheFile);
+		}
+
+		// store the passed information
 		$this->cacheFile = $cacheFile;
 		$this->cacheExpire = $cacheExpire;
 
@@ -61,33 +106,6 @@ class Autoloader
 		{
 			$this->addClassMap(include $this->cacheFile);
 		}
-
-		// register outselfs as an autoloader
-		$this->register();
-	}
-
-	/**
-	 *
-	 */
-	public function __destruct()
-	{
-		if (isset($classMap['FuelExpirationTimestamp']))
-		{
-			if ($classMap['FuelExpirationTimestamp'] < time())
-			{
-				unlink($this->cacheFile);
-				return;
-			}
-		}
-		else
-		{
-			// set an expiration if needed
-			if ($this->cacheExpire)
-			{
-				$classMap['FuelExpirationTimestamp'] = time() + $this->cacheExpire;
-			}
-		}
-		file_put_contents($this->cacheFile, '<?php'."\n\n".'return '.var_export($this->classMap, true).';');
 	}
 
     /**
