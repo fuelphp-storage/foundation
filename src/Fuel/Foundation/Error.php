@@ -98,7 +98,7 @@ class Error
 			return $input ? $input->getCookie() : '';
 		});
 		$pagehandler->addDataTableCallback('Uploaded Files', function()
-		{                    
+		{
 			$input = \Input::getInstance();
 			return $input ? $input->getFile() : '';
 		});
