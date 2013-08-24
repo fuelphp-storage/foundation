@@ -127,14 +127,7 @@ class Error
 		$current_handler = set_exception_handler(function($e) use(&$current_handler)
 		{
 			// get the locale
-			if (defined('LC_MESSAGES')) {
-				$locale = setlocale(LC_MESSAGES, null);                           
-			}
-			else {
-				$locale = setlocale(LC_ALL, null);
-			}
-
-			if ($locale == 'C')
+			if (($locale = setlocale(LC_MESSAGES, null)) == 'C')
 			{
 				// default to en_US if LANG=C is detected
 				$locale = 'en_US';
