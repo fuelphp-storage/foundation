@@ -137,7 +137,7 @@ abstract class Base
 		{
 			if ( ! is_callable(array($this, $method = $this->actionPrefix.$action)))
 			{
-				throw new NotFound('No such action "'.$action.'" found in Controller: \\'.get_class($this));
+				throw new NotFound('FOU-026: No such action ['.$action.'] found in Controller: [\\'.get_class($this).']');
 			}
 		}
 
@@ -145,7 +145,7 @@ abstract class Base
 		$method = new \ReflectionMethod($this, $method);
 		if ( ! $method->isPublic())
 		{
-			throw new NotFound('Unavailable action "'.$method.'" in Controller: \\'.get_class($this));
+			throw new NotFound('FOU-027: Unavailable action ['.$method->name.'] in Controller: [\\'.get_class($this).']');
 		}
 
 		// create a response object
