@@ -231,12 +231,12 @@ class Environment
 	 */
 	public function cleanPath($path)
 	{
-		$path = str_replace('\\/', '/', $path);
+		$path = str_replace('\\/', DS, $path);
 		foreach ($this->paths as $name => $p)
 		{
 			if (strpos($path, $p) === 0)
 			{
-				return $name.'::'.substr(str_replace('\\', '/', $path), strlen($p));
+				return $name.'::'.substr(str_replace('\\', DS, $path), strlen($p));
 			}
 		}
 		return $path;
@@ -260,7 +260,7 @@ class Environment
 			throw new \OutOfBoundsException('FOU-007: A path is already registered for name ['.$name.'].');
 		}
 
-		$this->paths[$name] = rtrim(str_replace('\\', '/', $path), '/\\').'/';
+		$this->paths[$name] = rtrim(str_replace('\\/', DS, $path), '/\\').DS;
 
 		return $this;
 	}

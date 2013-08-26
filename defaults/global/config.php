@@ -85,7 +85,7 @@ return array(
 		 * it to NULL. If the cache is in operation, newly created classes will
 		 * not be found by the autoloader until the cache expires and is rebuilt.
 		 */
-		'cacheFile' => __DIR__.'/demo/cache/class_cache.php',
+		'cacheFile' => realpath(__DIR__.'/demo/cache/').'class_cache.php',
 
 		/**
 		 * Cache expiry in seconds

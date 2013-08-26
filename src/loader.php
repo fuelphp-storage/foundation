@@ -135,7 +135,7 @@ $bootstrapFuel = function()
 	$dic->inject('config.global', $config);
 
 	// load the global framework configuration
-	$config->setConfigFolder('')->addPath(__DIR__.'/../defaults/global/ ')->addPath(APPSPATH);
+	$config->setConfigFolder('')->addPath(realpath(__DIR__.DS.'..'.DS.'defaults'.DS.'global'.DS))->addPath(APPSPATH);
 	$config->load('config', null);
 
 	// configure the autoloader

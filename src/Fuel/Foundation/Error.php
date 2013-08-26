@@ -127,10 +127,10 @@ class Error
 		$current_handler = set_exception_handler(function($e) use(&$current_handler)
 		{
 			// get the locale
-			if (($locale = setlocale(LC_MESSAGES, null)) == 'C')
+			if (($locale = setlocale(LC_ALL, null)) == 'C')
 			{
-				// default to en_US if LANG=C is detected
-				$locale = 'en_US';
+				// default to English if LANG=C is detected
+				$locale = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'English' : 'en_US';
 			}
 
 			// get access to the exception's error message

@@ -33,7 +33,7 @@ class Fuel
 	 *
 	 * @since  1.0.0
 	 */
-	protected static $locale = 'en_US';
+	protected static $locale = null;
 
 	/**
 	 * Timezone to be used for this framework instance
