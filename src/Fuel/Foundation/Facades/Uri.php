@@ -26,7 +26,10 @@ class Uri extends Base
 	 * @param   array   $variables      Some variables for the URL
 	 * @param   array   $get_variables  Any GET urls to append via a query string
 	 * @param   bool    $secure         If false, force http. If true, force https
+	 *
 	 * @return  string
+	 *
+	 * @since  1.0.0
 	 */
 	public static function create($uri = null, $variables = array(), $get_variables = array(), $secure = null)
 	{
@@ -78,10 +81,39 @@ class Uri extends Base
 	}
 
 	/**
+	 * Builds a query string by merging all array and string values passed. If
+	 * a string is passed, it will be assumed to be a switch, and converted
+	 * to "string=1".
+	 *
+	 * @param array|string Array or string to merge
+	 * @param array|string ...
+	 *
+	 * @return string
+	 *
+	 * @since  1.7.0
+	 */
+	public static function buildQueryString()
+	{
+		$params = array();
+
+		foreach (func_get_args() as $arg)
+		{
+			$arg = is_array($arg) ? $arg : array($arg => '1');
+
+			$params = array_merge($params, $arg);
+		}
+
+		return http_build_query($params);
+	}
+
+	/**
 	 * Gets the base URL, including the index_file if wanted.
 	 *
 	 * @param   bool    $include_index  Whether to include index.php in the URL
+	 *
 	 * @return  string
+	 *
+	 * @since  1.0.0
 	 */
 	public static function base($include_index = true)
 	{
