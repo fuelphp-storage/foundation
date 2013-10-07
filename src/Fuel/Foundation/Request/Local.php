@@ -81,7 +81,7 @@ class Local extends Base
 		$this->route = $this->translate($this->request, $this->input->getMethod() );
 
 		// log the request destination
-		$this->log->info($this->route->method.' request routed to '.$this->route->translation);
+		$this->log->info($this->route->method.' request routed to '.(is_callable($this->route->translation) ? 'Closure' : $this->route->translation));
 
 		// store the request parameters
 		$this->params = array_merge($this->params, $this->route->parameters);
@@ -99,7 +99,15 @@ class Local extends Base
 				throw new NotFound('No route match has been found for this request.');
 			}
 
-			$controller = $this->factory->createControllerInstance($this->route->controller);
+			if (is_callable($this->route->controller))
+			{
+				$controller = $this->route->controller;
+			}
+			else
+			{
+				$controller = $this->factory->createControllerInstance($this->route->controller);
+			}
+
 			if ( ! is_callable($controller))
 			{
 				throw new NotFound('The Controller returned by routing is not callable. Does it extend a base controller?');
@@ -109,9 +117,12 @@ class Local extends Base
 			array_unshift($this->route->parameters, $this->route);
 
 			// add the root path to the config, lang and view manager objects
-			$this->app->getViewManager()->getFinder()->addPath($this->route->path);
-			$this->config->addPath($this->route->path.'config'.DS);
-			$this->app->getLanguage()->addPath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
+			if (isset($this->route->path))
+			{
+				$this->app->getViewManager()->getFinder()->addPath($this->route->path);
+				$this->config->addPath($this->route->path.'config'.DS);
+				$this->app->getLanguage()->addPath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
+			}
 
 			try
 			{
@@ -144,9 +155,12 @@ class Local extends Base
 		}
 
 		// remove the root path to the config, lang and view manager objects
-		$this->app->getLanguage()->removePath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
-		$this->config->removePath($this->route->path.'config'.DS);
-		$this->app->getViewManager()->getFinder()->removePath($this->route->path);
+		if (isset($this->route->path))
+		{
+			$this->app->getLanguage()->removePath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
+			$this->config->removePath($this->route->path.'config'.DS);
+			$this->app->getViewManager()->getFinder()->removePath($this->route->path);
+		}
 
 		// log the request termination
 		$this->log->info('Request executed');
@@ -171,54 +185,62 @@ class Local extends Base
 		// create a URI object
 		$this->uri = $this->factory->createUriInstance($route->uri);
 
-		// find a match
-		foreach ($this->app->getNamespaces() as $namespace)
+		// is the route target a closure?
+		if ($route->translation instanceOf \Closure)
 		{
-			// skip non-routeable namespaces
-			if ( ! $namespace['routeable'] and $this->factory->isMainRequest())
+			$route->controller = $route->translation;
+		}
+		else
+		{
+			// find a match
+			foreach ($this->app->getNamespaces() as $namespace)
 			{
-				continue;
-			}
-
-			// skip if we don't have a prefix match
-			if ($namespace['prefix'] and strpos($route->translation, $namespace['prefix']) !== 0)
-			{
-				continue;
-			}
-
-			$route->setNamespace($namespace['namespace']);
-
-			// get the segments from the translated route
-			$segments = explode('/', ltrim(substr($route->translation, strlen($namespace['prefix'])),'/'));
-
-			$arguments = array();
-			while(count($segments))
-			{
-				$class = $route->namespace.'Controller\\'.implode('\\', array_map('ucfirst', $segments));
-
-				if ( ! class_exists($class, false))
+				// skip non-routeable namespaces
+				if ( ! $namespace['routeable'] and $this->factory->isMainRequest())
 				{
-					$file = $namespace['path'].'classes'.DS.'Controller'.DS.implode(DS, array_map('ucfirst', $segments)).'.php';
-					if (file_exists($file))
-					{
-						include $file;
-					}
+					continue;
 				}
 
-				if (class_exists($class))
+				// skip if we don't have a prefix match
+				if ($namespace['prefix'] and strpos($route->translation, $namespace['prefix']) !== 0)
 				{
-					$route->path = $namespace['path'];
-					$route->controller = $class;
+					continue;
+				}
+
+				$route->setNamespace($namespace['namespace']);
+
+				// get the segments from the translated route
+				$segments = explode('/', ltrim(substr($route->translation, strlen($namespace['prefix'])),'/'));
+
+				$arguments = array();
+				while(count($segments))
+				{
+					$class = $route->namespace.'Controller\\'.implode('\\', array_map('ucfirst', $segments));
+
+					if ( ! class_exists($class, false))
+					{
+						$file = $namespace['path'].'classes'.DS.'Controller'.DS.implode(DS, array_map('ucfirst', $segments)).'.php';
+						if (file_exists($file))
+						{
+							include $file;
+						}
+					}
+
+					if (class_exists($class))
+					{
+						$route->path = $namespace['path'];
+						$route->controller = $class;
+						break;
+					}
+					array_unshift($arguments, array_pop($segments));
+				}
+
+				// did we find a match
+				if ($route->controller)
+				{
+					// then stop looking
 					break;
 				}
-				array_unshift($arguments, array_pop($segments));
-			}
-
-			// did we find a match
-			if ($route->controller)
-			{
-				// then stop looking
-				break;
 			}
 		}
 
