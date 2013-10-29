@@ -162,6 +162,15 @@ class Application
 			'routeable' => true,
 		);
 
+		// does this app have a bootstrap?
+		if (file_exists($file = $this->appPath.'bootstrap.php'))
+		{
+			$loadbootstrap = function($app, $__file__) {
+				return include $__file__;
+			};
+			$loadbootstrap($this, $file);
+		}
+
 		// setup the configuration container...
 		$this->config = $factory->createConfigContainer($this->appName)
 			->addPath(realpath(__DIR__.DS.'..'.DS.'..'.DS.'..'.DS.'defaults').DS)
