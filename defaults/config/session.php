@@ -57,8 +57,8 @@ return array(
 	// session ID rotation time  (optional, default = 300)
 	'rotation_time'		=> 300,
 
-	// default ID for flash variables  (optional, default = 'flash')
-	'flash_id'			=> 'flash',
+	// default namespace for flash variables  (optional, default = 'flash')
+	'flash_namespace'	=> 'flash',
 
 	// if false, expire flash values only after it's used  (optional, default = true)
 	'flash_auto_expire'	=> true,
@@ -80,43 +80,41 @@ return array(
 	*/
 
 	// special configuration settings for PHP native sessions
-	'native'			=> array(
+	'native' => array(
 		'cookie_name'		=> 'fuelnid',				// name of the session cookie for native PHP sessions
-						),
+	),
 
 	// special configuration settings for cookie based sessions
-	'cookie'			=> array(
+	'cookie' => array(
 		'cookie_name'		=> 'fuelcid',				// name of the session cookie for cookie based sessions
-						),
+	),
 
 	// specific configuration settings for file based sessions
-	'file'				=> array(
+	'file' => array(
 		'cookie_name'		=> 'fuelfid',				// name of the session cookie for file based sessions
 		'path'				=>	'/tmp',					// path where the session files should be stored
 		'gc_probability'	=>	5						// probability % (between 0 and 100) for garbage collection
-						),
+	),
 
 	// specific configuration settings for memcached based sessions
-	'memcached'			=> array(
+	'memcached' => array(
 		'cookie_name'		=> 'fuelmid',				// name of the session cookie for memcached based sessions
 		'servers'			=> array(					// array of servers and portnumbers that run the memcached service
 								'default' => array('host' => '127.0.0.1', 'port' => 11211, 'weight' => 100)
 							),
-						),
+	),
 
 	// specific configuration settings for database based sessions
-	'db'			=> array(
+	'db' => array(
 		'cookie_name'		=> 'fueldid',				// name of the session cookie for database based sessions
 		'database'			=> null,					// name of the database name (as configured in config/db.php)
 		'table'				=> 'sessions',				// name of the sessions table
 		'gc_probability'	=> 5						// probability % (between 0 and 100) for garbage collection
-						),
+	),
 
 	// specific configuration settings for redis based sessions
-	'redis'			=> array(
+	'redis' => array(
 		'cookie_name'		=> 'fuelrid',				// name of the session cookie for redis based sessions
 		'database'			=> 'default'				// name of the redis database to use (as configured in config/db.php)
-						)
+	)
 );
-
-
