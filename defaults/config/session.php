@@ -1,6 +1,6 @@
 <?php
 /**
- * @package    demo-application
+ * @package    Foundation
  * @version    2.0
  * @author     Fuel Development Team
  * @license    MIT License
@@ -11,8 +11,10 @@
 /**
  * NOTICE:
  *
- * This is the application configuration for this FuelPHP application.
- * It contains configuration which is for this application only.
+ * If you need to make modifications to the default configuration, copy
+ * this file to your applications config folder, and make them in there.
+ *
+ * This will allow you to upgrade fuel without losing your custom config.
  */
 
 return array(
@@ -25,7 +27,7 @@ return array(
 	'auto_initialize'	=> false,
 
 	// if no session type is requested, use the default
-	'driver'			=> 'native',
+	'driver'			=> 'memcached',
 
 	// check for an IP address match after loading the cookie (optional, default = false)
 	'match_ip'			=> false,
@@ -45,9 +47,6 @@ return array(
 	// cookie secure flag  (optional, default = use the cookie class default)
 	'cookie_secure'	    => false,
 
-	// whether or not to encrypt the session cookie (optional, default is true)
-	'encrypt_cookie'	=> false,
-
 	// if true, the session expires when the browser is closed (optional, default = false)
 	'expire_on_close'	=> false,
 
@@ -60,11 +59,8 @@ return array(
 	// default namespace for flash variables  (optional, default = 'flash')
 	'flash_namespace'	=> 'flash',
 
-	// if false, expire flash values only after it's used  (optional, default = true)
+	// if false, expire flash values only after it's used, if true expire on next request
 	'flash_auto_expire'	=> true,
-
-	// if true, a get_flash() automatically expires the flash data
-	'flash_expire_after_get' => true,
 
 	// for requests that don't support cookies (i.e. flash), use this POST variable to pass the cookie to the session driver
 	'post_cookie_name'	=> '',
@@ -87,7 +83,23 @@ return array(
 	// special configuration settings for cookie based sessions
 	'cookie' => array(
 		'cookie_name'		=> 'fuelcid',				// name of the session cookie for cookie based sessions
+		'encrypt_cookie'	=> true,					// whether or not to encrypt the session cookie
+		'crypt_key'			=> '', 						// set your crypt key to encrypt/decrypt the cookie payload
 	),
+
+	// specific configuration settings for memcached based sessions
+	'memcached' => array(
+		'cookie_name'		=> 'fuelmid',				// name of the session cookie for memcached based sessions
+		'name'				=> null,					// name if the memcached server definition to use
+		'key_prefix'		=> '',						// prefix to use for the memcached key, to avoid collisions
+	),
+
+
+
+
+
+
+
 
 	// specific configuration settings for file based sessions
 	'file' => array(
@@ -96,13 +108,6 @@ return array(
 		'gc_probability'	=>	5						// probability % (between 0 and 100) for garbage collection
 	),
 
-	// specific configuration settings for memcached based sessions
-	'memcached' => array(
-		'cookie_name'		=> 'fuelmid',				// name of the session cookie for memcached based sessions
-		'servers'			=> array(					// array of servers and portnumbers that run the memcached service
-								'default' => array('host' => '127.0.0.1', 'port' => 11211, 'weight' => 100)
-							),
-	),
 
 	// specific configuration settings for database based sessions
 	'db' => array(

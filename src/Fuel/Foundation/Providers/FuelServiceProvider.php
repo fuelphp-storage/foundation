@@ -513,7 +513,7 @@ class FuelServiceProvider extends ServiceProvider
 
 			if (empty($servers))
 			{
-				throw new \RuntimeException('FOU-030: There is no connection possible to memcached server(s) identified by ['.$name.']. Check your configuration.');
+				throw new \RuntimeException('FOU-030: There is no connection possible to the memcached server(s) identified by ['.$name.']. Check your configuration.');
 			}
 
 			// return the instance
