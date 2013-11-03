@@ -367,7 +367,7 @@ class FuelServiceProvider extends ServiceProvider
 			return $dic->resolve('Fuel\Foundation\Response\Json', array($content, $status, $headers));
 		});
 		$this->extend('response.json', 'getRequestInstance');
-		$this->extend('response.xml', 'newFormatInstance');
+		$this->extend('response.json', 'newFormatInstance');
 
 		// \Fuel\Foundation\Response\Jsonp
 		$this->register('response.jsonp', function ($dic, $content = '', $status = 200, array $headers = array())
@@ -375,7 +375,7 @@ class FuelServiceProvider extends ServiceProvider
 			return $dic->resolve('Fuel\Foundation\Response\Jsonp', array($content, $status, $headers));
 		});
 		$this->extend('response.jsonp', 'getRequestInstance');
-		$this->extend('response.xml', 'newFormatInstance');
+		$this->extend('response.jsonp', 'newFormatInstance');
 
 		// \Fuel\Foundation\Response\Csv
 		$this->register('response.csv', function ($dic, $content = '', $status = 200, array $headers = array())
@@ -383,7 +383,7 @@ class FuelServiceProvider extends ServiceProvider
 			return $dic->resolve('Fuel\Foundation\Response\Csv', array($content, $status, $headers));
 		});
 		$this->extend('response.csv', 'getRequestInstance');
-		$this->extend('response.xml', 'newFormatInstance');
+		$this->extend('response.csv', 'newFormatInstance');
 
 		// \Fuel\Foundation\Response\Xml
 		$this->register('response.xml', function ($dic, $content = '', $status = 200, array $headers = array())
@@ -397,6 +397,139 @@ class FuelServiceProvider extends ServiceProvider
 		$this->register('response.redirect', function ($dic, $url = '', $method = 'location', $status = 302, array $headers = array())
 		{
 			return $dic->resolve('Fuel\Foundation\Response\Redirect', array($url, $method, $status, $headers));
+		});
+
+		// \Fuel\Database\Connection
+		$this->register('storage.db', function ($dic, $config = null)
+		{
+			// get the correct config instance
+			$stack = $this->container->resolve('requeststack');
+			if ($request = $stack->top())
+			{
+				$app = $request->getApplication();
+			}
+			else
+			{
+				$app = $this->container->resolve('application.main');
+			}
+
+			// load the db config
+			$app->getConfig()->load('db', true);
+
+			// construct the config array
+			if ( ! is_array($config) or empty($config))
+			{
+				// if we don't have a config requested, get the configured active config
+				if (empty($config))
+				{
+					$config = $app->getConfig()->get('active', 'default');
+				}
+				$name = $config;
+
+				$config = \Arr::merge($this->storage_db_defaults, $app->getConfig()->get('db.'.$config, array()));
+			}
+			else
+			{
+				$name = uniqid();
+				$config = \Arr::merge($this->storage_db_defaults, $config);
+			}
+
+			// default to mysql if we don't have a driver set
+			if ( ! isset($config['driver']))
+			{
+				$config['driver'] = 'mysql';
+			}
+
+			return $dic->multiton('Fuel\Database\Connection\\'.ucfirst($config['driver']), $name, array($config));
+		});
+
+		// \Memcached
+		$this->register('storage.memcached', function ($dic, $config = null)
+		{
+			// do we have the PHP memcached extension available
+			if ( ! class_exists('Memcached') )
+			{
+				throw new \InvalidArgumentException('FOU-029: your PHP installation doesn\'t have the Memcached PECL extension loaded.');
+			}
+
+			// get the correct config instance
+			$stack = $this->container->resolve('requeststack');
+			if ($request = $stack->top())
+			{
+				$app = $request->getApplication();
+			}
+			else
+			{
+				$app = $this->container->resolve('application.main');
+			}
+
+			// load the db config
+			$app->getConfig()->load('memcached', true);
+
+			// construct the config array
+			if ( ! is_array($config) or empty($config))
+			{
+				// if we don't have a config requested, get the configured active config
+				if (empty($config))
+				{
+					$config = $app->getConfig()->get('active', 'default');
+				}
+				$name = $config;
+
+				$config = $app->getConfig()->get('memcached.'.$config, array());
+			}
+			else
+			{
+				$name = uniqid();
+			}
+
+			// check if we have a persistent_id defined
+			$persistent_id = isset($config['persistent_id']) ? $config['persistent_id'] : null;
+
+			// fetch the instance
+			$instance = $dic->multiton('Memcached', $name, array($persistent_id, null));
+
+			// new instance? then configure it
+			if (empty($instance->getServerList()))
+			{
+				if (isset($config['servers']))
+				{
+					$instance->addServers($config['servers']);
+				}
+				if (isset($config['options']))
+				{
+					$instance->setOptions($config['options']);
+				}
+			}
+
+			// check if we have a connection to at least one memcached server
+			$version = $instance->getVersion();
+			if (is_array($version))
+			{
+				// filter out dead servers
+				$version = array_filter($version, function($var) { return $var !== '255.255.255'; });
+			}
+
+			if (empty($version))
+			{
+				throw new \RuntimeException('FOU-030: There is no connection possible to memcached servers identified by ['.$name.']. Check your configuration.');
+			}
+
+			// return the instance
+			return $instance;
+		});
+
+		// \Fuel\Foundation\Session\Db
+		$this->register('session.db', function ($dic, Array $config = array())
+		{
+die('NOT IMPLEMENTED!');
+		});
+
+		// \Fuel\Foundation\Session\Memcached
+		$this->register('session.memcached', function ($dic, Array $config = array())
+		{
+			$name = empty($config['memcached']['name']) ? null : $config['memcached']['name'];
+			return $dic->resolve('Fuel\Foundation\Session\Memcached', array($config, $dic->resolve('storage.memcached', array($name))));
 		});
 
 		/**
