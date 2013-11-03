@@ -490,7 +490,8 @@ class FuelServiceProvider extends ServiceProvider
 			$instance = $dic->multiton('Memcached', $name, array($persistent_id, null));
 
 			// new instance? then configure it
-			if (empty($instance->getServerList()))
+			$servers = $instance->getServerList();
+			if (empty($servers))
 			{
 				if (isset($config['servers']))
 				{
@@ -503,16 +504,16 @@ class FuelServiceProvider extends ServiceProvider
 			}
 
 			// check if we have a connection to at least one memcached server
-			$version = $instance->getVersion();
-			if (is_array($version))
+			$servers = $instance->getVersion();
+			if (is_array($servers))
 			{
 				// filter out dead servers
-				$version = array_filter($version, function($var) { return $var !== '255.255.255'; });
+				$servers = array_filter($servers, function($var) { return $var !== '255.255.255'; });
 			}
 
-			if (empty($version))
+			if (empty($servers))
 			{
-				throw new \RuntimeException('FOU-030: There is no connection possible to memcached servers identified by ['.$name.']. Check your configuration.');
+				throw new \RuntimeException('FOU-030: There is no connection possible to memcached server(s) identified by ['.$name.']. Check your configuration.');
 			}
 
 			// return the instance
