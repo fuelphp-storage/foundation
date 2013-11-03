@@ -127,10 +127,21 @@ class Error
 		$current_handler = set_exception_handler(function($e) use(&$current_handler)
 		{
 			// get the locale
-			if (($locale = setlocale(LC_ALL, null)) == 'C')
+			if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
 			{
-				// default to English if LANG=C is detected
-				$locale = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'English' : 'en_US';
+				// if the locale is set to C, default to English
+				if (($locale = getenv('LC_ALL')) === 'C')
+				{
+					$locale = 'English';
+				}
+			}
+			else
+			{
+				// if the locale is set to C, default to en_US
+				if (($locale = setlocale(LC_MESSAGES, null)) === 'C')
+				{
+					$locale = 'en_US';
+				}
 			}
 
 			// get access to the exception's error message
@@ -138,22 +149,75 @@ class Error
 			$property = $reflection->getProperty("message");
 			$property->setAccessible(true);
 
-			// load the translator class, and translate if found
-			$class = 'Fuel\Translations\\'.$locale;
-			if (class_exists($class, true))
+			// get the translations for the current locale
+			if ($translations = $this->getMessages($locale, true))
 			{
-				$property->setValue($e, $class::get($e->getMessage()));
-			}
-			else
-			{
-				$class = 'Fuel\Translations\\'.ucfirst(substr($locale,0,2));
-				if (class_exists($class, true))
+				// does the error message exist?
+				$messageId = substr($e->getMessage(), 0,7);
+				if (isset($translations[$messageId]))
 				{
-					$property->setValue($e, $class::get($e->getMessage()));
+					// swap the original message for the translated one
+					$property->setValue($e, $this->setMessage($translations[$messageId], $e->getMessage()));
 				}
 			}
 
+			// call the original error handler with the translated exception message
 			call_user_func($current_handler, $e);
 		});
+	}
+
+	/**
+	 * Load the correct file with translations, based on the locale passed
+	 *
+	 * @since  2.0.0
+	 */
+	protected function getMessages($locale, $shorten = false)
+	{
+		$baseDir = realpath(__DIR__.'/../../../translations');
+
+		$lookup = array($locale);
+		if ($shorten)
+		{
+			$lookup[] = substr($locale, 0, 2);
+		}
+
+		foreach($lookup as $lang)
+		{
+			if (is_file($lang = $baseDir.'/'.$lang.'.php'))
+			{
+				$translations = include $lang;
+				if (is_string($translations))
+				{
+					return $this->getMessages($translations);
+				}
+				return $translations;
+			}
+		}
+
+		// nothing found
+		return false;
+	}
+
+	/**
+	 * Convert the original message to the translated message
+	 *
+	 * @since  2.0.0
+	 */
+	protected function setMessage($translation, $original)
+	{
+		// strip any parameters from the original message and unify the message for translation
+		if (preg_match_all('~\[(.*?)\]~', $original, $matches) and ! empty($matches[1]))
+		{
+			$params = $matches[1];
+			$message = preg_replace_callback('~\[(.*?)\]~', function($matches) { static $c = 0; return '"%'.(++$c).'$s"'; }, $original);
+		}
+
+		// put the parameters back in if needed
+		if ( ! empty($params))
+		{
+			$translation = vsprintf($translation, $params);
+		}
+
+		return $translation;
 	}
 }
