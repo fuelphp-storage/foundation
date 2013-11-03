@@ -133,6 +133,7 @@ abstract class Base
 
 		// determine the method to call
 		$action = $this->route->action ?: $this->defaultAction;
+
 		if ( ! is_callable(array($this, $method = strtolower($this->route->method).$action)))
 		{
 			if ( ! is_callable(array($this, $method = $this->actionPrefix.$action)))

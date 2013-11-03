@@ -71,4 +71,15 @@ abstract class Base
 		}
 	}
 
+	/**
+	 * Get the object instance for this Facade
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getInstance()
+	{
+		// by default, this Facade doesn't have instance support
+		return null;
+	}
+
 }
