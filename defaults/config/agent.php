@@ -1,6 +1,6 @@
 <?php
 /**
- * @package    Fuel
+ * @package    Foundation
  * @version    2.0
  * @author     Fuel Development Team
  * @license    MIT License
@@ -11,8 +11,10 @@
 /**
  * NOTICE:
  *
- * This is the global configuration for the FuelPHP framework. It contains
- * configuration which is global for all installed applications.
+ * If you need to make modifications to the default configuration, copy
+ * this file to your applications config folder, and make them in there.
+ *
+ * This will allow you to upgrade fuel without losing your custom config.
  */
 
 return array(
