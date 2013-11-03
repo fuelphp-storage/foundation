@@ -51,9 +51,9 @@ $bootstrapFuel = function()
 	/**
 	 * Setup the autoloader instance, and disable composers autoloader
 	 */
-// TODO: cache file name must be configurable
 	$autoloader = new Autoloader(self::$loader);
 	self::$loader->unregister();
+
 	/**
 	 * Setup the Dependency Container of none was setup yet
 	 */
