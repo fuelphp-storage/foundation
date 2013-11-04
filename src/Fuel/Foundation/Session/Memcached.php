@@ -11,8 +11,6 @@
 namespace Fuel\Foundation\Session;
 
 use Fuel\Session\Driver;
-use Fuel\Session\DataContainer;
-use Fuel\Session\FlashContainer;
 
 /**
  * Session driver using a memcached backend
@@ -45,6 +43,7 @@ class Memcached extends Driver
 	 * Constructor
 	 *
 	 * @param  array    $config  driver configuration
+	 *
 	 * @since  2.0.0
 	 */
 	public function __construct(array $config = array(), \Memcached $memcached)
@@ -58,7 +57,7 @@ class Memcached extends Driver
 		// store the defined name
 		if (isset($config['memcached']['cookie_name']))
 		{
-			$this->setName($config['memcached']['cookie_name']);
+			$this->name = $config['memcached']['cookie_name'];
 		}
 
 		// store the memcached storage instance
@@ -68,31 +67,27 @@ class Memcached extends Driver
     /**
      * Create a new session
      *
-     * @param  DataContainer $data
-     * @param  FlashContainer $flash
-     *
      * @return bool  result of the start operation
+	 *
 	 * @since  2.0.0
      */
-    public function create(DataContainer $data, FlashContainer $flash)
+    public function create()
     {
 		// start the session
 		if ( ! $this->started)
 		{
-			$this->start($data, $flash);
+			$this->start();
 		}
 	}
 
     /**
      * Start the session, and read existing session data back
      *
-     * @param  DataContainer $data
-     * @param  FlashContainer $flash
-     *
      * @return bool  result of the start operation
+	 *
 	 * @since  2.0.0
      */
-    public function start(DataContainer $data, FlashContainer $flash)
+    public function start()
     {
 		// generate a new session id
 		$this->regenerate();
@@ -101,19 +96,17 @@ class Memcached extends Driver
 		$this->started = true;
 
 		// and read any existing session data
-		return $this->read($data, $flash);
+		return $this->read();
 	}
 
     /**
      * Read session data
      *
-     * @param  DataContainer $data
-     * @param  FlashContainer $flash
-     *
      * @return bool  result of the write operation
+     *
 	 * @since  2.0.0
      */
-    public function read(DataContainer $data, FlashContainer $flash)
+    public function read()
     {
 		// bail out if we don't have an active session
 		if ($this->started)
@@ -131,7 +124,7 @@ class Memcached extends Driver
 					$payload = unserialize($payload);
 
 					// verify and process the payload
-					return $this->processPayload($payload, $data, $flash);
+					return $this->processPayload($payload);
 				}
 			}
 		}
@@ -143,13 +136,11 @@ class Memcached extends Driver
     /**
      * Write session data
      *
-     * @param  DataContainer $data
-     * @param  FlashContainer $flash
-     *
      * @return bool  result of the write operation
+     *
 	 * @since  2.0.0
      */
-    public function write(DataContainer $data, FlashContainer $flash)
+    public function write()
     {
 		// bail out if we don't have an active session
 		if ( ! $this->started)
@@ -158,7 +149,7 @@ class Memcached extends Driver
 		}
 
 		// assemble the session payload
-		$payload = $this->assemblePayload($data, $flash);
+		$payload = $this->assemblePayload();
 		$expiration = $payload['security']['ex'];
 		$payload = serialize($payload);
 
@@ -169,13 +160,11 @@ class Memcached extends Driver
     /**
      * Stop the session
      *
-     * @param  DataContainer $data
-     * @param  FlashContainer $flash
-     *
      * @return bool  result of the write operation
+     *
 	 * @since  2.0.0
      */
-    public function stop(DataContainer $data, FlashContainer $flash)
+    public function stop()
     {
 		// bail out if we don't have an active session
 		if ( ! $this->started)
@@ -184,7 +173,10 @@ class Memcached extends Driver
 		}
 
 		// write the data in the session
-		$this->write($data, $flash);
+		$this->write();
+
+		// mark the session as stopped
+		$this->started = false;
 
 		// set the session cookie
 		return $this->setCookie(
@@ -204,9 +196,20 @@ class Memcached extends Driver
 		// we need to have a session started
 		if ($this->started)
 		{
+			// mark the session as stopped
+			$this->started = false;
+
+			// reset the session containers
+			$this->manager->reset();
+
+			// delete the session data from the store
+			$this->memcached->delete($this->config['memcached']['key_prefix'].$this->name.'_'.$this->sessionId);
+
+			// delete the session cookie
 			return $this->deleteCookie($this->name);
 		}
 
+		// session was not started
 		return false;
 	}
 }
