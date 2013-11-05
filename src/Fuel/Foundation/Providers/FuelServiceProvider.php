@@ -426,12 +426,11 @@ class FuelServiceProvider extends ServiceProvider
 				}
 				$name = $config;
 
-				$config = \Arr::merge($this->storage_db_defaults, $app->getConfig()->get('db.'.$config, array()));
+				$config = $app->getConfig()->get('db.'.$config, array());
 			}
 			else
 			{
 				$name = uniqid();
-				$config = \Arr::merge($this->storage_db_defaults, $config);
 			}
 
 			// default to mysql if we don't have a driver set
@@ -523,7 +522,8 @@ class FuelServiceProvider extends ServiceProvider
 		// \Fuel\Foundation\Session\Db
 		$this->register('session.db', function ($dic, Array $config = array())
 		{
-die('NOT IMPLEMENTED!');
+			$name = empty($config['db']['name']) ? null : $config['db']['name'];
+			return $dic->resolve('Fuel\Foundation\Session\Db', array($config, $dic->resolve('storage.db', array($name))));
 		});
 
 		// \Fuel\Foundation\Session\Memcached
