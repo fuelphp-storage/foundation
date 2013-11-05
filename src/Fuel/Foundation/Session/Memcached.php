@@ -76,6 +76,10 @@ class Memcached extends Driver
 		// start the session
 		if ( ! $this->started)
 		{
+			// generate a new session id
+			$this->regenerate();
+
+			// and start the session
 			$this->start();
 		}
 	}
@@ -89,9 +93,6 @@ class Memcached extends Driver
      */
     public function start()
     {
-		// generate a new session id
-		$this->regenerate();
-
 		// mark the session as started
 		$this->started = true;
 
