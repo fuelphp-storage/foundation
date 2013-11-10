@@ -15,6 +15,8 @@ use Fuel\Session\Driver;
 /**
  * Session driver using a memcached backend
  *
+ * NOTE: this driver is not thread-safe.
+ *
  * @package  Fuel\Session
  *
  * @since  2.0.0
