@@ -29,6 +29,8 @@ class FuelServiceProvider extends ServiceProvider
 		'application', 'environment', 'input', 'log',
 		'request', 'request.local',
 		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml', 'response.redirect',
+		'storage.db', 'storage.memcached', 'storage.redis',
+		'session.db', 'session.memcached', 'session.redis',
 	);
 
 	/**
@@ -446,7 +448,7 @@ class FuelServiceProvider extends ServiceProvider
 		$this->register('storage.memcached', function ($dic, $config = null)
 		{
 			// do we have the PHP memcached extension available
-			if ( ! class_exists('Memcached') )
+			if ( ! class_exists('Memcached'))
 			{
 				throw new \InvalidArgumentException('FOU-029: your PHP installation doesn\'t have the Memcached PECL extension loaded.');
 			}
@@ -462,7 +464,7 @@ class FuelServiceProvider extends ServiceProvider
 				$app = $this->container->resolve('application.main');
 			}
 
-			// load the db config
+			// load the memcached config
 			$app->getConfig()->load('memcached', true);
 
 			// construct the config array
@@ -519,6 +521,208 @@ class FuelServiceProvider extends ServiceProvider
 			return $instance;
 		});
 
+		// \Redis
+		$this->register('storage.redis', function ($dic, $config = null)
+		{
+			// get the correct config instance
+			$stack = $this->container->resolve('requeststack');
+			if ($request = $stack->top())
+			{
+				$app = $request->getApplication();
+			}
+			else
+			{
+				$app = $this->container->resolve('application.main');
+			}
+
+			// load the redis config
+			$app->getConfig()->load('redis', true);
+
+			// construct the config array
+			if ( ! is_array($config) or empty($config))
+			{
+				// if we don't have a config requested, get the configured active config
+				if (empty($config))
+				{
+					$config = $app->getConfig()->get('active', 'default');
+				}
+				$name = $config;
+
+				$config = $app->getConfig()->get('redis.'.$config, array());
+			}
+			else
+			{
+				$name = uniqid();
+			}
+
+			// check if we have a class configured, default to PECL
+			$class = empty($config['class']) ? 'Redis' : ucfirst($config['class']);
+
+			// get us an instance
+			switch ($class)
+			{
+				// Redis PECL extension, or an emulation
+				case 'Redis':
+
+					// fetch the instance
+					$instance = $dic->multiton('Redis', $name);
+
+					try
+					{
+						// already connected?
+						$instance->ping();
+					}
+					catch (\RedisException $e)
+					{
+						// get the first defined server
+						if (isset($config['servers']) and is_array($config['servers']))
+						{
+							$server = (array) reset($config['servers']);
+						}
+						else
+						{
+							$server = array();
+						}
+
+						// validate some config
+						if ( ! isset($server['timeout']) or ! is_numeric($server['timeout']))
+						{
+							$server['timeout'] = 0;
+						}
+						if ( ! isset($server['port']))
+						{
+							$server['port'] = null;
+						}
+
+						// new connection, connect and configure
+						if ( ! $instance->connect($server['host'], $server['port'], $server['timeout']))
+						{
+							throw new \RuntimeException('FOU-032: Can not connect to your Redis server.');
+						}
+
+						// authenticate if needed
+						if ( ! empty($server['auth']))
+						{
+							$instance->auth($server['auth']);
+						}
+
+						// switch to the correct database
+						if (isset($server['database']) and is_numeric($server['database']))
+						{
+							$instance->select($server['database']);
+						}
+
+						// and configure additional connection options
+						if ( ! empty($config['options']) and is_array($config['options']))
+						{
+							foreach ($config['options'] as $key => $value)
+							{
+								$instance->setOption($key, $value);
+							}
+						}
+					}
+
+				break;
+
+				// Predis composer package
+				case 'Predis':
+
+					if ( ! class_exists('Predis\Client'))
+					{
+						throw new \RuntimeException('FOU-031: Your installation doesn\'t have the Predis package available.');
+					}
+
+					// prep the connection parameters
+					if ( ! isset($config['servers']) or ! is_array($config['servers']))
+					{
+						$config['servers'] = null;
+						$cluster = false;
+					}
+					else
+					{
+						if (count($config['servers']) == 1)
+						{
+							$cluster = false;
+							$config['servers'] = reset($config['servers']);
+						}
+						else
+						{
+							$cluster = true;
+						}
+					}
+					if ( ! isset($config['options']) or ! is_array($config['options']))
+					{
+						$config['options'] = null;
+					}
+
+					// fetch the instance
+					$instance = $dic->multiton('Predis\Client', $name, array($config['servers'], $config['options']));
+
+				break;
+
+				// Redisent Composer package
+				case 'Redisent':
+
+					if ( ! class_exists('redisent\Redis'))
+					{
+						throw new \RuntimeException('FOU-034: Your installation doesn\'t have the Redisent package available.');
+					}
+
+					// get the first defined server
+					if (isset($config['servers']) and is_array($config['servers']))
+					{
+						$server = (array) reset($config['servers']);
+					}
+					else
+					{
+						$server = array('host' => 'localhost', 'port' => 6379);
+					}
+
+					// prefix with the correct scheme if needed
+					if (strpos($server['host'], '://') === false)
+					{
+						$server['host'] = 'redis://'.$server['host'];
+					}
+
+					// in case of a unix socket, we don't need a port
+					if (strpos($server['host'], 'unix://') === false)
+					{
+						$server['host'] .= empty($server['port']) ? ':6379' : (':'.$server['port']);
+					}
+
+					// validate some config
+					if ( ! isset($server['timeout']) or ! is_numeric($server['timeout']))
+					{
+						$server['timeout'] = null;
+					}
+
+					// fetch the instance
+					$instance = $dic->multiton('redisent\Redis', $name, array($server['host'], $server['timeout']));
+
+					// authenticate if needed
+					if ( ! empty($server['auth']))
+					{
+						$instance->auth($server['auth']);
+					}
+
+					// switch to the correct database
+					if (isset($server['database']) and is_numeric($server['database']))
+					{
+						$instance->select($server['database']);
+					}
+
+				break;
+
+				// unsupported class, bail out!
+				default:
+					throw new \InvalidArgumentException('FOU-033: "['.$class.']" is not a supported Redis class.');
+
+			}
+
+			// return the instance
+			return $instance;
+		});
+
 		// \Fuel\Foundation\Session\Db
 		$this->register('session.db', function ($dic, Array $config = array())
 		{
@@ -531,6 +735,13 @@ class FuelServiceProvider extends ServiceProvider
 		{
 			$name = empty($config['memcached']['name']) ? null : $config['memcached']['name'];
 			return $dic->resolve('Fuel\Foundation\Session\Memcached', array($config, $dic->resolve('storage.memcached', array($name))));
+		});
+
+		// \Fuel\Foundation\Session\Redis
+		$this->register('session.redis', function ($dic, Array $config = array())
+		{
+			$name = empty($config['redis']['name']) ? null : $config['redis']['name'];
+			return $dic->resolve('Fuel\Foundation\Session\Redis', array($config, $dic->resolve('storage.redis', array($name))));
 		});
 
 		/**

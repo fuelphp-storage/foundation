@@ -45,4 +45,9 @@ return array(
 	'FOU-028' => 'Specified storage type must be a string value',
 	'FOU-029' => 'your PHP installation doesn\'t have the Memcached PECL extension loaded.',
 	'FOU-030' => 'There is no connection possible to memcached servers identified by "%1$s". Check your configuration.',
+	'FOU-031' => 'Your installation doesn\'t have the Predis package available.',
+	'FOU-032' => 'Can not connect to your Redis server.',
+	'FOU-033' => '"%1$s" is not a supported Redis class.',
+	'FOU-034' => 'Your installation doesn\'t have the Redisent package available.',
+
 );

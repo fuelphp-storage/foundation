@@ -44,6 +44,10 @@ return array(
 	'FOU-027' => 'Actie "%1$s" is niet beschikbaar in Controller: "%2$s"',
 	'FOU-028' => 'Gespecificeerd storage type moet een string waarde zijn',
 	'FOU-029' => 'Uw PHP installatie heeft de Memcached PECL extension niet geladen.',
-	'FOU-030' => 'Er is geen verbinding met de memcached servers gedefinieerd als "%1$s". Controleer uw configuratie.'
+	'FOU-030' => 'Er is geen verbinding met de memcached servers gedefinieerd als "%1$s". Controleer uw configuratie.',
+	'FOU-031' => 'Uw installatie heeft de Predis package niet beschikbaar.',
+	'FOU-032' => 'Kan geen verbinding maken met de Redis server.',
+	'FOU-033' => '"%1$s" is geen ondersteunde Redis class.',
+	'FOU-031' => 'Uw installatie heeft de Redisent package niet beschikbaar.',
 
 );
