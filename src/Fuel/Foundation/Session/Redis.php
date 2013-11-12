@@ -82,8 +82,10 @@ class Redis extends Driver
 			$this->regenerate();
 
 			// and start the session
-			$this->start();
+			return $this->start();
 		}
+
+		return false;
 	}
 
     /**
