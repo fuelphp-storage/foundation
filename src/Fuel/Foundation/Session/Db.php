@@ -84,17 +84,24 @@ class Db extends Driver
 			$this->regenerate();
 
 			// create a new session record
-			$this->db->insert($this->config['db']['table'])->values(array(
+			$result = $this->db->insert($this->config['db']['table'])->values(array(
 				'session_id' => $this->sessionId,
-				'previous_id' => $this->sessionId,
-				'created' => time(),
-				'updated' => time(),
+				'created_at' => time(),
+				'updated_at' => time(),
 				'payload' => serialize(array()),
 			))->execute();
 
-			// mark the session as started
-			$this->started = true;
+			// check the result
+			if ($result == array(0, 1))
+			{
+				// mark the session as started
+				$this->started = true;
+
+				return true;
+			}
 		}
+
+		return false;
 	}
 
     /**
@@ -174,7 +181,7 @@ class Db extends Driver
 		// and store it
 		$result = $this->db->update($this->config['db']['table'])
 			->set('payload', $payload)
-			->set('updated', time())
+			->set('updated_at', time())
 			->where('session_id', $this->sessionId)
 			->execute();
 
@@ -202,6 +209,16 @@ class Db extends Driver
 		// mark the session as stopped
 		$this->started = false;
 
+		// do some garbage collection
+		if (mt_rand(0,100) < $this->config['db']['gc_probability'])
+		{
+			// delete expired session records
+			$expired = time() - $this->expiration;
+			$this->db->delete($this->config['db']['table'])
+				->where('updated_at', '<', $expired)
+				->execute();
+		}
+
 		// set the session cookie
 		return $this->setCookie(
 			$this->name,
@@ -213,6 +230,7 @@ class Db extends Driver
      * Destroy the session
      *
      * @return bool  result of the write operation
+     *
 	 * @since  2.0.0
      */
     public function destroy()
