@@ -82,8 +82,10 @@ class Memcached extends Driver
 			$this->regenerate();
 
 			// and start the session
-			$this->start();
+			return $this->start();
 		}
+
+		return false;
 	}
 
     /**
@@ -192,6 +194,7 @@ class Memcached extends Driver
      * Destroy the session
      *
      * @return bool  result of the write operation
+     *
 	 * @since  2.0.0
      */
     public function destroy()
