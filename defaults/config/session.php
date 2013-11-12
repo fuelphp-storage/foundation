@@ -24,52 +24,52 @@ return array(
 
 	// set it to false to prevent the static session from auto-initializing, know that it might make your session
 	// expire sooner because it's not updated when it's not used. note that auto-initializing always loads the default driver
-	'auto_initialize'	=> false,
+	'auto_initialize'       => false,
 
-	// if no session type is requested, use the default
-	'driver'			=> 'memcached',
+	// if no session type is requested, use this default
+	'driver'                => 'cookie',
 
 	// check for an IP address match after loading the cookie (optional, default = false)
-	'match_ip'			=> false,
+	'match_ip'              => false,
 
 	// check for a user agent match after loading the cookie (optional, default = true)
-	'match_ua'			=> true,
+	'match_ua'              => true,
 
 	// cookie domain  (optional, default = '')
-	'cookie_domain' 	=> '',
+	'cookie_domain'         => '',
 
 	// cookie path  (optional, default = '/')
-	'cookie_path'		=> '/',
+	'cookie_path'           => '/',
 
 	// cookie http_only flag  (optional, default = use the cookie class default)
-	'cookie_http_only'	=> null,
+	'cookie_http_only'      => null,
 
 	// cookie secure flag  (optional, default = use the cookie class default)
-	'cookie_secure'	    => false,
+	'cookie_secure'         => false,
 
 	// if true, the session expires when the browser is closed (optional, default = false)
-	'expire_on_close'	=> false,
+	'expire_on_close'       => false,
 
 	// session expiration time, <= 0 means 2 years! (optional, default = 2 hours)
-	'expiration_time'	=> 7200,
+	'expiration_time'       => 7200,
 
 	// session ID rotation time  (optional, default = 300)
-	'rotation_time'		=> 300,
+	'rotation_time'         => 300,
 
 	// default namespace for flash variables  (optional, default = 'flash')
-	'flash_namespace'	=> 'flash',
+	'flash_namespace'       => 'flash',
 
 	// if false, expire flash values only after it's used, if true expire on next request
-	'flash_auto_expire'	=> true,
+	'flash_auto_expire'     => true,
 
 	// for requests that don't support cookies (i.e. flash), use this POST variable to pass the cookie to the session driver
-	'post_cookie_name'	=> '',
+	'post_cookie_name'      => '',
 
 	// for requests in which you don't want to use cookies, use an HTTP header by this name to pass the cookie to the session driver
-	'header_header_name' => 'Session-Id',
+	'header_header_name'    => 'Session-Id',
 
 	// if false, no cookie will be added to the response send back to the client
-	'enable_cookie'	=> true,
+	'enable_cookie'         => true,
 
 	/**
 	 * specific driver configurations. to override a global setting, just add it to the driver config with a different value
@@ -77,29 +77,36 @@ return array(
 
 	// special configuration settings for PHP native sessions
 	'native' => array(
-		'cookie_name'		=> 'fuelnid',				// name of the session cookie for native PHP sessions
+		'cookie_name'       => 'fuelnid',				// name of the session cookie for native PHP sessions
 	),
 
 	// special configuration settings for cookie based sessions
 	'cookie' => array(
-		'cookie_name'		=> 'fuelcid',				// name of the session cookie for cookie based sessions
-		'encrypt_cookie'	=> true,					// whether or not to encrypt the session cookie
-		'crypt_key'			=> '', 						// set your crypt key to encrypt/decrypt the cookie payload
+		'cookie_name'       => 'fuelcid',				// name of the session cookie for cookie based sessions
+		'encrypt_cookie'    => true,					// whether or not to encrypt the session cookie
+		'crypt_key'         => '', 						// set your crypt key to encrypt/decrypt the cookie payload
 	),
 
 	// specific configuration settings for memcached based sessions
 	'memcached' => array(
-		'cookie_name'		=> 'fuelmid',				// name of the session cookie for memcached based sessions
-		'name'				=> null,					// name if the memcached server definition to use
-		'key_prefix'		=> '',						// prefix to use for the memcached key, to avoid collisions
+		'cookie_name'       => 'fuelmid',				// name of the session cookie for memcached based sessions
+		'name'              => null,					// name if the memcached server definition to use (as configured in config/memcached.php)
+		'key_prefix'        => '',						// prefix to use for the memcached key, to avoid collisions
 	),
 
+	// specific configuration settings for database based sessions
+	'db' => array(
+		'cookie_name'       => 'fueldid',				// name of the session cookie for database based sessions
+		'name'              => 'default',				// name of the database definition to use (as configured in config/db.php)
+		'table'             => 'sessions',				// name of the sessions table
+		'gc_probability'    => 5						// probability % (between 0 and 100) for garbage collection
+	),
 
-
-
-
-
-
+	// specific configuration settings for redis based sessions
+	'redis' => array(
+		'cookie_name'       => 'fuelrid',				// name of the session cookie for redis based sessions
+		'name'              => 'default'				// name of the redis database to use (as configured in config/redis.php)
+	),
 
 	// specific configuration settings for file based sessions
 	'file' => array(
@@ -107,19 +114,4 @@ return array(
 		'path'				=>	'/tmp',					// path where the session files should be stored
 		'gc_probability'	=>	5						// probability % (between 0 and 100) for garbage collection
 	),
-
-
-	// specific configuration settings for database based sessions
-	'db' => array(
-		'cookie_name'		=> 'fueldid',				// name of the session cookie for database based sessions
-		'database'			=> null,					// name of the database name (as configured in config/db.php)
-		'table'				=> 'sessions',				// name of the sessions table
-		'gc_probability'	=> 5						// probability % (between 0 and 100) for garbage collection
-	),
-
-	// specific configuration settings for redis based sessions
-	'redis' => array(
-		'cookie_name'		=> 'fuelrid',				// name of the session cookie for redis based sessions
-		'database'			=> 'default'				// name of the redis database to use (as configured in config/db.php)
-	)
 );
