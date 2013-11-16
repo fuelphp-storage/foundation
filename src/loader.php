@@ -99,7 +99,7 @@ $bootstrapFuel = function()
 		if (class_exists($class = trim($namespace, '\\').'\\Providers\\FuelPackageProvider'))
 		{
 			// load the package provider
-			$provider = new $class($namespace, $paths);
+			$provider = new $class($dic, $namespace, $paths);
 		}
 		else
 		{
@@ -181,12 +181,6 @@ $bootstrapFuel = function()
 		};
 		$bootstrap($file);
 	}
-
-	/**
-	 * Alias all Base controllers to Fuel\Controller
-	 */
-	// TODO: move to a separate Fuel\Controller package?
-	$dic->resolve('alias')->aliasNamespace('Fuel\Foundation\Controller', 'Fuel\Controller');
 };
 
 // call and cleanup

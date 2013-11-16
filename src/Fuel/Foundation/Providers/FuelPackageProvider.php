@@ -8,65 +8,19 @@
  * @link       http://fuelphp.com
  */
 
-namespace Fuel\Foundation;
+namespace Fuel\Foundation\Providers;
+
+use Fuel\Foundation\PackageProvider;
 
 /**
- * PackageProvider base class
+ * FuelPHP PackageProvider class for this package
  *
  * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
-class PackageProvider
+class FuelPackageProvider extends PackageProvider
 {
-	/**
-	 * @var  Fuel\Dependency\Container  Fuel's DiC
-	 */
-	protected $dic;
-
-	/**
-	 * @var  string  base namespace of this package
-	 */
-	protected $namespace;
-
-	/**
-	 * @var  array  array of paths defined for this namespace
-	 */
-	protected $paths = array();
-
-	/**
-	 * Class constructor, initialize the package, check for existence of a
-	 * bootstrap file, and if found, process it
-	 *
-	 * @param
-	 *
-	 * @since 2.0.0
-	 */
-	public function __construct($dic, $namespace, Array $paths = array())
-	{
-		// store the DiC
-		$this->dic = $dic;
-
-		// normalize the namespace and store it
-		$this->namespace = trim($namespace, '\\').'\\';
-
-		// check and normalize the paths, and store them
-		foreach ($paths as $path)
-		{
-			if ($path = realpath($path))
-			{
-				$this->paths[] = $path.DS;
-			}
-		}
-
-		// does this package define a service provider
-		if (class_exists($class = $this->namespace.'Providers\\FuelServiceProvider'))
-		{
-			// register it with the DiC
-			$this->dic->registerService(new $class);
-		}
-	}
-
 	/**
 	 * Package initialization method. This method is called as soon as the package
 	 * is initially loaded, either by the framework bootstrap, or when you manually
@@ -76,6 +30,10 @@ class PackageProvider
 	 */
 	public function initPackage()
 	{
+		/**
+		 * Alias the base controllers to the Fuel\Controller namespace
+		 */
+		$this->dic->resolve('alias')->aliasNamespace('Fuel\Foundation\Controller', 'Fuel\Controller');
 	}
 
 	/**
