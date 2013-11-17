@@ -103,7 +103,7 @@ $bootstrapFuel = function()
 		}
 	}
 
-	// process all known composer libraries, and register them as Fuel packages
+	// process all known composer libraries, and check if they have a Fuel Package provider
 	foreach (self::$loader->getPrefixes() as $namespace => $paths)
 	{
 		// check if this package has a PackageProvider for us
@@ -136,7 +136,10 @@ $bootstrapFuel = function()
 	$dic->inject('config.global', $config);
 
 	// load the global framework configuration
-	$config->setConfigFolder('')->addPath(realpath(__DIR__.DS.'..'.DS.'defaults'.DS.'global'.DS))->addPath(APPSPATH);
+	if (defined('APPSPATH'))
+	{
+		$config->setConfigFolder('')->addPath(realpath(__DIR__.DS.'..'.DS.'defaults'.DS.'global'.DS))->addPath(APPSPATH);
+	}
 	$config->load('config', null);
 
 	// configure the autoloader
@@ -175,7 +178,7 @@ $bootstrapFuel = function()
 	/**
 	 * Run the global applications bootstrap, if present
 	 */
-	if (file_exists($file = APPSPATH.'bootstrap.php'))
+	if (defined('APPSPATH') and  file_exists($file = APPSPATH.'bootstrap.php'))
 	{
 		$bootstrap = function($file) {
 			include $file;
