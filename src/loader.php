@@ -67,12 +67,12 @@ $bootstrapFuel = function()
 	/**
 	 * Setup the shutdown, error & exception handlers
 	 */
-	$errorhandler = new Error;
+//	$errorhandler = new Error;
 
 	/**
 	 * Setup the shutdown, error & exception handlers
 	 */
-	$dic->inject('errorhandler', $errorhandler);
+//	$dic->inject('errorhandler', $errorhandler);
 
 	/**
 	 * Create the packages container, and load all already loaded ones
@@ -92,6 +92,17 @@ $bootstrapFuel = function()
 	// create the packages container
 	$packages = $dic->resolve('packages');
 
+	// process all known composer libraries, and register any Fuel service providers
+	foreach (self::$loader->getPrefixes() as $namespace => $paths)
+	{
+		// does this package define a service provider
+		if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelServiceProvider'))
+		{
+			// register it with the DiC
+			$dic->registerService(new $class);
+		}
+	}
+
 	// process all known composer libraries, and register them as Fuel packages
 	foreach (self::$loader->getPrefixes() as $namespace => $paths)
 	{
@@ -100,33 +111,23 @@ $bootstrapFuel = function()
 		{
 			// load the package provider
 			$provider = new $class($dic, $namespace, $paths);
-		}
-		else
-		{
-			// create a base provider instance
-			$provider = $dic->resolve('packageprovider', array($namespace, $paths));
-		}
 
-		// validate the provider
-		if ( ! $provider instanceOf PackageProvider)
-		{
-			throw new RuntimeException('FOU-025: PackageProvider for ['.$namespace.'] must be an instance of \Fuel\Foundation\PackageProvider');
+			// validate the provider
+			if ( ! $provider instanceOf PackageProvider)
+			{
+				throw new RuntimeException('FOU-025: PackageProvider for ['.$namespace.'] must be an instance of \Fuel\Foundation\PackageProvider');
+			}
+
+			// initialize the loaded package
+			$provider->initPackage();
+
+			// and store it in the container
+			$packages->set($namespace, $provider);
 		}
-
-		// initialize the loaded package
-		$provider->initPackage();
-
-		// and store it in the container
-		$packages->set($namespace, $provider);
 	}
 
 	// disable write access to the package container
 	$packages->setReadOnly();
-
-	/**
-	 * Alias all Facades to global
-	 */
-	$dic->resolve('alias')->aliasNamespace('Fuel\Foundation\Facades', '');
 
 	/**
 	 * Create the global Config instance

@@ -58,13 +58,6 @@ class PackageProvider
 				$this->paths[] = $path.DS;
 			}
 		}
-
-		// does this package define a service provider
-		if (class_exists($class = $this->namespace.'Providers\\FuelServiceProvider'))
-		{
-			// register it with the DiC
-			$this->dic->registerService(new $class);
-		}
 	}
 
 	/**

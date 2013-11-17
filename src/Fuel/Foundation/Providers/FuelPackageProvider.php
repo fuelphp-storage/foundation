@@ -30,10 +30,18 @@ class FuelPackageProvider extends PackageProvider
 	 */
 	public function initPackage()
 	{
+		// fetch the alias instance
+		$alias = $this->dic->resolve('alias');
+
+		/**
+		 * Alias all Foundation facade classes to global
+		 */
+		$alias->aliasNamespace('Fuel\Foundation\Facades', '');
+
 		/**
 		 * Alias the base controllers to the Fuel\Controller namespace
 		 */
-		$this->dic->resolve('alias')->aliasNamespace('Fuel\Foundation\Controller', 'Fuel\Controller');
+		$alias->aliasNamespace('Fuel\Foundation\Controller', 'Fuel\Controller');
 	}
 
 	/**
