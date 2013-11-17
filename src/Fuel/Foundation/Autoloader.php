@@ -102,7 +102,7 @@ class Autoloader
 		$this->cacheExpire = $cacheExpire;
 
 		// Load the cached class map if present
-		if (file_exists($this->cacheFile))
+		if ($this->cacheFile and file_exists($this->cacheFile))
 		{
 			$this->addClassMap(include $this->cacheFile);
 		}
