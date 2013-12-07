@@ -45,13 +45,13 @@ class Markdown
 		// setup an instance if needed
 		if ( ! static::$parser)
 		{
-			if (class_exists('dflydev\markdown\MarkdownExtraParser'))
+			if (class_exists('Michelf\MarkdownExtra'))
 			{
-				static::$parser = new \dflydev\markdown\MarkdownExtraParser();
+				static::$parser = new Michelf\MarkdownExtra();
 			}
 			else
 			{
-				throw new \RuntimeException('FOU-021: Unable to create a Markdown instance. Did you install the "dflydev\markdown" composer package?');
+				throw new \RuntimeException('FOU-021: Unable to create a Markdown instance. Did you install the "michelf\php-markdown" composer package?');
 			}
 		}
 

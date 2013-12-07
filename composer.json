@@ -31,7 +31,7 @@
 		"mockery/mockery": "0.7.*"
 	},
 	"suggest": {
-		"dflydev/markdown": "Required if you want to use the Markdown facade class"
+		"michelf/php-markdown": "Required if you want to use the Markdown facade class"
 	},
 	"autoload": {
 		"psr-0": { "Fuel\\Foundation": "src/" },
