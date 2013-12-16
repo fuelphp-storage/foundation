@@ -155,12 +155,12 @@ class Application
 		$this->appPath = realpath($appPath).DS;
 
 		// store it in the application namespaces list
-		$this->appNamespaces[$this->appNamespace] = array(
+		$this->setNamespace($this->appNamespace, array(
 			'prefix' => false,
 			'namespace' => $this->appNamespace,
 			'path' => $this->appPath,
 			'routeable' => true,
-		);
+		));
 
 		// does this app have a bootstrap?
 		if (file_exists($file = $this->appPath.'bootstrap.php'))
@@ -308,6 +308,13 @@ class Application
 	public function getNamespaces()
 	{
 		return $this->appNamespaces;
+	}
+
+	protected function setNamespace($prefix, array $config = array())
+	{
+		$this->appNamespaces[$prefix] = $config;
+
+		$this->factory->getAutoloaderInstance()->addpsr4($prefix, $this->appPath.DS.'classes');
 	}
 
 	/**
@@ -508,12 +515,12 @@ class Application
 		$path = realpath($path).DS;
 
 		// store it in the application namespaces list
-		$this->appNamespaces[$prefix] = array(
+		$this->setNamespace($prefix, array(
 			'prefix' => $prefix,
 			'namespace' => $namespace,
 			'path' => $path,
 			'routeable' => $routeable,
-		);
+		));
 
 		// make sure longer prefixes are first in the list
 		krsort($this->appNamespaces);

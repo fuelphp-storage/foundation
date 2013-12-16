@@ -34,6 +34,14 @@ class ApplicationInjectionFactory extends InjectionFactory
 	/**
 	 *
 	 */
+	public function getAutoloaderInstance()
+	{
+		return $this->container->resolve('autoloader');
+	}
+
+	/**
+	 *
+	 */
 	public function createViewmanagerInstance($name, $path)
 	{
 		return $this->container->multiton('viewmanager', $name, array(

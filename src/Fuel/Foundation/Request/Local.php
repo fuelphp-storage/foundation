@@ -216,16 +216,6 @@ class Local extends Base
 				while(count($segments))
 				{
 					$class = $route->namespace.'Controller\\'.implode('\\', array_map('ucfirst', $segments));
-
-					if ( ! class_exists($class, false))
-					{
-						$file = $namespace['path'].'classes'.DS.'Controller'.DS.implode(DS, array_map('ucfirst', $segments)).'.php';
-						if (file_exists($file))
-						{
-							include $file;
-						}
-					}
-
 					if (class_exists($class))
 					{
 						$route->path = $namespace['path'];

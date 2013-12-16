@@ -24,7 +24,11 @@ class Autoloader
 {
 	/**
 	 */
-    protected $prefixes = array();
+    protected $psr0_prefixes = array();
+
+	/**
+	 */
+    protected $psr4_prefixes = array();
 
 	/**
 	 */
@@ -49,7 +53,7 @@ class Autoloader
 	{
 		// Import composer data
 		$this->fallbackPaths = $composer->getFallbackDirs();
-		$this->prefixes = $composer->getPrefixes();
+		$this->psr0_prefixes = $composer->getPrefixes();
 		$this->classMap = $composer->getClassMap();
 
 		// store the cache filename and expiration
@@ -130,19 +134,44 @@ class Autoloader
             return;
         }
 
-        if ( ! isset($this->prefixes[$prefix]))
+        if ( ! isset($this->psr0_prefixes[$prefix]))
         {
-            $this->prefixes[$prefix] = (array) $paths;
+            $this->psr0_prefixes[$prefix] = (array) $paths;
             return;
         }
 
         if ($prepend)
         {
-            $this->prefixes[$prefix] = array_merge((array) $paths, $this->prefixes[$prefix]);
+            $this->psr0_prefixes[$prefix] = array_merge((array) $paths, $this->psr0_prefixes[$prefix]);
         }
         else
         {
-            $this->prefixes[$prefix] = array_merge($this->prefixes[$prefix], (array) $paths);
+            $this->psr0_prefixes[$prefix] = array_merge($this->psr0_prefixes[$prefix], (array) $paths);
+        }
+	}
+
+    /**
+     * Registers a set of psr4 classes, merging with any others previously set.
+     *
+     * @param string       $prefix  The classes prefix
+     * @param array|string $paths   The location(s) of the classes
+     * @param bool         $prepend Prepend the location(s)
+     */
+    public function addpsr4($prefix, $paths, $prepend = false)
+    {
+        if ( ! isset($this->psr4_prefixes[$prefix]))
+        {
+            $this->psr4_prefixes[$prefix] = (array) $paths;
+            return;
+        }
+
+        if ($prepend)
+        {
+            $this->psr4_prefixes[$prefix] = array_merge((array) $paths, $this->psr4_prefixes[$prefix]);
+        }
+        else
+        {
+            $this->psr4_prefixes[$prefix] = array_merge($this->psr4_prefixes[$prefix], (array) $paths);
         }
 	}
 
@@ -166,7 +195,7 @@ class Autoloader
 	 */
     public function getPrefixes()
     {
-        return $this->prefixes;
+        return $this->psr0_prefixes;
     }
 
 	/**
@@ -228,14 +257,32 @@ class Autoloader
 		// PSR-0 classes always have a classpath
 		if ($classPath)
 		{
-			// not in the class map, look for it
-			foreach($this->prefixes as $prefix => $paths)
+			// not in the class map, look for it, psr0 first
+			foreach($this->psr0_prefixes as $prefix => $paths)
 			{
 				if (strpos($class, $prefix) === 0)
 				{
 					foreach($paths as $path)
 					{
 						if (file_exists($file = $path.DS.$classPath.$className.'.php'))
+						{
+							// found, update the classmap and load the file
+							$this->classMap[$class] = $file;
+							include $file;
+							return true;
+						}
+					}
+				}
+			}
+
+			// not in the class map, look for it, psr4 second
+			foreach($this->psr4_prefixes as $prefix => $paths)
+			{
+				if (strpos($class, $prefix) === 0)
+				{
+					foreach($paths as $path)
+					{
+						if (file_exists($file = $path.DS.substr($classPath, strlen($prefix)+1).$className.'.php'))
 						{
 							// found, update the classmap and load the file
 							$this->classMap[$class] = $file;
