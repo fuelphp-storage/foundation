@@ -310,7 +310,18 @@ class Application
 		return $this->appNamespaces;
 	}
 
-	protected function setNamespace($prefix, array $config = array())
+	/**
+	 * Set an applications namespace information, and add it's path(s) of
+	 * it's classes to the autoloader
+	 *
+	 * @param  string   base namespace
+	 * @param  array    namespace configuration
+	 * *
+	 * @return  string
+	 *
+	 * @since  2.0.0
+	 */
+	protected function setNamespace($prefix, Array $config = array())
 	{
 		$this->appNamespaces[$prefix] = $config;
 
@@ -416,6 +427,8 @@ class Application
 	/**
 	 * Set the applications session manager
 	 *
+	 * @param  SessionManager   instance of Fuel\Session\Manager
+	 *
 	 * @return  void
 	 *
 	 * @since  2.0.0
@@ -427,6 +440,8 @@ class Application
 
 	/**
 	 * Return a language container instance
+	 *
+	 * @param  string   language to fetch, or null for the current active language
 	 *
 	 * @return  Fuel\Config\Container
 	 *
@@ -452,6 +467,9 @@ class Application
 
 	/**
 	 * Set an applications language container instance
+	 *
+	 * @param  string            language to set
+	 * @param  ConfigContainer   instance of Fuel\Config\Container
 	 *
 	 * @return  void
 	 *
