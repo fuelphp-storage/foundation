@@ -154,22 +154,8 @@ class Application
 		}
 		$this->appPath = realpath($appPath).DS;
 
-		// store it in the application namespaces list
-		$this->setNamespace($this->appNamespace, array(
-			'prefix' => false,
-			'namespace' => $this->appNamespace,
-			'path' => $this->appPath,
-			'routeable' => true,
-		));
-
-		// does this app have a bootstrap?
-		if (file_exists($file = $this->appPath.'bootstrap.php'))
-		{
-			$loadbootstrap = function($app, $__file__) {
-				return include $__file__;
-			};
-			$loadbootstrap($this, $file);
-		}
+		// create a router object
+		$this->router = $factory->createRouterInstance($this->appName);
 
 		// setup the configuration container...
 		$this->config = $factory->createConfigContainer($this->appName)
@@ -245,11 +231,8 @@ class Application
 			$this->viewManager->registerParser($extension, $factory->createViewParserInstance($parser));
 		}
 
-		// create a router object
-		$this->router = $factory->createRouterInstance($this->appName);
-
-		// and load any defined routes
-		$this->loadRoutes($this->appPath, $this->appNamespaces[$this->appNamespace]);
+		// add this app
+		$this->addModule(false, $this->appNamespace, $this->appPath, true);
 
 		// log we're alive!
 		$this->log->info('Application "'.$this->appName.'" initialized.');
@@ -324,6 +307,9 @@ class Application
 	protected function setNamespace($prefix, Array $config = array())
 	{
 		$this->appNamespaces[$prefix] = $config;
+
+		// make sure longer prefixes are first in the list
+		krsort($this->appNamespaces);
 
 		$this->factory->getAutoloaderInstance()->addpsr4($prefix, $this->appPath.DS.'classes');
 	}
@@ -533,18 +519,15 @@ class Application
 		$path = realpath($path).DS;
 
 		// store it in the application namespaces list
-		$this->setNamespace($prefix, array(
+		$this->setNamespace($prefix ?: $namespace, array(
 			'prefix' => $prefix,
 			'namespace' => $namespace,
 			'path' => $path,
 			'routeable' => $routeable,
 		));
 
-		// make sure longer prefixes are first in the list
-		krsort($this->appNamespaces);
-
 		// and load any defined routes in this module
-		$this->loadRoutes($path, $this->appNamespaces[$prefix]);
+		$this->loadRoutes($path, $this->appNamespaces[$prefix ?: $namespace]);
 
 		// does this module have a bootstrap?
 		if (file_exists($file = $path.'bootstrap.php'))
