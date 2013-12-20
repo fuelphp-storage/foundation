@@ -72,9 +72,11 @@ class PackageProvider
 	}
 
 	/**
-	 * Package enabler method. By default, a loaded package is disabled.
+	 * Package enabler method.
+	 *
 	 * When you instruct your application to use the package, this enabler gets
 	 * called. You can use it to prep the application for use of the package.
+	 * By default, a loaded package is disabled.
 	 *
 	 * @param  Application  $app  The application instance that wants to enable this package
 	 *
@@ -85,7 +87,8 @@ class PackageProvider
 	}
 
 	/**
-	 * Package disabler method. By default, a loaded package is disabled.
+	 * Package disabler method.
+	 *
 	 * When you instruct your application to unload a package, this disabler gets
 	 * called. You can use it to cleanup any setup the package has made in the
 	 * application that was using it.
