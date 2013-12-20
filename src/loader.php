@@ -67,12 +67,12 @@ $bootstrapFuel = function()
 	/**
 	 * Setup the shutdown, error & exception handlers
 	 */
-//	$errorhandler = new Error;
+	$errorhandler = new Error;
 
 	/**
 	 * Setup the shutdown, error & exception handlers
 	 */
-//	$dic->inject('errorhandler', $errorhandler);
+	$dic->inject('errorhandler', $errorhandler);
 
 	/**
 	 * Create the packages container, and load all already loaded ones
