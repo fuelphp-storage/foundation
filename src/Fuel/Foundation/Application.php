@@ -542,6 +542,26 @@ class Application
 	}
 
 	/**
+	 * Remove a module from the application
+	 *
+	 * @param  string   URI prefix for this module
+	 *
+	 * @return Application  for chaining
+	 */
+	public function removeModule($prefix)
+	{
+		// remove the module from the namespace list
+		if (isset($this->appNamespaces[$prefix]))
+		{
+			unset($this->appNamespaces[$prefix]);
+		}
+
+		// TODO: remove this modules routes from the router!
+
+		return $this;
+	}
+
+	/**
 	 * Add all modules in the given path to the application
 	 *
 	 * @param  string   the path to the root of the modules
