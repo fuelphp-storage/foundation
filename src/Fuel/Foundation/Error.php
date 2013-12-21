@@ -41,7 +41,7 @@ class Error
 
 		// define the default page handler
 		$pagehandler = new PrettyPageHandler;
-		$pagehandler->setResourcesPath(__DIR__.DS.'Whoops'.DS.'resources');
+		$pagehandler->addResourcePath(__DIR__.DS.'Whoops'.DS.'resources');
 
 		$pagehandler->addDataTableCallback('Current Request', function()
 		{
