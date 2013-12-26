@@ -92,66 +92,57 @@ class Local extends Base
 			$this->route->parameters = array_merge($this->route->parameters, $this->route->segments);
 		}
 
+		if (empty($this->route->controller))
+		{
+			throw new NotFound('No route match has been found for this request.');
+		}
+
+		if (is_callable($this->route->controller))
+		{
+			$controller = $this->route->controller;
+		}
+		else
+		{
+			$controller = $this->factory->createControllerInstance($this->route->controller);
+		}
+
+		if ( ! is_callable($controller))
+		{
+			throw new NotFound('The Controller returned by routing is not callable. Does it extend a base controller?');
+		}
+
+		// push the route so we have access to it in the controller
+		array_unshift($this->route->parameters, $this->route);
+
+		// add the root path to the config, lang and view manager objects
+		if (isset($this->route->path))
+		{
+			$this->app->getViewManager()->getFinder()->addPath($this->route->path);
+			$this->config->addPath($this->route->path.'config'.DS);
+			$this->app->getLanguage()->addPath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
+		}
+
 		try
 		{
-			if (empty($this->route->controller))
-			{
-				throw new NotFound('No route match has been found for this request.');
-			}
-
-			if (is_callable($this->route->controller))
-			{
-				$controller = $this->route->controller;
-			}
-			else
-			{
-				$controller = $this->factory->createControllerInstance($this->route->controller);
-			}
-
-			if ( ! is_callable($controller))
-			{
-				throw new NotFound('The Controller returned by routing is not callable. Does it extend a base controller?');
-			}
-
-			// push the route so we have access to it in the controller
-			array_unshift($this->route->parameters, $this->route);
-
-			// add the root path to the config, lang and view manager objects
-			if (isset($this->route->path))
-			{
-				$this->app->getViewManager()->getFinder()->addPath($this->route->path);
-				$this->config->addPath($this->route->path.'config'.DS);
-				$this->app->getLanguage()->addPath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
-			}
-
-			try
-			{
-				$this->response = call_user_func($controller, $this->route->parameters);
-			}
-			catch (Exception\Base $e)
-			{
-				$this->response = $this->errorResponse($e);
-			}
-			catch (\Exception $e)
-			{
-				// rethrow
-				throw $e;
-			}
-
-			// make sure we got a proper response object back
-			if ( ! $this->response instanceOf \Fuel\Foundation\Response\Base)
-			{
-				throw new \DomainException('FOU-024: A Controller must return a Response object that extends "\Fuel\Foundation\Response\Base".');
-			}
+			$this->response = call_user_func($controller, $this->route->parameters);
+		}
+		catch (Exception\Base $e)
+		{
+			$this->response = $this->errorResponse($e);
 		}
 		catch (\Exception $e)
 		{
 			// log the request termination
 			$this->log->info('Request executed, but failed: '.$e->getMessage());
 
-			// reset and rethrow
-			$this->factory->resetActiveRequest();
+			// rethrow
 			throw $e;
+		}
+
+		// make sure we got a proper response object back
+		if ( ! $this->response instanceOf \Fuel\Foundation\Response\Base)
+		{
+			throw new \DomainException('FOU-024: A Controller must return a Response object that extends "\Fuel\Foundation\Response\Base".');
 		}
 
 		// remove the root path to the config, lang and view manager objects
