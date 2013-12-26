@@ -54,15 +54,15 @@ class Error
 			array_shift($parameters);
 
 			return array(
-				'Application'  => $application ? $application->getName() : '',
- 				'Environment'  => $environment ? $environment->getName() : '',
-				'Original URI' => $route ? $route->uri : '',
-				'Mapped URI'   => $route ? $route->translation : '',
-				'Namespace'    => $route ? $route->namespace : '',
-				'Controller'   => $controller,
-				'Action'       => $controller ? ('action'.$route->action) : '',
-				'HTTP Method'  => $request ? \Input::getMethod() : '',
-				'Parameters'   => $parameters,
+				'Active pplication'     => $application ? $application->getName() : '',
+				'Application namespace' => $route ? rtrim($route->namespace, '\\') : '',
+ 				'Environment'           => $environment ? $environment->getName() : '',
+				'Original URI'          => $route ? $route->uri : '',
+				'Mapped URI'            => $route ? $route->translation : '',
+				'Controller'            => $controller,
+				'Action'                => $controller ? ('action'.$route->action) : '',
+				'HTTP Method'           => $request ? \Input::getMethod() : '',
+				'Parameters'            => $parameters,
 			);
 		});
 		$pagehandler->addDataTableCallback('Request Parameters', function()
@@ -94,13 +94,27 @@ class Error
 		});
 		$pagehandler->addDataTableCallback('Defined Cookies', function()
 		{
-			$input = \Input::getInstance();
-			return $input ? $input->getCookie() : '';
+			$result = array();
+			if ($input = \Input::getInstance())
+			{
+				foreach ($input->getCookie() as $cookie)
+				{
+					$result[] = $cookie;
+				}
+			}
+			return $result;
 		});
 		$pagehandler->addDataTableCallback('Uploaded Files', function()
 		{
-			$input = \Input::getInstance();
-			return $input ? $input->getFile() : '';
+			$result = array();
+			if ($input = \Input::getInstance())
+			{
+				foreach ($input->getFile() as $file)
+				{
+					$result[] = $file;
+				}
+			}
+			return $result;
 		});
 		$pagehandler->addDataTableCallback('Server Data', function()
 		{
