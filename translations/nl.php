@@ -49,5 +49,9 @@ return array(
 	'FOU-032' => 'Kan geen verbinding maken met de Redis server.',
 	'FOU-033' => '"%1$s" is geen ondersteunde Redis class.',
 	'FOU-031' => 'Uw installatie heeft de Redisent package niet beschikbaar.',
-
+	'FOU-032' => 'Er kan geen verbinding gemaakt worden met de Redis server.',
+	'FOU-033' => '"%1$s" is een niet ondersteunde Redis class.',
+	'FOU-034' => 'Het Redisent package is niet beschikbaar.',
+	'FOU-035' => 'Een applicatie genaamd "%1$s" is reeds gedefinieerd.',
+	'FOU-036' => 'Een auth instance genaamd "%1$s" is reeds gedefinieerd.',
 );

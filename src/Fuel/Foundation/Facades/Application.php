@@ -22,8 +22,8 @@ class Application extends Base
 	/**
 	 * Forge a new application
 	 *
-	 * @param  $name  name of the application
-	 * @param  $config  array with application configuration information
+	 * @param  $name  name of the auth instance to create
+	 * @param  $config  array with auth configuration information
 	 *
 	 * @throws InvalidArgumentException if a required config value is missing or incorrect
 	 * @throws RuntimeException if the application to forge already exists
@@ -34,6 +34,12 @@ class Application extends Base
 	 */
 	public static function forge($name, array $config = array())
 	{
+		// make sure we don't already have this application instance
+		if (static::$dic->isInstance('application', $name))
+		{
+			throw new \RuntimeException('FOU-035: An application named ['.$name.'] is already defined.');
+		}
+
 		// create and return this application instance
 		return static::$dic->multiton('application', $name, func_get_args());
 	}

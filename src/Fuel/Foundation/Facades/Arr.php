@@ -17,4 +17,6 @@ namespace Fuel\Foundation\Facades;
  *
  * @since  2.0.0
  */
-class Arr extends \Fuel\Common\Arr {}
+class Arr extends \Fuel\Common\Arr
+{
+}

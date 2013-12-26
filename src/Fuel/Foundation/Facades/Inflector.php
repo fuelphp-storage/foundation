@@ -17,4 +17,30 @@ namespace Fuel\Foundation\Facades;
  *
  * @since  2.0.0
  */
-class Inflector extends \Fuel\Common\Inflector {}
+class Inflector extends Base
+{
+	/**
+	 * Returns an instance of the Inflector object.
+	 *
+	 * @return  Fuel\Common\Inflector
+	 *
+	 * @since  2.0.0
+	 */
+	public static function forge()
+	{
+		return static::$dic->resolve('inflector', func_get_args());
+	}
+
+	/**
+	 * Get the default instance for this Facade
+	 *
+	 * @return  Fuel\Common\Inflector
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getInstance()
+	{
+		return static::forge();
+	}
+}
+

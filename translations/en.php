@@ -49,5 +49,6 @@ return array(
 	'FOU-032' => 'Can not connect to your Redis server.',
 	'FOU-033' => '"%1$s" is not a supported Redis class.',
 	'FOU-034' => 'Your installation doesn\'t have the Redisent package available.',
-
+	'FOU-035' => 'An application named "%1$s" is already defined.',
+	'FOU-036' => 'An auth instance named "%1$s" is already defined.',
 );

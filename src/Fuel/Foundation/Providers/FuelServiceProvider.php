@@ -251,8 +251,7 @@ class FuelServiceProvider extends ServiceProvider
 			// add the root namespace for this application to composer
 			$dic->resolve('autoloader')->add($namespace, $appPath.DS.'classes', true);
 
-
-			return $dic->resolve('Fuel\Foundation\Application', array($name, $appPath, $namespace, $environment));
+			return $dic->multiton('Fuel\Foundation\Application', $name, array($name, $appPath, $namespace, $environment));
 		});
 
 		// \Fuel\Foundation\Environment
