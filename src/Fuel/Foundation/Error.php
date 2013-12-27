@@ -30,6 +30,11 @@ class Error
 	protected $whoops;
 
 	/**
+	 * @var  Whoops\Handler\PrettyPageHandler  the current page handler
+	 */
+	protected $pagehandler;
+
+	/**
 	 * Initialization, set the Error handler
 	 *
 	 * @since  2.0.0
@@ -40,10 +45,10 @@ class Error
 		$this->whoops = new Run;
 
 		// define the default page handler
-		$pagehandler = new PrettyPageHandler;
-		$pagehandler->addResourcePath(__DIR__.DS.'Whoops'.DS.'resources');
+		$this->pagehandler = new PrettyPageHandler;
+		$this->pagehandler->addResourcePath(__DIR__.DS.'Whoops'.DS.'resources');
 
-		$pagehandler->addDataTableCallback('Current Request', function()
+		$this->pagehandler->addDataTableCallback('Current Request', function()
 		{
 			$application = \Application::getInstance();
 			$environment = $application->getEnvironment();
@@ -54,7 +59,7 @@ class Error
 			array_shift($parameters);
 
 			return array(
-				'Active pplication'     => $application ? $application->getName() : '',
+				'Active application'    => $application ? $application->getName() : '',
 				'Application namespace' => $route ? rtrim($route->namespace, '\\') : '',
  				'Environment'           => $environment ? $environment->getName() : '',
 				'Original URI'          => $route ? $route->uri : '',
@@ -65,12 +70,12 @@ class Error
 				'Parameters'            => $parameters,
 			);
 		});
-		$pagehandler->addDataTableCallback('Request Parameters', function()
+		$this->pagehandler->addDataTableCallback('Request Parameters', function()
 		{
 			$input = \Input::getInstance();
 			return $input ? $input->getParam()->getContents() : '';
 		});
-		$pagehandler->addDataTableCallback('Permanent Session Data', function()
+		$this->pagehandler->addDataTableCallback('Permanent Session Data', function()
 		{
 			if ($application = \Application::getInstance())
 			{
@@ -81,7 +86,7 @@ class Error
 			}
 			return 'no session active';
 		});
-		$pagehandler->addDataTableCallback('Flash Session Data', function()
+		$this->pagehandler->addDataTableCallback('Flash Session Data', function()
 		{
 			if ($application = \Application::getInstance())
 			{
@@ -92,7 +97,7 @@ class Error
 			}
 			return 'no session active';
 		});
-		$pagehandler->addDataTableCallback('Defined Cookies', function()
+		$this->pagehandler->addDataTableCallback('Defined Cookies', function()
 		{
 			$result = array();
 			if ($input = \Input::getInstance())
@@ -104,7 +109,7 @@ class Error
 			}
 			return $result;
 		});
-		$pagehandler->addDataTableCallback('Uploaded Files', function()
+		$this->pagehandler->addDataTableCallback('Uploaded Files', function()
 		{
 			$result = array();
 			if ($input = \Input::getInstance())
@@ -116,12 +121,12 @@ class Error
 			}
 			return $result;
 		});
-		$pagehandler->addDataTableCallback('Server Data', function()
+		$this->pagehandler->addDataTableCallback('Server Data', function()
 		{
 			return $_SERVER;
 		});
 
-		$this->whoops->pushHandler($pagehandler);
+		$this->whoops->pushHandler($this->pagehandler);
 
 		// next on the stack goes the JSON handler, to deal with AJAX reqqests
 		$jsonHandler = new JsonResponseHandler;
@@ -183,6 +188,20 @@ class Error
 	/**
 	 * Load the correct file with translations, based on the locale passed
 	 *
+	 * @return  Whoops\Handler\PrettyPageHandler
+	 *
+	 * @since  2.0.0
+	 */
+	public function handler()
+	{
+		return $this->pagehandler;
+	}
+
+	/**
+	 * Load the correct file with translations, based on the locale passed
+	 *
+	 * @return  mixed  array of message translations, or false if none are found
+	 *
 	 * @since  2.0.0
 	 */
 	protected function getMessages($locale, $shorten = false)
@@ -214,6 +233,11 @@ class Error
 
 	/**
 	 * Convert the original message to the translated message
+	 *
+	 * @param  string  $translation  message in the current locale
+	 * @param  string  $original     original error message
+	 *
+	 * @return  string  translated error message
 	 *
 	 * @since  2.0.0
 	 */
