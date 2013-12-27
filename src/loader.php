@@ -67,7 +67,7 @@ $bootstrapFuel = function()
 	/**
 	 * Setup the shutdown, error & exception handlers
 	 */
-	$errorhandler = new Error;
+	$errorhandler = new Error($dic);
 
 	/**
 	 * Setup the shutdown, error & exception handlers
