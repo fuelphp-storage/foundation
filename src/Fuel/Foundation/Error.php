@@ -41,6 +41,62 @@ class Error
 	 */
 	public function __construct()
 	{
+		// are we in a CLi environment?
+		if ((bool) defined('STDIN'))
+		{
+			$this->commandlineHandler();
+		}
+
+		// is this an ajax call?
+		elseif(false)
+		{
+			$this->ajaxCallHandler();
+		}
+
+		// load the default interactive error handler
+		else
+		{
+			$this->interactiveHandler();
+		}
+	}
+
+	/**
+	 * Load the correct file with translations, based on the locale passed
+	 *
+	 * @return  Whoops\Handler\PrettyPageHandler
+	 *
+	 * @since  2.0.0
+	 */
+	public function handler()
+	{
+		return $this->pagehandler;
+	}
+
+	/**
+	 * Error handler for when the framework is used in CLi environments
+	 *
+	 * @since  2.0.0
+	 */
+	protected function commandlineHandler()
+	{
+	}
+
+	/**
+	 * Error handler for when the framework is used in Ajax environments
+	 *
+	 * @since  2.0.0
+	 */
+	protected function ajaxCallHandler()
+	{
+	}
+
+	/**
+	 * Error handler for when the framework is used in Web environments
+	 *
+	 * @since  2.0.0
+	 */
+	protected function interactiveHandler()
+	{
 		// use the framework default Whoops error handler
 		$this->whoops = new Run;
 
@@ -141,26 +197,18 @@ class Error
 			return $_SERVER;
 		});
 
-		// load the page handler
-		if (\Fuel::isCli())
-		{
-			// TODO: write a handler for CLi exceptions
-		}
-		else
-		{
-			$this->whoops->pushHandler($this->pagehandler);
+		$this->whoops->pushHandler($this->pagehandler);
 
-			// next on the stack goes the JSON handler, to deal with AJAX requests
-			$jsonHandler = new JsonResponseHandler;
-			$jsonHandler->onlyForAjaxRequests(true);
-			// $jsonHandler->addTraceToOutput(true);
+		// next on the stack goes the JSON handler, to deal with AJAX reqqests
+		$jsonHandler = new JsonResponseHandler;
+		$jsonHandler->onlyForAjaxRequests(true);
+		// $jsonHandler->addTraceToOutput(true);
 
-			$this->whoops->pushHandler($jsonHandler);
+		$this->whoops->pushHandler($jsonHandler);
 
-			// add the Fuel production handler
-			$productionHandler = new ProductionHandler;
-			$this->whoops->pushHandler($productionHandler);
-		}
+		// add the Fuel production handler
+		$productionHandler = new ProductionHandler;
+		$this->whoops->pushHandler($productionHandler);
 
 		// activate the error handler
 		$this->whoops->register();
@@ -206,18 +254,6 @@ class Error
 			// call the original error handler with the translated exception message
 			call_user_func($current_handler, $e);
 		});
-	}
-
-	/**
-	 * Load the correct file with translations, based on the locale passed
-	 *
-	 * @return  Whoops\Handler\PrettyPageHandler
-	 *
-	 * @since  2.0.0
-	 */
-	public function handler()
-	{
-		return $this->pagehandler;
 	}
 
 	/**
