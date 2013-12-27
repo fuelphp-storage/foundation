@@ -48,33 +48,44 @@ class Error
 		$this->pagehandler = new PrettyPageHandler;
 		$this->pagehandler->addResourcePath(__DIR__.DS.'Whoops'.DS.'resources');
 
-		$this->pagehandler->addDataTableCallback('Current Request', function()
+		$this->pagehandler->addDataTableCallback('Application', function()
 		{
 			$application = \Application::getInstance();
 			$environment = $application->getEnvironment();
 			$request     = \Request::getInstance();
+			$route = $request ? $request->getRoute() : null;
+
+			return array(
+				'Active application'    => $application ? $application->getName() : '',
+				'Application namespace' => $route ? rtrim($route->namespace, '\\') : '',
+ 				'Environment'           => $environment ? $environment->getName() : '',
+			);
+		});
+
+		$this->pagehandler->addDataTableCallback('Current Request', function()
+		{
+			$request = \Request::getInstance();
 			$route = $request ? $request->getRoute() : null;
 			$controller = $route ? $route->controller : '';
 			$parameters = $route ? $route->parameters : array();
 			array_shift($parameters);
 
 			return array(
-				'Active application'    => $application ? $application->getName() : '',
-				'Application namespace' => $route ? rtrim($route->namespace, '\\') : '',
- 				'Environment'           => $environment ? $environment->getName() : '',
 				'Original URI'          => $route ? $route->uri : '',
 				'Mapped URI'            => $route ? $route->translation : '',
 				'Controller'            => $controller,
 				'Action'                => $controller ? ('action'.$route->action) : '',
-				'HTTP Method'           => $request ? \Input::getMethod() : '',
+				'HTTP Method'           => $request ? $request->getInput()->getMethod() : '',
 				'Parameters'            => $parameters,
 			);
 		});
+
 		$this->pagehandler->addDataTableCallback('Request Parameters', function()
 		{
-			$input = \Input::getInstance();
-			return $input ? $input->getParam()->getContents() : '';
+			$request = \Request::getInstance();
+			return $request ? $request->getInput()->getParam()->getContents() : '';
 		});
+
 		$this->pagehandler->addDataTableCallback('Permanent Session Data', function()
 		{
 			if ($application = \Application::getInstance())
@@ -86,6 +97,7 @@ class Error
 			}
 			return 'no session active';
 		});
+
 		$this->pagehandler->addDataTableCallback('Flash Session Data', function()
 		{
 			if ($application = \Application::getInstance())
@@ -97,6 +109,7 @@ class Error
 			}
 			return 'no session active';
 		});
+
 		$this->pagehandler->addDataTableCallback('Defined Cookies', function()
 		{
 			$result = array();
@@ -109,6 +122,7 @@ class Error
 			}
 			return $result;
 		});
+
 		$this->pagehandler->addDataTableCallback('Uploaded Files', function()
 		{
 			$result = array();
@@ -121,23 +135,32 @@ class Error
 			}
 			return $result;
 		});
+
 		$this->pagehandler->addDataTableCallback('Server Data', function()
 		{
 			return $_SERVER;
 		});
 
-		$this->whoops->pushHandler($this->pagehandler);
+		// load the page handler
+		if (\Fuel::isCli())
+		{
+			// TODO: write a handler for CLi exceptions
+		}
+		else
+		{
+			$this->whoops->pushHandler($this->pagehandler);
 
-		// next on the stack goes the JSON handler, to deal with AJAX reqqests
-		$jsonHandler = new JsonResponseHandler;
-		$jsonHandler->onlyForAjaxRequests(true);
-		// $jsonHandler->addTraceToOutput(true);
+			// next on the stack goes the JSON handler, to deal with AJAX requests
+			$jsonHandler = new JsonResponseHandler;
+			$jsonHandler->onlyForAjaxRequests(true);
+			// $jsonHandler->addTraceToOutput(true);
 
-		$this->whoops->pushHandler($jsonHandler);
+			$this->whoops->pushHandler($jsonHandler);
 
-		// add the Fuel production handler
-		$productionHandler = new ProductionHandler;
-		$this->whoops->pushHandler($productionHandler);
+			// add the Fuel production handler
+			$productionHandler = new ProductionHandler;
+			$this->whoops->pushHandler($productionHandler);
+		}
 
 		// activate the error handler
 		$this->whoops->register();
