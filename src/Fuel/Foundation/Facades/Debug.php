@@ -17,4 +17,29 @@ namespace Fuel\Foundation\Facades;
  *
  * @since  2.0.0
  */
-class Debug extends \Fuel\Common\Debug {}
+class Debug extends Base
+{
+	/**
+	 * Returns an instance of the Num object.
+	 *
+	 * @return  Fuel\Common\Debug
+	 *
+	 * @since  2.0.0
+	 */
+	public static function forge()
+	{
+		return static::$dic->resolve('debug', func_get_args());
+	}
+
+	/**
+	 * Get the default instance for this Facade
+	 *
+	 * @return  Fuel\Common\Debug
+	 *
+	 * @since  2.0.0
+	 */
+	public static function getInstance()
+	{
+		return static::forge();
+	}
+}
