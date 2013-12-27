@@ -168,8 +168,12 @@ class Input
 		$vars = array('server', 'param', 'uriVars', 'cookie', 'files');
 		$vars = ! $include ? $vars : array_intersect($include, $vars);
 
-		in_array('server', $vars)
-			and $this->server->setContents($_SERVER);
+		if (in_array('server', $vars))
+		{
+			$this->server->setContents($_SERVER);
+
+			$this->parseCli();
+		}
 
 		if ( ! isset($this->httpMethod))
 		{
@@ -293,9 +297,15 @@ class Input
 			{
 				$uri = strpos($this->server['SCRIPT_NAME'], $this->server['REQUEST_URI']) !== 0 ? $this->server['REQUEST_URI'] : '';
 			}
+
+			// Or if that doesn't exist, was this a CLi request?
+			elseif ($this->cli->count() > 1)
+			{
+				$uri = $this->cli[1];
+			}
 			else
 			{
-				throw new \FuelException('FOU-002: Unable to detect the URI.');
+				throw new \Exception('FOU-002: Unable to detect the URI.');
 			}
 
 			// Remove the base URL from the URI
@@ -503,7 +513,7 @@ class Input
 	 */
 	protected function parseCli()
 	{
-		$cli = $this->getServer('argv') ?: array();
+		$cli = isset($this->server['argv']) ? $this->server['argv'] : array();
 		foreach ($cli as $i => $arg)
 		{
 			$arg = explode('=', $arg);
@@ -588,12 +598,6 @@ class Input
 	 */
 	public function getCli($index = null, $default = null)
 	{
-		// First parse them if necessary
-		if ( ! $this->cli->count())
-		{
-			$this->parseCli();
-		}
-
 		if (func_num_args() === 0)
 		{
 			return $this->cli;
