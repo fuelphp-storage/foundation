@@ -86,11 +86,6 @@ class Environment
 		// fetch URL data from the config, construct it if not set
 		if ($this->config->baseUrl === null)
 		{
-			if (\Fuel::isCli())
-			{
-				throw new \Exception('TODO');
-			}
-
 			$this->config->baseUrl = $this->input->getBaseUrl();
 		}
 
