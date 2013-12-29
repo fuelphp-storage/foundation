@@ -100,6 +100,9 @@ class Error
 		// use the framework default Whoops error handler
 		$this->whoops = new Run;
 
+		$this->whoops->writeToOutput(false);
+		$this->whoops->allowQuit(false);
+
 		// define the default page handler
 		$this->pagehandler = new PrettyPageHandler;
 		$this->pagehandler->addResourcePath(__DIR__.DS.'Whoops'.DS.'resources');
@@ -252,7 +255,11 @@ class Error
 			}
 
 			// call the original error handler with the translated exception message
-			call_user_func($current_handler, $e);
+			$result = call_user_func($current_handler, $e);
+
+			// re-enable output buffering, then send the response for the handlers out
+			ob_start();
+			echo $result;
 		});
 	}
 
