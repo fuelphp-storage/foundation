@@ -64,10 +64,12 @@ class Html extends Base
 		// and all other non-string values
 		elseif ( ! is_string($content = $this->content))
 		{
-			// this var_dump() is here intentionally !
+			// TODO: debug code
 			ob_start();
 			var_dump($content);
-			$content = html_entity_decode(ob_get_clean());
+			$content = html_entity_decode(ob_get_contents());
+			ob_get_clean();
+			echo '<hr />Controller didn\'t return a string value:';
 		}
 
 		return $content;
