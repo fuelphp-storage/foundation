@@ -72,24 +72,4 @@ return array(
 	 * is set too is not your local timezone, but for example UTC.
 	 */
 	'default_timezone'   => null,
-
-	/**
-	 * Autoloader configuration
-	 */
-	'autoloader' => array(
-
-		/**
-		 * FQFN of the autoloader class mapping file.
-		 *
-		 * In a development environment, you may want to disable this by setting
-		 * it to NULL. If the cache is in operation, newly created classes will
-		 * not be found by the autoloader until the cache expires and is rebuilt.
-		 */
-		'cacheFile' => realpath(__DIR__.'/demo/cache/').'class_cache.php',
-
-		/**
-		 * Cache expiry in seconds
-		 */
-		'cacheExpire' => 86400,
-	),
 );

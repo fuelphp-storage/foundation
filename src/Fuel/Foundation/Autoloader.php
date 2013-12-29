@@ -1,116 +1,79 @@
 <?php
-/**
- * @package    Fuel\Foundation
- * @version    2.0
- * @author     Fuel Development Team
- * @license    MIT License
- * @copyright  2010 - 2013 Fuel Development Team
- * @link       http://fuelphp.com
+/*
+ * (c) Nils Adermann <naderman@naderman.de>
+ *     Jordi Boggiano <j.boggiano@seld.be>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * Modified for FuelPHP to for preliminary PSR-4 support by Harro Verton, FuelPHP development team
  */
 
 namespace Fuel\Foundation;
 
-
 /**
- * Autoloader
+ * Autoloader implements a PSR-0 and PSR-4 class loader
  *
- * Custom PSR-0 Autoloader to replace the slow composer one
- *
- * @package  Fuel\Foundation
- *
- * @since  2.0.0
+ * @author Fabien Potencier <fabien@symfony.com>
+ * @author Jordi Boggiano <j.boggiano@seld.be>
+ * @author Harro Verton <wanwizard@fuelphp.com>
  */
 class Autoloader
 {
-	/**
-	 */
-    protected $psr0_prefixes = array();
-
-	/**
-	 */
-    protected $psr4_prefixes = array();
-
-	/**
-	 */
-    protected $fallbackPaths = array();
-
-	/**
-	 */
-    protected $classMap = array();
-
-	/**
-	 */
-    protected $cacheFile;
-
-	/**
-	 */
-    protected $cacheExpire;
+    private $prefixes = array();
+    private $psr4prefixes = array();
+    private $fallbackDirs = array();
+    private $useIncludePath = false;
+    private $classMap = array();
 
 	/**
 	 * Import the Composer data and activate the Fuel autoloader
 	 */
-	public function __construct($composer, $cacheFile = null, $cacheExpire = 86400)
+	public function __construct($composer)
 	{
 		// Import composer data
 		$this->fallbackPaths = $composer->getFallbackDirs();
-		$this->psr0_prefixes = $composer->getPrefixes();
+		foreach ($composer->getPrefixes() as $prefix => $paths)
+		{
+			$this->add($prefix, $paths);
+		}
 		$this->classMap = $composer->getClassMap();
-
-		// store the cache filename and expiration
-		$this->setCache($cacheFile, $cacheExpire);
 
 		// register outselfs as an autoloader
 		$this->register();
 	}
 
-	/**
-	 * Flush the class map to cache if configured
-	 */
-	public function __destruct()
-	{
-		if ($this->cacheFile and is_writable($this->cacheFile))
-		{
-			if (isset($classMap['FuelExpirationTimestamp']))
-			{
-				if ($classMap['FuelExpirationTimestamp'] < time())
-				{
-					unlink($this->cacheFile);
-					return;
-				}
-			}
-			else
-			{
-				// set an expiration if needed
-				if ($this->cacheExpire)
-				{
-					$classMap['FuelExpirationTimestamp'] = time() + $this->cacheExpire;
-				}
-			}
-			file_put_contents($this->cacheFile, '<?php'."\n\n".'return '.var_export($this->classMap, true).';');
-		}
-	}
+    public function getPrefixes()
+    {
+        return call_user_func_array('array_merge', $this->prefixes);
+    }
 
-	/**
-	 * Define the autoloader cache file, and it's expiry
-	 */
-	public function setCache($cacheFile, $cacheExpire = 86400)
-	{
-		// if an array is passed, get it's data out
-		if (is_array($cacheFile))
-		{
-			extract($cacheFile);
-		}
+    public function getPsr4Prefixes()
+    {
+        return call_user_func_array('array_merge', $this->psr4prefixes);
+    }
 
-		// store the passed information
-		$this->cacheFile = $cacheFile;
-		$this->cacheExpire = $cacheExpire;
+    public function getFallbackDirs()
+    {
+        return $this->fallbackDirs;
+    }
 
-		// Load the cached class map if present
-		if ($this->cacheFile and file_exists($this->cacheFile))
-		{
-			$this->addClassMap(include $this->cacheFile);
-		}
-	}
+    public function getClassMap()
+    {
+        return $this->classMap;
+    }
+
+    /**
+     * @param array $classMap Class to filename map
+     */
+    public function addClassMap(array $classMap)
+    {
+        if ($this->classMap) {
+            $this->classMap = array_merge($this->classMap, $classMap);
+        } else {
+            $this->classMap = $classMap;
+        }
+    }
 
     /**
      * Registers a set of classes, merging with any others previously set.
@@ -121,34 +84,40 @@ class Autoloader
      */
     public function add($prefix, $paths, $prepend = false)
     {
-        if ( ! $prefix)
-        {
-            if ($prepend)
-            {
-                $this->fallbackPaths = array_merge((array) $paths, $this->fallbackPaths);
+        if (!$prefix) {
+            if ($prepend) {
+                $this->fallbackDirs = array_merge(
+                    (array) $paths,
+                    $this->fallbackDirs
+                );
+            } else {
+                $this->fallbackDirs = array_merge(
+                    $this->fallbackDirs,
+                    (array) $paths
+                );
             }
-            else
-            {
-                $this->fallbackPaths = array_merge($this->fallbackPaths, (array) $paths);
-            }
+
             return;
         }
 
-        if ( ! isset($this->psr0_prefixes[$prefix]))
-        {
-            $this->psr0_prefixes[$prefix] = (array) $paths;
+        $first = $prefix[0];
+        if (!isset($this->prefixes[$first][$prefix])) {
+            $this->prefixes[$first][$prefix] = (array) $paths;
+
             return;
         }
-
-        if ($prepend)
-        {
-            $this->psr0_prefixes[$prefix] = array_merge((array) $paths, $this->psr0_prefixes[$prefix]);
+        if ($prepend) {
+            $this->prefixes[$first][$prefix] = array_merge(
+                (array) $paths,
+                $this->prefixes[$first][$prefix]
+            );
+        } else {
+            $this->prefixes[$first][$prefix] = array_merge(
+                $this->prefixes[$first][$prefix],
+                (array) $paths
+            );
         }
-        else
-        {
-            $this->psr0_prefixes[$prefix] = array_merge($this->psr0_prefixes[$prefix], (array) $paths);
-        }
-	}
+    }
 
     /**
      * Registers a set of psr4 classes, merging with any others previously set.
@@ -159,189 +128,162 @@ class Autoloader
      */
     public function addpsr4($prefix, $paths, $prepend = false)
     {
-        if ( ! isset($this->psr4_prefixes[$prefix]))
-        {
-            $this->psr4_prefixes[$prefix] = (array) $paths;
-            return;
+        $first = $prefix[0];
+        if (!isset($this->psr4prefixes[$first][$prefix])) {
+            $this->psr4prefixes[$first][$prefix] = (array) $paths;
         }
-
-        if ($prepend)
-        {
-            $this->psr4_prefixes[$prefix] = array_merge((array) $paths, $this->psr4_prefixes[$prefix]);
-        }
-        else
-        {
-            $this->psr4_prefixes[$prefix] = array_merge($this->psr4_prefixes[$prefix], (array) $paths);
+        elseif ($prepend) {
+            $this->psr4prefixes[$first][$prefix] = array_merge(
+                (array) $paths,
+                $this->psr4prefixes[$first][$prefix]
+            );
+        } else {
+            $this->psr4prefixes[$first][$prefix] = array_merge(
+                $this->psr4prefixes[$first][$prefix],
+                (array) $paths
+            );
         }
 	}
 
     /**
-     * @param array $classMap Class to filename map
+     * Registers a set of classes, replacing any others previously set.
+     *
+     * @param string       $prefix The classes prefix
+     * @param array|string $paths  The location(s) of the classes
      */
-    public function addClassMap(array $classMap)
+    public function set($prefix, $paths)
     {
-        if ($this->classMap)
-        {
-            $this->classMap = array_merge($this->classMap, $classMap);
+        if (!$prefix) {
+            $this->fallbackDirs = (array) $paths;
+
+            return;
         }
-        else
-        {
-            $this->classMap = $classMap;
+        $this->prefixes[substr($prefix, 0, 1)][$prefix] = (array) $paths;
+    }
+
+    /**
+     * Turns on searching the include path for class files.
+     *
+     * @param bool $useIncludePath
+     */
+    public function setUseIncludePath($useIncludePath)
+    {
+        $this->useIncludePath = $useIncludePath;
+    }
+
+    /**
+     * Can be used to check if the autoloader uses the include path to check
+     * for classes.
+     *
+     * @return bool
+     */
+    public function getUseIncludePath()
+    {
+        return $this->useIncludePath;
+    }
+
+    /**
+     * Registers this instance as an autoloader.
+     *
+     * @param bool $prepend Whether to prepend the autoloader or not
+     */
+    public function register($prepend = false)
+    {
+        spl_autoload_register(array($this, 'loadClass'), true, $prepend);
+    }
+
+    /**
+     * Unregisters this instance as an autoloader.
+     */
+    public function unregister()
+    {
+        spl_autoload_unregister(array($this, 'loadClass'));
+    }
+
+    /**
+     * Loads the given class or interface.
+     *
+     * @param  string    $class The name of the class
+     * @return bool|null True if loaded, null otherwise
+     */
+    public function loadClass($class)
+    {
+        if ($file = $this->findFile($class)) {
+            include $file;
+
+            return true;
         }
     }
 
-	/**
-	 *
-	 */
-    public function getPrefixes()
+    /**
+     * Finds the path to the file where the class is defined.
+     *
+     * @param string $class The name of the class
+     *
+     * @return string|false The path if found, false otherwise
+     */
+    public function findFile($class)
     {
-        return $this->psr0_prefixes;
-    }
-
-	/**
-	 *
-	 */
-    public function getFallbackDirs()
-    {
-        return $this->fallbackPaths;
-    }
-
-	/**
-	 *
-	 */
-    public function getClassMap()
-    {
-        return $this->classMap;
-    }
-
-	/**
-	 * Resolves an class.
-	 *
-	 * @param   string   $clas  class to load
-	 * @return  boolean  whether or not the class is loaded
-	 */
-	public function resolve($class)
-	{
-		// classes can't have dots in them, must be a failed DiC identifier lookup
-		if (strpos($class, '.') !== false)
-		{
-			return false;
-		}
-
-		// do we have this class in the class map?
-		if (isset($this->classMap[$class]))
-		{
-			if ($this->classMap[$class] === false)
-			{
-				// it does not exist, don't bother
-				return false;
-			}
-
-			// match found, load it
-			include $this->classMap[$class];
-			return true;
-		}
-
-		// split namespace and classname
-		if (($pos = strrpos($class, '\\')) === false)
-		{
-			$classPath = '';
-			$className = $class;
-		}
-		else
-		{
-			$classPath = strtr(substr($class, 0, $pos), '\\', DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-			$className = substr($class, $pos + 1);
-		}
-
-		// PSR-0 classes always have a classpath
-		if ($classPath)
-		{
-			// not in the class map, look for it, psr0 first
-			foreach($this->psr0_prefixes as $prefix => $paths)
-			{
-				if (strpos($class, $prefix) === 0)
-				{
-					foreach($paths as $path)
-					{
-						if (file_exists($file = $path.DS.$classPath.$className.'.php'))
-						{
-							// found, update the classmap and load the file
-							$this->classMap[$class] = $file;
-							include $file;
-							return true;
-						}
-					}
-				}
-			}
-
-			// not in the class map, look for it, psr4 second
-			foreach($this->psr4_prefixes as $prefix => $paths)
-			{
-				if (strpos($class, $prefix) === 0)
-				{
-					foreach($paths as $path)
-					{
-						if (file_exists($file = $path.DS.substr($classPath, strlen($prefix)+1).$className.'.php'))
-						{
-							// found, update the classmap and load the file
-							$this->classMap[$class] = $file;
-							include $file;
-							return true;
-						}
-					}
-				}
-			}
-		}
-
-		// not in the prefix list either, check the fallback dirs
-        foreach ($this->fallbackPaths as $path)
-        {
-			if (file_exists($file = $path.DS.$classPath.$className.'.php'))
-			{
-				// found, update the classmap and load the file
-				$this->classMap[$class] = $file;
-				include $file;
-				return true;
-			}
-
-			if (file_exists($file = $path.DS.$className.'.php'))
-			{
-				// found, update the classmap and load the file
-				$this->classMap[$class] = $file;
-				include $file;
-				return true;
-			}
+        // work around for PHP 5.3.0 - 5.3.2 https://bugs.php.net/50731
+        if ('\\' == $class[0]) {
+            $class = substr($class, 1);
         }
 
-		// we can't find this class, update the classmap so we don't look for it again
-		$this->classMap[$class] = false;
-		return false;
-	}
+        if (isset($this->classMap[$class])) {
+            return $this->classMap[$class];
+        }
 
-	/**
-	 * Registers the autoloader function.
-	 *
-	 * @param   bool    $placement  register placement, append or prepend
-	 * @return  $this
-	 */
-	public function register($placement = 'append')
-	{
-		$prepend = ($placement === 'append') ? false : true;
-		spl_autoload_register(array($this, 'resolve'), true, $prepend);
+        if (false !== $pos = strrpos($class, '\\')) {
+            // namespaced class name
+            $classPath = strtr(substr($class, 0, $pos), '\\', DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            $className = substr($class, $pos + 1);
+        } else {
+            // PEAR-like class name
+            $classPath = null;
+            $className = $class;
+        }
 
-		return $this;
-	}
+        $classPath .= strtr($className, '_', DIRECTORY_SEPARATOR) . '.php';
 
-	/**
-	 * Unregisters the autoloader function.
-	 *
-	 * @return  $this
-	 */
-	public function unregister()
-	{
-		spl_autoload_unregister(array($this, 'resolve'));
+		// PSR-0 loader
+        $first = $class[0];
+        if (isset($this->prefixes[$first])) {
+            foreach ($this->prefixes[$first] as $prefix => $dirs) {
+                if (0 === strpos($class, $prefix)) {
+                    foreach ($dirs as $dir) {
+                        if (file_exists($dir . DIRECTORY_SEPARATOR . $classPath)) {
+                            return $dir . DIRECTORY_SEPARATOR . $classPath;
+                        }
+                    }
+                }
+            }
+        }
 
-		return $this;
-	}
+		// PSR-4 loader
+        $first = $classPath[0];
+        if (isset($this->psr4prefixes[$first])) {
+            foreach ($this->psr4prefixes[$first] as $prefix => $dirs) {
+                if (0 === strpos($class, $prefix)) {
+                    foreach ($dirs as $dir) {
+						$file = $dir . DIRECTORY_SEPARATOR . substr($classPath, strlen($prefix)+1);
+                        if (file_exists($file)) {
+                            return $file;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach ($this->fallbackDirs as $dir) {
+            if (file_exists($dir . DIRECTORY_SEPARATOR . $classPath)) {
+                return $dir . DIRECTORY_SEPARATOR . $classPath;
+            }
+        }
+
+        if ($this->useIncludePath && $file = stream_resolve_include_path($classPath)) {
+            return $file;
+        }
+
+        return $this->classMap[$class] = false;
+    }
 }

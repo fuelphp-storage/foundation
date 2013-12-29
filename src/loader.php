@@ -49,7 +49,7 @@ function InputClosureBindStupidWorkaround($event, $input, $autoloader)
 $bootstrapFuel = function()
 {
 	/**
-	 * Setup the autoloader instance, and disable composers autoloader
+	 * Setup our psr-4 autoloader instance, and disable composers autoloader
 	 */
 	$autoloader = new Autoloader(self::$loader);
 	self::$loader->unregister();
@@ -141,9 +141,6 @@ $bootstrapFuel = function()
 		$config->setConfigFolder('')->addPath(realpath(__DIR__.DS.'..'.DS.'defaults'.DS.'global'.DS))->addPath(APPSPATH);
 	}
 	$config->load('config', null);
-
-	// configure the autoloader
-	$autoloader->setCache($config->get('autoloader'));
 
 	/**
 	 * Create the global Input instance

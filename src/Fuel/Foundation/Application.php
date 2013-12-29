@@ -311,7 +311,7 @@ class Application
 		// make sure longer prefixes are first in the list
 		krsort($this->appNamespaces);
 
-		$this->factory->getAutoloaderInstance()->addpsr4($prefix, $this->appPath.DS.'classes');
+		$this->factory->getAutoloaderInstance()->addpsr4($prefix, $this->appPath.'classes');
 	}
 
 	/**
