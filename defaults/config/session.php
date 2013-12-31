@@ -56,6 +56,9 @@ return array(
 	// session ID rotation time  (optional, default = 300)
 	'rotation_time'         => 300,
 
+	// default namespace for variables  (optional, string. if true, the app-name will be used)
+	'namespace'             => false,
+
 	// default namespace for flash variables  (optional, default = 'flash')
 	'flash_namespace'       => 'flash',
 
