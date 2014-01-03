@@ -174,6 +174,21 @@ class FuelServiceProvider extends ServiceProvider
 			}
 		});
 
+		$this->extension('getInputInstance', function($container, $instance)
+		{
+			$stack = $this->container->resolve('requeststack');
+			if ($request = $stack->top())
+			{
+				$input = $request->getInput();
+			}
+			else
+			{
+				$input = $this->container->resolve('application.main')->getInput();
+			}
+
+			$instance->input = $input;
+		});
+
 		$this->extension('newFormatInstance', function($container, $instance)
 		{
 			$instance->format = $container->resolve('format');
