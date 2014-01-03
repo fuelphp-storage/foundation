@@ -163,7 +163,7 @@ class Error
 			{
 				if ($session = $application->getSession())
 				{
-					return $session->getContentsFlash();
+					return $session->get('flash');
 				}
 			}
 			return 'no session active';
@@ -176,7 +176,15 @@ class Error
 			{
 				foreach ($input->getCookie() as $cookie)
 				{
-					$result[] = $cookie;
+					$result[$cookie->getName()] = $cookie->getValue();
+					if ($cookie->isDeleted())
+					{
+						$result[$cookie->getName()] .= '; State=Deleted';
+					}
+					else
+					{
+						$result[$cookie->getName()] .= '; State='.($cookie->isNew() ? 'New' : 'Request');
+					}
 				}
 			}
 			return $result;
