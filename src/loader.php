@@ -10,7 +10,6 @@
 
 use Fuel\Foundation\Error;
 use Fuel\Foundation\Input;
-use Fuel\Foundation\Autoloader;
 use Fuel\Foundation\PackageProvider;
 
 use Fuel\Common\DataContainer;
@@ -49,20 +48,18 @@ function InputClosureBindStupidWorkaround($event, $input, $autoloader)
 $bootstrapFuel = function()
 {
 	/**
-	 * Setup our psr-4 autoloader instance, and disable composers autoloader
-	 */
-	$autoloader = new Autoloader(self::$loader);
-	self::$loader->unregister();
-
-	/**
 	 * Setup the Dependency Container of none was setup yet
 	 */
 	$dic = Dependency::setup();
 
 	/**
-	 * Allow the framework to use the autoloader
+	 * Fetch the composer autoloader instance
 	 */
-	$dic->inject('autoloader', $autoloader);
+	$loader = require VENDORPATH.'autoload.php';
+	/**
+	 * Allow the framework to access the composer autoloader
+	 */
+	$dic->inject('autoloader', $loader);
 
 	/**
 	 * Setup the shutdown, error & exception handlers
@@ -93,7 +90,7 @@ $bootstrapFuel = function()
 	$packages = $dic->resolve('packages');
 
 	// process all known composer libraries, and register any Fuel service providers
-	foreach (self::$loader->getPrefixes() as $namespace => $paths)
+	foreach ($loader->getPrefixes() as $namespace => $paths)
 	{
 		// does this package define a service provider
 		if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelServiceProvider'))
@@ -104,7 +101,7 @@ $bootstrapFuel = function()
 	}
 
 	// process all known composer libraries, and check if they have a Fuel Package provider
-	foreach (self::$loader->getPrefixes() as $namespace => $paths)
+	foreach ($loader->getPrefixes() as $namespace => $paths)
 	{
 		// check if this package has a PackageProvider for us
 		if (class_exists($class = trim($namespace, '\\').'\\Providers\\FuelPackageProvider'))
@@ -164,7 +161,7 @@ $bootstrapFuel = function()
 	register_shutdown_function(function($event) { $event->trigger('shutdown'); }, $event);
 
 	// setup a shutdown event for saving cookies and to cache the classmap
-	InputClosureBindStupidWorkaround($event, $input, self::$loader);
+	InputClosureBindStupidWorkaround($event, $input, $loader);
 
 	/**
 	 * Do the remainder of the framework initialisation

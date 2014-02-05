@@ -70,6 +70,7 @@ class Package extends Base
 		// let the autoloader know we have a new package
 		if ($position !== null)
 		{
+			// PSR-0
 			\Autoloader::add($prefix, $paths, $position);
 		}
 	}
