@@ -155,7 +155,7 @@ class Application
 		$this->appPath = realpath($appPath).DS;
 
 		// create a router object
-		$this->router = $factory->createRouterInstance($this->appName);
+		$this->router = $factory->createRouterInstance($this->appName)->setAutoFilter(array($factory->getRouteFilter($this), 'filter'));;
 
 		// setup the configuration container...
 		$this->config = $factory->createConfigContainer($this->appName)

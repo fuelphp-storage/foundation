@@ -45,19 +45,6 @@ class RequestInjectionFactory extends InjectionFactory
 	}
 
 	/**
-	 * Check if the current request is the main request
-	 *
-	 * @return  bool  Whether or not this is the main request
-	 *
-	 * @since  2.0.0
-	 */
-	public function isMainRequest()
-	{
-		$stack = $this->container->resolve('requeststack');
-		return count($stack) === 1;
-	}
-
-	/**
 	 * create an instance of the controller
 	 *
 	 * @return  Controller\Base

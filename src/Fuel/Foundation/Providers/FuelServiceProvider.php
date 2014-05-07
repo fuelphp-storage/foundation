@@ -12,6 +12,7 @@ namespace Fuel\Foundation\Providers;
 
 use Fuel\Dependency\ServiceProvider;
 use Fuel\Dependency\ResolveException;
+use Fuel\Foundation\RouteFilter;
 
 /**
  * FuelPHP ServiceProvider class for this package
@@ -26,7 +27,7 @@ class FuelServiceProvider extends ServiceProvider
 	 * @var  array  list of service names provided by this provider
 	 */
 	public $provides = array(
-		'application', 'environment', 'input', 'log',
+		'application', 'environment', 'input', 'log', 'routefilter',
 		'request', 'request.local',
 		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml', 'response.redirect',
 		'storage.db', 'storage.memcached', 'storage.redis',
@@ -770,6 +771,12 @@ class FuelServiceProvider extends ServiceProvider
 		{
 			$name = empty($config['redis']['name']) ? null : $config['redis']['name'];
 			return $dic->resolve('Fuel\Foundation\Session\Redis', array($config, $dic->resolve('storage.redis', array($name))));
+		});
+
+		// \Monolog\Logger
+		$this->register('routefilter', function ($dic, $app)
+		{
+			return new RouteFilter($app);
 		});
 
 		/**

@@ -42,6 +42,14 @@ class ApplicationInjectionFactory extends InjectionFactory
 	/**
 	 *
 	 */
+	public function getRouteFilter($app)
+	{
+		return $this->container->resolve('routefilter', array($app));
+	}
+
+	/**
+	 *
+	 */
 	public function createViewmanagerInstance($name, $path)
 	{
 		return $this->container->multiton('viewmanager', $name, array(
@@ -72,6 +80,19 @@ class ApplicationInjectionFactory extends InjectionFactory
 		{
 			$this->container->inject('application.main', $app);
 		}
+	}
+
+	/**
+	 * Check if the current request is the main request
+	 *
+	 * @return  bool  Whether or not this is the main request
+	 *
+	 * @since  2.0.0
+	 */
+	public function isMainRequest()
+	{
+		$stack = $this->container->resolve('requeststack');
+		return count($stack) === 1;
 	}
 
 }

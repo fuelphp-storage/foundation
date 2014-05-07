@@ -78,7 +78,10 @@ class Local extends Base
 		$this->log->info('Executing request');
 
 		// get a route object for this request
-		$this->route = $this->translate($this->request, $this->input->getMethod() );
+		$this->route = $this->router->translate($this->request, $this->input->getMethod() );
+
+		// create a URI object
+		$this->uri = $this->factory->createUriInstance($this->route->uri);
 
 		// log the request destination
 		$this->log->info($this->route->method.' request routed to '.(is_callable($this->route->translation) ? 'Closure' : $this->route->translation));
@@ -159,81 +162,5 @@ class Local extends Base
 		$this->factory->resetActiveRequest();
 
 		return $this;
-	}
-
-	/**
-	 * Find a route for the given Uri and request method
-	 *
-	 * @returns	Input
-	 *
-	 * @since  2.0.0
-	 */
-	public function translate($uri, $method)
-	{
-		// resolve the route
-		$route = $this->router->translate($uri, $method);
-
-		// create a URI object
-		$this->uri = $this->factory->createUriInstance($route->uri);
-
-		// is the route target a closure?
-		if ($route->translation instanceOf \Closure)
-		{
-			$route->controller = $route->translation;
-		}
-		else
-		{
-			// find a match
-			foreach ($this->app->getNamespaces() as $namespace)
-			{
-				// skip non-routeable namespaces
-				if ( ! $namespace['routeable'] and $this->factory->isMainRequest())
-				{
-					continue;
-				}
-
-				// skip if we don't have a prefix match
-				if ($namespace['prefix'] and strpos($route->translation, $namespace['prefix']) !== 0)
-				{
-					continue;
-				}
-
-				$route->setNamespace($namespace['namespace']);
-
-				// get the segments from the translated route
-				$segments = explode('/', ltrim(substr($route->translation, strlen($namespace['prefix'])),'/'));
-
-				$arguments = array();
-				while(count($segments))
-				{
-					$class = $route->namespace.'Controller\\'.implode('\\', array_map('ucfirst', $segments));
-					if (class_exists($class))
-					{
-						$route->path = $namespace['path'];
-						$route->controller = $class;
-						break;
-					}
-					array_unshift($arguments, array_pop($segments));
-				}
-
-				// did we find a match
-				if ($route->controller)
-				{
-					// then stop looking
-					break;
-				}
-			}
-		}
-
-		// any segments left?
-		if ( ! empty($segments))
-		{
-			$route->action = ucfirst(array_shift($arguments));
-		}
-
-		// more? return them as additional segments
-		$route->segments = empty($arguments) ? array() : $arguments;
-
-		return $route;
 	}
 }
