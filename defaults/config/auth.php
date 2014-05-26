@@ -28,11 +28,17 @@ return array(
 		'drivers' => array(
 		),
 
+		// what to use as a backend for user link storage
+		'storage' => null,
+
 		// what to use as a backend for persistence
 		'persistence' => null,
 
 		// whether or not you want to use all user drivers simultaneously
 		'use_all_drivers' => false,
+
+		// whether or not you want reduce the result if only a single driver is used
+		'always_return_arrays' => true,
 
 		// salt, used to hash the user passwords
 		'salt' => 'put_your_salt_here',

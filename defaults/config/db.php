@@ -35,10 +35,10 @@ return array(
 
 		'autoConnect'       => true,               // automatically connect when the DB class is loaded
 
-		'username'          => '',                 // user used for the database connection
-		'password'          => '',                 // password of this user
+		'username'          => 'webdev',                 // user used for the database connection
+		'password'          => 'webdev',                 // password of this user
 
-		'database'          => '',                 // name of the database to connect to
+		'database'          => 'DEV_Propellant',               // name of the database to connect to
 
 		'host'              => 'localhost',        // hostname or IP of your database server
 		'port'              => null,               // any non-standard TCP port this server runs on

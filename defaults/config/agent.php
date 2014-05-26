@@ -70,18 +70,14 @@ return array(
 
 		/**
 		 * Location from where the updated browscap file can be downloaded.
-		 *
-		 * Note: this is a temporary link, awaiting relaunch of the browscap project
 		 */
-		//'remoteIniUrl' => 'http://tempdownloads.browserscap.com/stream.asp?Lite_PHP_BrowsCapINI',  // only major browsers and search engines
-		'remoteIniUrl' => 'http://tempdownloads.browserscap.com/stream.asp?Full_PHP_BrowscapINI',  // complete file, approx. 3 times the lite version
+		'remoteIniUrl' => 'http://browscap.org/stream?q=Lite_PHP_BrowsCapINI',     // only major browsers and search engines
+		//'remoteIniUrl' => 'http://browscap.org/stream?q=Full_PHP_BrowsCapINI',   // complete file, approx. 3 times the lite version
 
 		/**
 		 * The location to use to check out if a new version of the browscap.ini file is available
-		 *
-		 * Note: this is a temporary link, awaiting relaunch of the browscap project
 		 */
-		'remoteVerUrl' => 'http://tempdownloads.browserscap.com/versions/version-date.php',
+		'remoteVerUrl' => 'http://browscap.org/version',
 
 		/**
 		 * Filename used to store the cached browscap data.
