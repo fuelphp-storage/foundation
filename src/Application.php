@@ -159,7 +159,7 @@ class Application
 
 		// setup the configuration container...
 		$this->config = $factory->createConfigContainer($this->appName)
-			->addPath(realpath(__DIR__.DS.'..'.DS.'..'.DS.'..'.DS.'defaults').DS)
+			->addPath(realpath(__DIR__.DS.'..'.DS.'defaults').DS)
 			->addPath($this->appPath);
 
 		// and load the application config
