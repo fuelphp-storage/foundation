@@ -10,7 +10,7 @@
 
 use Fuel\Foundation\Error;
 use Fuel\Foundation\Input;
-use Fuel\Foundation\PackageProvider;
+use Fuel\Foundation\Providers\FuelPackageProvider;
 
 use Fuel\Common\DataContainer;
 
@@ -90,7 +90,9 @@ $bootstrapFuel = function()
 	$packages = $dic->resolve('packages');
 
 	// process all known composer libraries, and register any Fuel service providers
-	foreach ($loader->getPrefixes() as $namespace => $paths)
+	$nspaths = array_merge($loader->getPrefixes(), $loader->getPrefixesPsr4());
+
+	foreach ($nspaths as $namespace => $paths)
 	{
 		// does this package define a service provider
 		if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelServiceProvider'))
@@ -101,7 +103,7 @@ $bootstrapFuel = function()
 	}
 
 	// process all known composer libraries, and check if they have a Fuel Package provider
-	foreach ($loader->getPrefixes() as $namespace => $paths)
+	foreach ($nspaths as $namespace => $paths)
 	{
 		// check if this package has a PackageProvider for us
 		if (class_exists($class = trim($namespace, '\\').'\\Providers\\FuelPackageProvider'))
@@ -110,9 +112,9 @@ $bootstrapFuel = function()
 			$provider = new $class($dic, $namespace, $paths);
 
 			// validate the provider
-			if ( ! $provider instanceOf PackageProvider)
+			if ( ! $provider instanceOf FuelPackageProvider)
 			{
-				throw new RuntimeException('FOU-025: PackageProvider for ['.$namespace.'] must be an instance of \Fuel\Foundation\PackageProvider');
+				throw new RuntimeException('FOU-025: PackageProvider for ['.$namespace.'] must be an instance of \Fuel\Foundation\FuelPackageProvider');
 			}
 
 			// initialize the loaded package
