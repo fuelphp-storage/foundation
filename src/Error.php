@@ -280,7 +280,7 @@ class Error
 	 */
 	protected function getMessages($locale, $shorten = false)
 	{
-		$baseDir = realpath(__DIR__.'/../../../translations');
+		$baseDir = realpath(__DIR__.DS.'..'.DS.'translations');
 
 		$lookup = array($locale);
 		if ($shorten)
@@ -290,7 +290,7 @@ class Error
 
 		foreach($lookup as $lang)
 		{
-			if (is_file($lang = $baseDir.'/'.$lang.'.php'))
+			if (is_file($lang = $baseDir.DS.$lang.'.php'))
 			{
 				$translations = include $lang;
 				if (is_string($translations))
