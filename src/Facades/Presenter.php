@@ -4,7 +4,7 @@
  * @version    2.0
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010 - 2013 Fuel Development Team
+ * @copyright  2010 - 2014 Fuel Development Team
  * @link       http://fuelphp.com
  */
 
@@ -30,7 +30,7 @@ class Presenter extends Base
 	 * @throws  RuntimeException if the the presenter class could not be loaded
 	 * @return  \Fuel\Display\Presenter
 	 */
-	public static function forge($uri, $method = 'view', $autoFilter = null, $view = null)
+	public static function forge($uri, $method = 'view', $autoFilter = true, $view = null)
 	{
 		// was a custom view string passed?
 		if ($view === null)
@@ -38,18 +38,22 @@ class Presenter extends Base
 			$view = $uri;
 		}
 
-		// fetch all components loaded by this application
-		$components = \Application::getInstance()->getComponents();
-
 		// prepend the current namespace, we'll check that first
-		$currentNamespace = \Component::getInstance()->getNamespace();
+		$currentNamespace = \Request::getInstance()->getRoute()->namespace;
 
 		// find the matching presenter
 		$presenter = null;
-		foreach ($components as $prefix => $component)
+
+		// find the correct component
+		foreach (\Application::getInstance()->getComponents() as $prefix => $component)
 		{
 			// normalize the namespace
 			$namespace = trim($component->getNamespace(), '\\').'\\';
+
+			if ($namespace != $currentNamespace)
+			{
+				continue;
+			}
 
 			// get the segments from the presenter string passed
 			$segments = explode('/', $uri);
