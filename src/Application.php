@@ -169,15 +169,15 @@ class Application
 	 *
 	 * @param  string            $uri               base URI for this component
 	 * @param  string            $namespace         namespace that identifies this component
-	 * @param  string|array      $paths             optional Path or paths to the root folder of the component
 	 * @param  boolean           $routeable         whether or not this component is publicly routable
+	 * @param  string|array      $paths             optional Path or paths to the root folder of the component
 	 * @param  string|Component  $parent            Parent component, or URI of the parent Component
 	 *
 	 * @return  Component  the newly constucted component object
 	 *
 	 * @since  2.0.0
 	 */
-	public function newComponent($uri, $namespace, $paths = null, $routeable = true, $parent = null)
+	public function newComponent($uri, $namespace, $routeable = true, $paths = null, $parent = null)
 	{
 		// unify the URI
 		$uri = trim($uri, '/');
@@ -195,7 +195,13 @@ class Application
 		}
 
 		// create the component instance, store it, and return it
-		return $this->_components[$uri] = $this->factory->createComponentInstance($this, $uri, $namespace, $paths, $routeable, $parent);
+		$this->_components[$uri] = $this->factory->createComponentInstance($this, $uri, $namespace, $paths, $routeable, $parent);
+
+		// sort it so it's easier to do URI lookups
+		krsort($this->_components);
+
+		// and return the component we've created
+		return $this->_components[$uri];
 	}
 
 	/**

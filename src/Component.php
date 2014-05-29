@@ -334,15 +334,15 @@ class Component
 	 *
 	 * @param  string            $uri               base URI for this component
 	 * @param  string            $namespace         namespace that identifies this component
-	 * @param  string|array      $paths             optional Path or paths to the root folder of the component
 	 * @param  boolean           $routeable         whether or not this component is publicly routable
+	 * @param  string|array      $paths             optional Path or paths to the root folder of the component
 	 * @param  string|Component  $parent            Parent component, or URI of the parent Component
 	 *
 	 * @return  Component  the newly constucted component object
 	 *
 	 * @since  2.0.0
 	 */
-	public function newComponent($uri, $namespace, $paths = null, $routeable = true, $parent = null)
+	public function newComponent($uri, $namespace, $routeable = true, $paths = null, $parent = null)
 	{
 		// we construct components in Application, so bubble up until we get there
 		return $this->parent->newComponent($uri, $namespace, $paths, $routeable, $parent ?: $this);
