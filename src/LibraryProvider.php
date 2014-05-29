@@ -11,13 +11,13 @@
 namespace Fuel\Foundation;
 
 /**
- * PackageProvider base class
+ * LibraryProvider base class
  *
  * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
-class PackageProvider
+class LibraryProvider
 {
 	/**
 	 * @var  Fuel\Dependency\Container  Fuel's DiC
@@ -61,43 +61,43 @@ class PackageProvider
 	}
 
 	/**
-	 * Package initialization method. This method is called as soon as the package
+	 * Library's initialization method. This method is called as soon as the library
 	 * is initially loaded, either by the framework bootstrap, or when you manually
-	 * load a new package into the autoloader using the Package class.
+	 * load a new library into the autoloader using the Application's getLibrary() method.
 	 *
 	 * @since 2.0.0
 	 */
-	public function initPackage()
+	public function initialize()
 	{
 	}
 
 	/**
-	 * Package enabler method.
+	 * Library enabler method.
 	 *
-	 * When you instruct your application to use the package, this enabler gets
-	 * called. You can use it to prep the application for use of the package.
-	 * By default, a loaded package is disabled.
+	 * When you instruct your application to use the library, this enabler gets
+	 * called. You can use it to prep the application for use of the library.
+	 * By default, a loaded library is disabled.
 	 *
-	 * @param  Application  $app  The application instance that wants to enable this package
+	 * @param  Application  $app  The application instance that wants to enable this library
 	 *
 	 * @since 2.0.0
 	 */
-	public function enablePackage($app)
+	public function enable($app)
 	{
 	}
 
 	/**
-	 * Package disabler method.
+	 * Library disabler method.
 	 *
-	 * When you instruct your application to unload a package, this disabler gets
-	 * called. You can use it to cleanup any setup the package has made in the
+	 * When you instruct your application to unload a library, this disabler gets
+	 * called. You can use it to cleanup any setup the library has made in the
 	 * application that was using it.
 	 *
-	 * @param  Application  $app  The application instance that had enabled this package
+	 * @param  Application  $app  The application instance that had enabled this library
 	 *
 	 * @since 2.0.0
 	 */
-	public function disablePackage($app)
+	public function disable($app)
 	{
 	}
 }

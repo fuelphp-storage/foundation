@@ -12,7 +12,6 @@ namespace Fuel\Foundation;
 
 use Fuel\Config\Container as Config;
 use Fuel\Dependency\Container as Dic;
-use Fuel\Foundation\Providers\FuelPackageProvider as FuelBootstrap;
 
 /**
  * Fuel class
@@ -121,23 +120,23 @@ class Fuel
 		}
 
 		// TODO: needs to be changed to something more clever!
-		// scan all composer packages loaded for the presence of FuelPackageProviders
+		// scan all composer packages loaded for the presence of FuelLibraryProviders
 		foreach ($prefixes as $namespace => $paths)
 		{
 			// does this package define a service provider
-			if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelPackageProvider'))
+			if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelLibraryProvider'))
 			{
-				// load the package provider
+				// load the library provider
 				$provider = new $class($dic, $namespace, $paths);
 
 				// validate the provider
-				if ( ! $provider instanceOf FuelBootstrap)
+				if ( ! $provider instanceOf LibraryProvider)
 				{
-					throw new \RuntimeException('FOU-025: FuelBootstrap for ['.$namespace.'] must be an instance of \Fuel\Foundation\FuelBootstrap');
+					throw new \RuntimeException('FOU-025: FuelBootstrap for ['.$namespace.'] must be an instance of \Fuel\Foundation\LibraryProvider');
 				}
 
-				// initialize the loaded package
-				$provider->initPackage();
+				// initialize the loaded library
+				$provider->initialize();
 			}
 		}
 
