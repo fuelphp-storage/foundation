@@ -122,6 +122,41 @@ class Router extends \Fuel\Routing\Router
 	}
 
 	/**
+	 * Fuel recusive reverse route fetching
+	 */
+	public function getRoute($name, $topToBottom = false)
+	{
+		// we need to do this from the top of the component tree
+		if ($parent = $this->component->getParent() and $parent instanceOf Component)
+		{
+			return $parent->getRoute($name);
+		}
+
+		// now parent points to the application object, lets get going
+		$components = $parent->getComponents();
+
+		// check all of them for a route name match
+		$route = null;
+		foreach($components as $uri => $component)
+		{
+			if ($routes = $component->getRouter()->routes and isset($routes[$name]))
+			{
+				// store it
+				$route = $routes[$name];
+
+				// if higher-level components will
+				if ($topToBottom)
+				{
+					// exit at the first hit found
+					break;
+				}
+			}
+		}
+
+		return $route;
+	}
+
+	/**
 	 * Fuel recusive route translation
 	 */
 	public function recursiveTranslate($uri, $method, $reset = false)
