@@ -192,6 +192,8 @@ class Component
 		// store the input instance
 		$this->input = $input;
 
+		// and finally run the component bootstrap if present
+		$this->runBootstrap();
 	}
 
 	/**
@@ -412,16 +414,11 @@ class Component
 
 	/**
 	 * Import routes from the component paths config folder, if defined
-	 *
-	 * @param  string  path to an app/module/package root
-	 * @param  array   information about the environment these routes are defined in
-	 *
-	 * @return  bool  Whether or not the path had routes defined
 	 */
 	protected function loadRoutes()
 	{
 		// closure to import routes in their own scope
-		$loadroutes = function($router, $config, $__file__) {
+		$loadroutes = function($__file__) {
 			return include $__file__;
 		};
 
@@ -429,12 +426,31 @@ class Component
 		{
 			if (file_exists($path = $path.DS.'config'.DS.'routes.php'))
 			{
-				$routes = $loadroutes($this->router, array('prefix' => $this->uri, 'namespace' => $this->namespace), $path);
+				$routes = $loadroutes($path);
 
 				if (is_array($routes))
 				{
 					// TODO, process v1.x type route array
 				}
+			}
+		}
+	}
+
+	/**
+	 * Check if the created component has a bootstrap file, and if so, execute it
+	 */
+	protected function runBootstrap()
+	{
+		// closure to run the bootstap in its own scope
+		$runbootstrap = function($__file__) {
+			return include $__file__;
+		};
+
+		foreach ($this->paths as $path)
+		{
+			if (file_exists($path = $path.DS.'bootstrap.php'))
+			{
+				$runbootstrap($path);
 			}
 		}
 	}

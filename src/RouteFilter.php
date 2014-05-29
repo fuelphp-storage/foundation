@@ -11,6 +11,7 @@
 namespace Fuel\Foundation;
 
 use Fuel\Routing\Match;
+use Closure;
 
 /**
  * RouteFilter class
@@ -124,16 +125,16 @@ class RouteFilter
 					break;
 				}
 			}
-		}
 
-		// any segments left?
-		if ( ! empty($segments))
-		{
-			$match->action = ucfirst(array_shift($arguments));
-		}
+			// any segments left?
+			if ( ! empty($segments))
+			{
+				$match->action = ucfirst(array_shift($arguments));
+			}
 
-		// more? set them as additional segments
-		$match->uri = implode('/', $arguments);
+			// more? set them as additional segments
+			$match->uri = implode('/', $arguments);
+		}
 
 		return $match;
 	}

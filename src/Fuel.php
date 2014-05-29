@@ -99,6 +99,16 @@ class Fuel
 		// get all defined namespaces
 		$prefixes = array_merge($loader->getPrefixes(), $loader->getPrefixesPsr4());
 
+		// determine the installation root if needed
+		if ( ! defined('ROOTPATH'))
+		{
+			$path = reset($prefixes['Fuel\\Foundation\\']);
+			if ($path = realpath(substr($path, 0, strpos($path, '/fuelphp/foundation')).DS.'..'.DS))
+			{
+				define('ROOTPATH', $path.DS);
+			}
+		}
+
 		// scan all composer packages loaded for the presence of FuelServiceProviders
 		foreach ($prefixes as $namespace => $paths)
 		{
