@@ -70,6 +70,19 @@ class Local extends Base
 		// get a route object for this request
 		$this->route = $this->router->translate($this->request, $this->input->getMethod());
 
+		// did the route resolve to a controller?
+		if (empty($this->route->controller))
+		{
+			// no, see if we can find one dynamically
+			$this->route = $this->router->applyAutoFilter($this->route);
+
+			// still not found? Then bail out!
+			if (empty($this->route->controller))
+			{
+				throw new NotFound('No route match has been found for this request.');
+			}
+		}
+
 		// create a URI object
 		$this->uri = $this->factory->createUriInstance($this->route->uri);
 
@@ -83,11 +96,6 @@ class Local extends Base
 		if ( ! empty($this->route->segments))
 		{
 			$this->route->parameters = array_merge($this->route->parameters, $this->route->segments);
-		}
-
-		if (empty($this->route->controller))
-		{
-			throw new NotFound('No route match has been found for this request.');
 		}
 
 		if (is_callable($this->route->controller))

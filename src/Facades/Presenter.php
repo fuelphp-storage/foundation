@@ -37,25 +37,25 @@ class Presenter extends Base
 		{
 			$view = $uri;
 		}
-die('presenter facade !');
-		// get the active namespace list
-		$namespaces = \Request::getInstance()->getApplication()->getNamespaces();
+
+		// fetch all components loaded by this application
+		$components = \Application::getInstance()->getComponents();
 
 		// prepend the current namespace, we'll check that first
-		$currentNamespace = \Request::getInstance()->getRoute()->namespace;
+		$currentNamespace = \Component::getInstance()->getNamespace();
 
 		// find the matching presenter
 		$presenter = null;
-		foreach ($namespaces as $namespace)
+		foreach ($components as $prefix => $component)
 		{
 			// normalize the namespace
-			$namespace['namespace'] = trim($namespace['namespace'], '\\').'\\';
+			$namespace = trim($component->getNamespace(), '\\').'\\';
 
 			// get the segments from the presenter string passed
 			$segments = explode('/', $uri);
 			while(count($segments))
 			{
-				$class = $namespace['namespace'].'Presenter\\'.implode('\\', array_map('ucfirst', $segments));
+				$class = $namespace.'Presenter\\'.implode('\\', array_map('ucfirst', $segments));
 				if (class_exists($class))
 				{
 					$presenter = new $class(\View::getInstance(), $method, $autoFilter, $view);

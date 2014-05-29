@@ -89,18 +89,19 @@ class Component
 	/**
 	 * Constructor
 	 *
-	 * @param  string                     $uri        base URI for this component
-	 * @param  string                     $namespace  this applications base namespace
-	 * @param  array                      $paths      path to the application component
-	 * @param  Component                  $parent     parent Component instance
-	 * @param  Fuel\Config\Datacontainer  $config     Config Container instance
-	 * @param  Input                      $input      Input Container instance
-	 * @param  Fuel\Routing\Router        $router     Routing engine instance
-	 * @param  InjectionFactory           $factory    factory object to construct external objects
+	 * @param  string                     $uri         base URI for this component
+	 * @param  string                     $namespace   this applications base namespace
+	 * @param  array                      $paths       path to the application component
+	 * @param  Component                  $parent      parent Component instance
+	 * @param  Fuel\Config\Datacontainer  $config      Config Container instance
+	 * @param  Input                      $input       Input Container instance
+	 * @param  Fuel\Routing\Router        $router      Routing engine instance
+	 * @param  Composer\ClassLoader       $autoloader  Autoloader instance
+	 * @param  InjectionFactory           $factory     factory object to construct external objects
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $router, InjectionFactory $factory)
+	public function __construct($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $router, $autoloader, InjectionFactory $factory)
 	{
 		// store the component object factory
 		$this->factory = $factory;
@@ -127,7 +128,15 @@ class Component
 			// check if this is a valid component
 			if (is_dir($path.DS.'classes') and ! in_array($path, $this->paths))
 			{
+				// store it
 				$this->paths[] = $path;
+
+				// and add it to the autoloader if needed
+				$prefixes = $autoloader->getPrefixesPsr4();
+				if ( ! isset($prefixes[$this->namespace.'\\']) or ! in_array($path.DS.'classes', $prefixes[$this->namespace.'\\']))
+				{
+					$autoloader->addPsr4($this->namespace.'\\', $path.DS.'classes');
+				}
 			}
 		}
 
@@ -137,7 +146,7 @@ class Component
 			// make a backlink to link parent and child
 			$parent->setChild($this);
 		}
-		// otherwise we're the first component being setup, so do some initalisation
+		// otherwise we're the main application component, do some initalisation
 		else
 		{
 			// setup the global config defaults

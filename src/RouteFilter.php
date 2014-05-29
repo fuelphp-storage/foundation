@@ -76,22 +76,30 @@ class RouteFilter
 			// fetch all components loaded by this application
 			$components = $this->component->getApplication()->getComponents();
 
-			// find a match
+			// order them by namespace
+			$namespaces = array();
 			foreach ($components as $uri => $component)
 			{
-				// skip non-routeable components
+				// skip non-routeable components for the main request
 				if ( ! $component->isRoutable() and $this->factory->isMainRequest())
 				{
 					continue;
 				}
 
+				$namespaces[$component->getNamespace()] = $component;
+			}
+			krsort($namespaces);
+
+			// find a match
+			foreach ($namespaces as $namespace => $component)
+			{
 				// skip if we don't have a prefix match
-				if ($uri and strpos($match->translation, $uri) !== 0)
+				if ($uri = $component->getUri() and strpos($match->translation, $uri) !== 0)
 				{
 					continue;
 				}
 
-				$match->setNamespace($component->getNamespace());
+				$match->setNamespace($namespace);
 
 				// get the segments from the translated route
 				$segments = explode('/', ltrim(substr($match->translation, strlen($uri)),'/'));

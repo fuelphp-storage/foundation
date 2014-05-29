@@ -77,14 +77,14 @@ class FuelServiceProvider extends ServiceProvider
 		{
 			try
 			{
-				$stack = $this->container->resolve('requeststack');
+				$stack = $container->resolve('requeststack');
 				if ($request = $stack->top())
 				{
 					$config = $request->getComponent()->getConfig();
 				}
 				else
 				{
-					$config = $this->container->resolve('application::__main')->getComponent()->getConfig();
+					$config = $container->resolve('application::__main')->getComponent()->getConfig();
 				}
 
 				if (is_callable(array($instance, 'setConfig')))
@@ -106,14 +106,14 @@ class FuelServiceProvider extends ServiceProvider
 		{
 			try
 			{
-				$stack = $this->container->resolve('requeststack');
+				$stack = $container->resolve('requeststack');
 				if ($request = $stack->top())
 				{
 					$input = $request->getComponent()->getInput();
 				}
 				else
 				{
-					$input = $this->container->resolve('application::__main')->getComponent()->getInput();
+					$input = $container->resolve('application::__main')->getComponent()->getInput();
 				}
 
 				if (is_callable(array($instance, 'setInput')))
@@ -135,14 +135,14 @@ class FuelServiceProvider extends ServiceProvider
 		{
 			try
 			{
-				$stack = $this->container->resolve('requeststack');
+				$stack = $container->resolve('requeststack');
 				if ($request = $stack->top())
 				{
 					$log = $request->getComponent()->getApplication()->getLog();
 				}
 				else
 				{
-					$log = $this->container->resolve('application::__main')->getLog();
+					$log = $container->resolve('application::__main')->getLog();
 				}
 
 				if (is_callable(array($instance, 'setLog')))
@@ -164,14 +164,14 @@ class FuelServiceProvider extends ServiceProvider
 		{
 			try
 			{
-				$stack = $this->container->resolve('requeststack');
+				$stack = $container->resolve('requeststack');
 				if ($request = $stack->top())
 				{
 					$router = $request->getComponent()->getRouter();
 				}
 				else
 				{
-					$router = $this->container->resolve('application::__main')->getComponent()->getRouter();
+					$router = $container->resolve('application::__main')->getComponent()->getRouter();
 				}
 
 				if (is_callable(array($instance, 'setRouter')))
@@ -193,14 +193,14 @@ class FuelServiceProvider extends ServiceProvider
 		{
 			try
 			{
-				$stack = $this->container->resolve('requeststack');
+				$stack = $container->resolve('requeststack');
 				if ($request = $stack->top())
 				{
 					$environment = $request->getComponent()->getApplication()->getEnvironment();
 				}
 				else
 				{
-					$environment = $this->container->resolve('application::__main')->getEnvironment();
+					$environment = $container->resolve('application::__main')->getEnvironment();
 				}
 
 				if (is_callable(array($instance, 'setEnvironment')))
@@ -220,7 +220,7 @@ class FuelServiceProvider extends ServiceProvider
 
 		$this->extension('getRequestInstance', function($container, $instance)
 		{
-			$stack = $this->container->resolve('requeststack');
+			$stack = $container->resolve('requeststack');
 			if (is_callable(array($instance, 'setRequest')))
 			{
 				$instance->setRequest($stack->top());
@@ -231,6 +231,18 @@ class FuelServiceProvider extends ServiceProvider
 			}
 		});
 
+		$this->extension('getAutoloaderInstance', function($container, $instance)
+		{
+			$autoloader = $container->resolve('autoloader');
+			if (is_callable(array($instance, 'setAutoloader')))
+			{
+				$instance->setAutoloader($autoloader);
+			}
+			else
+			{
+				$instance->autoloader = $autoloader;
+			}
+		});
 
 
 
@@ -279,8 +291,8 @@ class FuelServiceProvider extends ServiceProvider
 			}
 
 			// create the component instance for this namespace
-			$config = $this->container->multiton('config', trim($namespace, '\\'));
-			$input = $this->container->resolve('input');
+			$config = $dic->multiton('config', trim($namespace, '\\'));
+			$input = $dic->resolve('input');
 			$input->setConfig($config);
 			if ($parent)
 			{
@@ -288,7 +300,7 @@ class FuelServiceProvider extends ServiceProvider
 				$input->setParent($parent->getInput());
 			}
 
-			return $dic->multiton('Fuel\Foundation\Component', $uri, array($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $dic->resolve('router')));
+			return $dic->multiton('Fuel\Foundation\Component', $uri, array($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $dic->resolve('router'), $dic->resolve('autoloader')));
 		});
 
 		// \Fuel\Foundation\Input
@@ -499,14 +511,14 @@ class FuelServiceProvider extends ServiceProvider
 		$this->register('storage.db', function ($dic, $config = null)
 		{
 			// get the correct config instance
-			$stack = $this->container->resolve('requeststack');
+			$stack = $dic->resolve('requeststack');
 			if ($request = $stack->top())
 			{
 				$app = $request->getApplication();
 			}
 			else
 			{
-				$app = $this->container->resolve('application.main');
+				$app = $dic->resolve('application.main');
 			}
 
 			// load the db config
@@ -548,14 +560,14 @@ class FuelServiceProvider extends ServiceProvider
 			}
 
 			// get the correct config instance
-			$stack = $this->container->resolve('requeststack');
+			$stack = $dic->resolve('requeststack');
 			if ($request = $stack->top())
 			{
 				$app = $request->getApplication();
 			}
 			else
 			{
-				$app = $this->container->resolve('application.main');
+				$app = $dic->resolve('application.main');
 			}
 
 			// load the memcached config
@@ -619,14 +631,14 @@ class FuelServiceProvider extends ServiceProvider
 		$this->register('storage.redis', function ($dic, $config = null)
 		{
 			// get the correct config instance
-			$stack = $this->container->resolve('requeststack');
+			$stack = $dic->resolve('requeststack');
 			if ($request = $stack->top())
 			{
 				$app = $request->getApplication();
 			}
 			else
 			{
-				$app = $this->container->resolve('application.main');
+				$app = $dic->resolve('application.main');
 			}
 
 			// load the redis config
