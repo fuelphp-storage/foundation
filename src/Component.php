@@ -145,6 +145,9 @@ class Component
 		{
 			// make a backlink to link parent and child
 			$parent->setChild($this);
+
+			// link to our parents router
+			$this->router = $parent->getRouter();
 		}
 		// otherwise we're the main application component, do some initalisation
 		else
@@ -157,6 +160,12 @@ class Component
 
 			// assign the configuration container to this input instance
 			$input->setConfig($config);
+
+			// store the router instance
+			$this->router = $router;
+
+			// add our route filter to be able to resolve controllers
+			$this->router->setAutoFilter(array($this->factory->getRouteFilter($this), 'filter'));
 		}
 
 		// add the paths to the config
@@ -179,12 +188,6 @@ class Component
 
 		// store our parent object
 		$this->parent = $parent ?: $app;
-
-		// store the router instance
-		$this->router = $router;
-
-		// add our route filter to be able to resolve controllers
-		$this->router->setAutoFilter(array($this->factory->getRouteFilter($this), 'filter'));
 
 		// and load any defined routes in this module
 		$this->loadRoutes();
