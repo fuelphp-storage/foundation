@@ -4,19 +4,18 @@
  * @version    2.0
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010 - 2013 Fuel Development Team
+ * @copyright  2010 - 2014 Fuel Development Team
  * @link       http://fuelphp.com
  */
 
 namespace Fuel\Foundation;
 
-use Fuel\Session\Manager as SessionManager;
-use Fuel\Config\Container as ConfigContainer;
+use Fuel\Foundation\Fuel;
 
 /**
- * Application Base class
+ * Application class
  *
- * Wraps an application package into an object to work with.
+ * Defines the FuelPHP application, and provides the applictions global environment
  *
  * @package  Fuel\Foundation
  *
@@ -25,200 +24,130 @@ use Fuel\Config\Container as ConfigContainer;
 class Application
 {
 	/**
-	 * @var  string  name of this application
-	 *
-	 * @since  2.0.0
-	 */
-	protected $appName;
-
-	/**
-	 * @var  string  application root path
-	 *
-	 * @since  2.0.0
-	 */
-	protected $appPath;
-
-	/**
-	 * @var  string  base namespace for this application
-	 *
-	 * @since  2.0.0
-	 */
-	protected $appNamespace;
-
-	/**
-	 * @var  array  namespace to location mappings
-	 *
-	 * @since  2.0.0
-	 */
-	protected $appNamespaces = array();
-
-	/**
-	 * @var  ApplicationInjectionFactory  this applications object factory
+	 * @var  InjectionFactory  this applications object factory
 	 *
 	 * @since  2.0.0
 	 */
 	protected $factory;
 
 	/**
-	 * @var  Environment  this applications environment object
+	 * @var  string  name of this application
 	 *
 	 * @since  2.0.0
 	 */
-	protected $env;
+	protected $_name;
 
 	/**
-	 * @var  Psr/Log/LoggerInterface  this applications log object
+	 * @var  array  list or URI to component mappings
 	 *
 	 * @since  2.0.0
 	 */
-	protected $log;
-
-	/**
-	 * @var  Fuel/Config/Container  this applications config object
-	 *
-	 * @since  2.0.0
-	 */
-	protected $config;
-
-	/**
-	 * @var  Fuel/Foundation/Input  this applications input object
-	 *
-	 * @since  2.0.0
-	 */
-	protected $input;
-
-	/**
-	 * @var  array  this applications list of languages objects
-	 *
-	 * @since  2.0.0
-	 */
-	protected $languages = array();
-
-	/**
-	 * @var  Fuel/Session/Manager  this applications session object
-	 *
-	 * @since  2.0.0
-	 */
-	protected $session;
+	protected $_components = array();
 
 	/**
 	 * @var  Fuel/Event/Container  this applications event container
 	 *
 	 * @since  2.0.0
 	 */
-	protected $event;
+	protected $_event;
+
+	/**
+	 * @var  Fuel/Session/Manager  this applications session object
+	 *
+	 * @since  2.0.0
+	 */
+	protected $_session;
 
 	/**
 	 * @var  Fuel/Display/ViewManager  this applications view manager object
 	 *
 	 * @since  2.0.0
 	 */
-	protected $viewManager;
+	protected $_viewManager;
 
 	/**
-	 * @var  Router  this applications router object
+	 * @var  Component  this applications main component object
 	 *
 	 * @since  2.0.0
 	 */
-	protected $router;
+	protected $_component;
+
+	/**
+	 * @var  Environment  this applications environment object
+	 *
+	 * @since  2.0.0
+	 */
+	protected $_environment;
+
+	/**
+	 * @var  Psr/Log/LoggerInterface  this applications log object
+	 *
+	 * @since  2.0.0
+	 */
+	protected $_log;
 
 	/**
 	 * Constructor
 	 *
-	 * @param  string                       $appName      name of this application
-	 * @param  string                       $appPath      path to the application installation root
-	 * @param  string                       $namespace    this applications base namespace
-	 * @param  string                       $environment  the environment this application has to run in
-	 * @param  ApplicationInjectionFactory  $factory      factory object to construct external objects
-
+	 * @param  string            $appNamespace  this applications base namespace
+	 * @param  string            $environment   this applications runtime environment
+	 * @param  InjectionFactory  $factory       factory object to construct external objects
+	 *
 	 * @since  2.0.0
 	 */
-	public function __construct($appName, $appPath, $namespace, $environment, ApplicationInjectionFactory $factory)
+	public function __construct($name, $appNamespace, $environment = 'development', InjectionFactory $factory)
 	{
 		// store the applications object factory
 		$this->factory = $factory;
 
-		// register the application
-		$this->factory->registerApplication($this);
-
 		// store the application name
-		$this->appName = $appName;
+		$this->_name = $name;
 
-		// and it's base namespace
-		$this->appNamespace = $namespace;
-
-		// check if the path is valid, and if so, store it
-		if ( ! is_dir($appPath))
-		{
-			throw new \InvalidArgumentException('FOU-008: Application path ['.$appPath.'] does not exist.');
-		}
-		$this->appPath = realpath($appPath).DS;
-
-		// create a router object
-		$this->router = $factory->createRouterInstance($this->appName)->setAutoFilter(array($factory->getRouteFilter($this), 'filter'));;
-
-		// setup the configuration container...
-		$this->config = $factory->createConfigContainer($this->appName)
-			->addPath(realpath(__DIR__.DS.'..'.DS.'defaults').DS)
-			->addPath($this->appPath);
-
-		// and load the application config
-		$this->config->load('config', null);
-
-		// load the file config
-		$this->config->load('file', true);
-
-		// load the lang config
-		$this->config->load('lang', true);
-
-		// setup the input container...
-		$this->input = $factory->createInputContainer();
+		// create the main application component
+		$this->_component = $this->newComponent('/', $appNamespace);
 
 		// create the environment for this application
-		$this->env = $factory->createEnvironmentContainer($this, $environment);
+		$this->_environment = $this->factory->createEnvironmentContainer($name, $environment, $this);
 
 		// create the log instance for this application
-		$this->log = $factory->createLogInstance('fuelphp-'.$this->appName);
+		$this->_log = $this->factory->createLogInstance('fuel');
 
 		// load the log config
-		if (file_exists($path = $this->appPath.'config'.DS.'log.php'))
-		{
-			$loadlog = function($log, $app, $__file__) {
-				return require $__file__;
-			};
-			$log = $loadlog($this->log, $this, $path);
+		$log = $this->getConfig()->load('log', true);
 
-			// if a log instance is returned, replace the one we had
-			if ($log instanceOf \Psr\Log\LoggerInterface)
-			{
-				$this->log = $log;
-			}
+		// a log customizer defined?
+		if (isset($log['customize']) and $log['customize'] instanceOf \Closure)
+		{
+			$log['customize']($this, $this->_log);
 		}
 
-		// setup the applications event manager
-		$this->event = $factory->createEventInstance();
+		// setup the event container...
+		$this->_event = $this->factory->createEventInstance();
 
-		// setup a shutdown event for this application
-		register_shutdown_function(function($event) { $event->trigger('shutdown', $this); }, $this->event);
+		// setup a global shutdown event for this event container
+		register_shutdown_function(function($event) { $event->trigger('shutdown'); }, $this->_event);
+
+		// setup a shutdown event for writing cookies
+		$this->event->on('shutdown', function($event) { $this->getCookie()->send(); }, $this->_component->getInput());
 
 		// load the session config
-		$session = $this->config->load('session', true);
+		$session = $this->getConfig()->load('session', true);
 
 		// do we need to auto-start one?
 		if (isset($session['auto_initialize']) and $session['auto_initialize'])
 		{
 			// create a session instance
-			$this->session = $factory->createSessionInstance();
+			$this->_session = $factory->createSessionInstance();
 		}
 
 		// create the view manager instance for this application
-		$this->viewManager = $factory->createViewmanagerInstance($this->appName, $this->appPath);
+		$this->_viewManager = $factory->createViewmanagerInstance();
 
 		// load the view config
-		$this->config->load('view', true);
+		$this->getConfig()->load('view', true);
 
 		// get the defined view parsers
-		$parsers = $this->config->get('view.parsers', array());
+		$parsers = $this->getConfig()->get('view.parsers', array());
 
 		// and register them to the View Manager
 		foreach($parsers as $extension => $parser)
@@ -228,14 +157,57 @@ class Application
 				$extension = $parser;
 				$parser = 'parser.'.$extension;
 			}
-			$this->viewManager->registerParser($extension, $factory->createViewParserInstance($parser));
+			$this->_viewManager->registerParser($extension, $factory->createViewParserInstance($parser));
 		}
 
-		// add this app
-		$this->addModule(false, $this->appNamespace, $this->appPath, true);
-
 		// log we're alive!
-		$this->log->info('Application "'.$this->appName.'" initialized.');
+		$this->_log->info('Application initialized.');
+	}
+
+	/**
+	 * Construct a new application component
+	 *
+	 * @param  string            $uri               base URI for this component
+	 * @param  string            $namespace         namespace that identifies this component
+	 * @param  string|array      $paths             optional Path or paths to the root folder of the component
+	 * @param  boolean           $routeable         whether or not this component is publicly routable
+	 * @param  string|Component  $parent            Parent component, or URI of the parent Component
+	 *
+	 * @return  Component  the newly constucted component object
+	 *
+	 * @since  2.0.0
+	 */
+	public function newComponent($uri, $namespace, $paths = null, $routeable = true, $parent = null)
+	{
+		// unify the URI
+		$uri = trim($uri, '/');
+
+		// and the namespace
+		$namespace = trim($namespace, '\\');
+
+		// and whether or not the component is routeable
+		$routeable = (bool) $routeable;
+
+		// resolve the parent if needed
+		if (is_string($parent) and isset($this->_components[$parent]))
+		{
+			$parent = $this->_components[$parent];
+		}
+
+		// create the component instance, store it, and return it
+		return $this->_components[$uri] = $this->factory->createComponentInstance($this, $uri, $namespace, $paths, $routeable, $parent);
+	}
+
+	/**
+	 * Returns the applications environment string
+	 *
+	 * @return  string
+	 *
+	 * @since  2.0.0
+	 */
+	public function environment()
+	{
+		return $this->_environment->getName();
 	}
 
 	/**
@@ -258,72 +230,27 @@ class Application
 	}
 
 	/**
-	 * Return the application name
+	 * Returns the applications main component object
 	 *
-	 * @return  string
+	 * @return  Component
 	 *
 	 * @since  2.0.0
 	 */
-	public function getName()
+	public function getComponent()
 	{
-		return $this->appName;
+		return $this->_component;
 	}
 
 	/**
-	 * Return the application base namespace
+	 * Returns all applications component objects
 	 *
-	 * @return  string
-	 *
-	 * @since  2.0.0
-	 */
-	public function getNamespace()
-	{
-		return $this->appNamespace;
-	}
-
-	/**
-	 * Return the application namespaces
-	 *
-	 * @return  string
+	 * @return  array of Component
 	 *
 	 * @since  2.0.0
 	 */
-	public function getNamespaces()
+	public function getComponents()
 	{
-		return $this->appNamespaces;
-	}
-
-	/**
-	 * Set an applications namespace information, and add it's path(s) of
-	 * it's classes to the autoloader
-	 *
-	 * @param  string   base namespace
-	 * @param  array    namespace configuration
-	 * *
-	 * @return  string
-	 *
-	 * @since  2.0.0
-	 */
-	protected function setNamespace($prefix, Array $config = array())
-	{
-		$this->appNamespaces[$prefix] = $config;
-
-		// make sure longer prefixes are first in the list
-		krsort($this->appNamespaces);
-
-		$this->factory->getAutoloaderInstance()->addpsr4(rtrim($prefix, '\\').'\\', $this->appPath.'classes');
-	}
-
-	/**
-	 * Return the application root path
-	 *
-	 * @return  string
-	 *
-	 * @since  2.0.0
-	 */
-	public function getPath()
-	{
-		return $this->appPath;
+		return $this->_components;
 	}
 
 	/**
@@ -335,7 +262,7 @@ class Application
 	 */
 	public function getConfig()
 	{
-		return $this->config;
+		return $this->getComponent()->getConfig();
 	}
 
 	/**
@@ -347,43 +274,19 @@ class Application
 	 */
 	public function getEnvironment()
 	{
-		return $this->env;
+		return $this->_environment;
 	}
 
 	/**
-	 * Return the router object
+	 * Return the applications event manager
 	 *
-	 * @return  Router
-	 *
-	 * @since  2.0.0
-	 */
-	public function getRouter()
-	{
-		return $this->router;
-	}
-
-	/**
-	 * Return the applications View manager
-	 *
-	 * @return  Fuel\Display\ViewManager
+	 * @return  Fuel\Event\Container
 	 *
 	 * @since  2.0.0
 	 */
-	public function getViewManager()
+	public function getEvent()
 	{
-		return $this->viewManager;
-	}
-
-	/**
-	 * Return the applications Log manager
-	 *
-	 * @return  Psr\Log\LoggerInterface
-	 *
-	 * @since  2.0.0
-	 */
-	public function getLog()
-	{
-		return $this->log;
+		return $this->_event;
 	}
 
 	/**
@@ -395,7 +298,31 @@ class Application
 	 */
 	public function getInput()
 	{
-		return $this->input;
+		return $this->getComponent()->getInput();
+	}
+
+	/**
+	 * Return the applications Log manager
+	 *
+	 * @return  Psr\Log\LoggerInterface
+	 *
+	 * @since  2.0.0
+	 */
+	public function getLog()
+	{
+		return $this->_log;
+	}
+
+	/**
+	 * Return the defined application name
+	 *
+	 * @return  string
+	 *
+	 * @since  2.0.0
+	 */
+	public function getName()
+	{
+		return $this->_name;
 	}
 
 	/**
@@ -407,7 +334,19 @@ class Application
 	 */
 	public function getSession()
 	{
-		return $this->session;
+		return $this->_session;
+	}
+
+	/**
+	 * Return the applications View manager
+	 *
+	 * @return  Fuel\Display\ViewManager
+	 *
+	 * @since  2.0.0
+	 */
+	public function getViewManager()
+	{
+		return $this->_viewManager;
 	}
 
 	/**
@@ -421,197 +360,6 @@ class Application
 	 */
 	public function setSession(SessionManager $session)
 	{
-		$this->session = $session;
-	}
-
-	/**
-	 * Return a language container instance
-	 *
-	 * @param  string   language to fetch, or null for the current active language
-	 *
-	 * @return  Fuel\Config\Container
-	 *
-	 * @since  2.0.0
-	 */
-	public function getLanguage($language = null)
-	{
-		if ($language === null)
-		{
-			$language = $this->config->get('lang.current', $this->config->get('lang.fallback', 'en'));
-		}
-
-		if ( ! isset($this->languages[$language]))
-		{
-			$this->languages[$language] = $this->factory->createLanguageInstance($this->appName.'-'.$language);
-			$this->languages[$language]
-				->addPath(realpath(__DIR__.DS.'..'.DS.'..'.DS.'..'.DS.'defaults'.DS.'lang'.DS.$language).DS)
-				->addPath($this->appPath.'lang'.DS.$language.DS);
-		}
-
-		return $this->languages[$language];
-	}
-
-	/**
-	 * Set an applications language container instance
-	 *
-	 * @param  string            language to set
-	 * @param  ConfigContainer   instance of Fuel\Config\Container
-	 *
-	 * @return  void
-	 *
-	 * @since  2.0.0
-	 */
-	public function setLanguage($language, ConfigContainer $instance)
-	{
-		$this->languages[$language] = $instance;
-	}
-
-	/**
-	 * Return the applications event manager
-	 *
-	 * @return  Fuel\Event\Container
-	 *
-	 * @since  2.0.0
-	 */
-	public function getEvent()
-	{
-		return $this->event;
-	}
-
-	/**
-	 * Construct an application request
-	 *
-	 * @param   string  $uri
-	 * @param   array|Input  $input
-	 *
-	 * @return  Request
-	 *
-	 * @since  2.0.0
-	 */
-	public function getRequest($uri = null, Array $input = array())
-	{
-		// if no uri is given, fetch the global one
-		$uri === null and $uri = $this->input->getPathInfo();
-
-		// log the request
-		$this->log->info('Application "'.$this->appName.'" is creating new "'.$this->input->getMethod().'" Request for URI: '.(empty($uri) ? '/' : $uri));
-
-		// forge a new request
-		return $this->factory->createRequestInstance($uri, $input);
-	}
-
-	/**
-	 * Add a module to the application
-	 *
-	 * @param  string   URI prefix for this module
-	 * @param  string   root namespace for classes in this module
-	 * @param  string   the path to the root of the module
-	 * @param  boolean  whether or not this module is routable
-	 *
-	 * @return Application  for chaining
-	 */
-	public function addModule($prefix, $namespace, $path, $routeable = true)
-	{
-		if ( ! is_dir($path))
-		{
-			throw new \InvalidArgumentException('FOU-010: Module path ['.$path.'] does not exist.');
-		}
-		$path = realpath($path).DS;
-
-		// store it in the application namespaces list
-		$this->setNamespace($prefix ?: $namespace, array(
-			'prefix' => $prefix,
-			'namespace' => $namespace,
-			'path' => $path,
-			'routeable' => $routeable,
-		));
-
-		// and load any defined routes in this module
-		$this->loadRoutes($path, $this->appNamespaces[$prefix ?: $namespace]);
-
-		// does this module have a bootstrap?
-		if (file_exists($file = $path.'bootstrap.php'))
-		{
-			$loadbootstrap = function($app, $__file__) {
-				return include $__file__;
-			};
-			$loadbootstrap($this, $file);
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Remove a module from the application
-	 *
-	 * @param  string   URI prefix for this module
-	 *
-	 * @return Application  for chaining
-	 */
-	public function removeModule($prefix)
-	{
-		// remove the module from the namespace list
-		if (isset($this->appNamespaces[$prefix]))
-		{
-			unset($this->appNamespaces[$prefix]);
-		}
-
-		// TODO: remove this modules routes from the router!
-
-		return $this;
-	}
-
-	/**
-	 * Add all modules in the given path to the application
-	 *
-	 * @param  string   the path to the root of the modules
-	 *
-	 * @return Application  for chaining
-	 */
-	public function addModulePath($path)
-	{
-		if ( ! is_dir($path))
-		{
-			throw new \InvalidArgumentException('FOU-011: Module path ['.$path.'] does not exist.');
-		}
-
-		$folder = new \GlobIterator(realpath($path).DS.'*', \GlobIterator::SKIP_DOTS | \GlobIterator::CURRENT_AS_PATHNAME);
-
-		foreach($folder as $entry)
-		{
-			// make sure it's a directory, and we have a classes folder
-			if (is_dir($entry) and is_dir($entry.DS.'classes'))
-			{
-				$this->addModule(basename($entry), ucfirst(basename($entry)), $entry, true);
-			}
-		}
-	}
-
-	/**
-	 * Import routes from the given path's config folder, it defined
-	 *
-	 * @param  string  path to an app/module/package root
-	 * @param  array   information about the environment these routes are defined in
-	 *
-	 * @return  bool  Whether or not the path had routes defined
-	 */
-	protected function loadRoutes($path, Array $config = array())
-	{
-		if (file_exists($path = $path.'config'.DS.'routes.php'))
-		{
-			$loadroutes = function($router, $config, $__file__) {
-				return include $__file__;
-			};
-			$routes = $loadroutes($this->router, $config, $path);
-
-			if (is_array($routes))
-			{
-				// TODO, process v1.x type route array
-			}
-
-			return true;
-		}
-
-		return false;
+		$this->_session = $session;
 	}
 }

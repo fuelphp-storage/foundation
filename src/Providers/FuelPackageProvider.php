@@ -34,6 +34,11 @@ class FuelPackageProvider extends PackageProvider
 		$alias = $this->dic->resolve('alias');
 
 		/**
+		 * Alias the Fuel class to global
+		 */
+		$alias->alias('Fuel', 'Fuel\Foundation\Fuel');
+
+		/**
 		 * Alias all Foundation facade classes to global
 		 */
 		$alias->aliasNamespace('Fuel\Foundation\Facades', '');

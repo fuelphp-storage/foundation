@@ -31,7 +31,7 @@ class Queue extends Base
 			$name = uniqid(true);
 		}
 
-		return static::$dic->multiton('queue', $name);
+		return static::getDic()->multiton('queue', $name);
 	}
 
 	/**
@@ -41,7 +41,7 @@ class Queue extends Base
 	 */
 	public static function delete($name)
 	{
-		return static::$dic->remove('queue::'.$name);
+		return static::getDic()->remove('queue::'.$name);
 	}
 
 	/**

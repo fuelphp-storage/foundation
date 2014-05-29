@@ -34,8 +34,7 @@
 		"michelf/php-markdown": "Required if you want to use the Markdown facade class"
 	},
 	"autoload": {
-		"psr-4": { "Fuel\\Foundation\\": "src/" },
-		"files": ["helpers/loader.php"]
+		"psr-4": { "Fuel\\Foundation\\": "src/" }
 	},
 	"minimum-stability": "dev"
 }

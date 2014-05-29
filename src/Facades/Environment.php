@@ -37,7 +37,7 @@ class Environment extends Base
 	public static function forge($environment)
 	{
 		$name = \Application::getInstance()->getName();
-		return static::$dic->multiton('environment', $name, func_get_args());
+		return static::getDic()->multiton('environment', $name, func_get_args());
 	}
 
 	/**
@@ -53,12 +53,12 @@ class Environment extends Base
 	 */
 	public static function get($name)
 	{
-		if ( ! static::$dic->isInstance('environment', $name))
+		if ( ! static::getDic()->isInstance('environment', $name))
 		{
 			throw new \InvalidArgumentException('FOU-015: There is no environment defined named ['.$name.'].');
 		}
 
-		return static::$dic->multiton('environment', $name);
+		return static::getDic()->multiton('environment', $name);
 	}
 
 	/**
@@ -71,7 +71,7 @@ class Environment extends Base
 		// get the current environment via the active request instance
 		if ($request = \Request::getActive())
 		{
-			return $request->getApplication()->getEnvironment();
+			return $request->getComponent()->getApplication()->getEnvironment();
 		}
 
 		// no active request, return the main applications' environment

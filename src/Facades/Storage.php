@@ -41,7 +41,7 @@ class Storage extends Base
 		}
 
 		// create and return the requested storage instance
-		return static::$dic->resolve('storage.'.$type, array($config));
+		return static::getDic()->resolve('storage.'.$type, array($config));
 	}
 
 	/**

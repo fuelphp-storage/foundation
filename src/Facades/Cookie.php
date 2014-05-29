@@ -37,6 +37,6 @@ class Cookie extends Base
 		}
 
 		// no active request, return the global one
-		return static::$dic->resolve('input.global')->getCookie();
+		return \Component::getInstance()->getInput()->getCookie();
 	}
 }

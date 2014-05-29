@@ -37,7 +37,7 @@ class Presenter extends Base
 		{
 			$view = $uri;
 		}
-
+die('presenter facade !');
 		// get the active namespace list
 		$namespaces = \Request::getInstance()->getApplication()->getNamespaces();
 

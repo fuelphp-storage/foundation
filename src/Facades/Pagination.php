@@ -28,7 +28,7 @@ class Pagination extends Base
 	 */
 	public static function forge()
 	{
-		return static::$dic->resolve('pagination', func_get_args());
+		return static::getDic()->resolve('pagination', func_get_args());
 	}
 
 	/**

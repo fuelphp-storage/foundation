@@ -28,7 +28,7 @@ class Inflector extends Base
 	 */
 	public static function forge()
 	{
-		return static::$dic->resolve('inflector', func_get_args());
+		return static::getDic()->resolve('inflector', func_get_args());
 	}
 
 	/**

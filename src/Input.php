@@ -24,6 +24,13 @@ use Fuel\Config\Container;
 class Input
 {
 	/**
+	 * @var  InjectionFactory  this applications object factory
+	 *
+	 * @since  2.0.0
+	 */
+	protected $factory;
+
+	/**
 	 * @var  Input  parent Input object to fall back on
 	 *
 	 * @since  2.0.0
@@ -110,33 +117,27 @@ class Input
 	/**
 	 * Constructor
 	 *
-	 * @param  array                  $inputVars  HTTP input overwrites
-	 * @param  Base                   $parent     whether this input object falls back to another one
-	 * @param  InputInjectionFactory  $factory    factory object to construct external objects
+	 * @param  array             $inputVars  HTTP input overwrites
+	 * @param  Input             $parent     whether this input object falls back to another one
+	 * @param  InjectionFactory  $factory    factory object to construct external objects
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct(array $inputVars = array(), $parent = null, InputInjectionFactory $factory)
+	public function __construct(array $inputVars = array(), $parent = null, InjectionFactory $factory)
 	{
-		// pre-process any input vars given to us
-		$this->server = isset($inputVars['server']) ? $inputVars['server'] : array();
-		$this->param = isset($inputVars['param']) ? $inputVars['param'] : array();
-		$this->query = isset($inputVars['query']) ? $inputVars['query'] : array();
-		$this->cookie = isset($inputVars['cookie']) ? $inputVars['cookie'] : array();
-		$this->files = isset($inputVars['files']) ? $inputVars['files'] : array();
-		$this->cli = isset($inputVars['cli']) ? $inputVars['cli'] : array();
-		$this->requestBody = isset($inputVars['requestBody']) ? $inputVars['requestBody'] : array();
-
-		// convert the arrays into DataContainers
-		$this->server  = $factory->createDataContainer($this->server);
-		$this->param   = $factory->createDataContainer($this->param);
-		$this->query   = $factory->createDataContainer($this->query);
-		$this->files   = $factory->createDataContainer($this->files);
-		$this->cli     = $factory->createDataContainer($this->cli);
-		$this->cookie  = $factory->createCookieJar($this->cookie);
+		// store the applications object factory
+		$this->factory = $factory;
 
 		// assign the parent object if given
 		$this->parent = $parent instanceof self ? $parent : null;
+
+		// create the data containers
+		$this->server  = $this->factory->createDataContainer();
+		$this->param   = $this->factory->createDataContainer();
+		$this->query   = $this->factory->createDataContainer();
+		$this->files   = $this->factory->createDataContainer();
+		$this->cli     = $this->factory->createDataContainer();
+		$this->cookie  = $this->factory->createCookieJar();
 
 		// link our containers to their parents
 		if ($this->parent)
@@ -149,17 +150,65 @@ class Input
 			$this->cookie->setParent($this->parent->getCookie());
 		}
 
+		// load the object with any data passed
+		$this->load($inputVars);
+
+		// store the http method if one was passed. if not get it
+
 		isset($inputVars['method'])
 			? $this->httpMethod = $inputVars['method']
 			: $this->httpMethod = $this->getServer('HTTP_X_HTTP_METHOD_OVERRIDE', $this->getServer('REQUEST_METHOD')) ?: null;
 		$this->httpMethod and $this->httpMethod = strtoupper($this->httpMethod);
+
+	}
+
+	/**
+	 * Load input variables in bulk
+	 *
+	 * @param   array  $input  multi-dimensional array of input variables
+	 * @return  Input
+	 *
+	 * @since  2.0.0
+	 */
+	public function load(array $input = array())
+	{
+		// load the data into the containers
+		if (isset($input['server']))
+		{
+			$this->server->merge($input['server']);
+		}
+		if (isset($input['param']))
+		{
+			$this->param->merge($input['param']);
+		}
+		if (isset($input['query']))
+		{
+			$this->query->merge($input['query']);
+		}
+		if (isset($input['cookie']))
+		{
+			$this->cookie->merge($input['cookie']);
+		}
+		if (isset($input['files']))
+		{
+			$this->files->merge($input['files']);
+		}
+		if (isset($input['cli']))
+		{
+			$this->cli->merge($input['cli']);
+		}
+
+		// update the request body if one was passed
+		$this->requestBody = isset($input['requestBody']) ? $inputVars['requestBody'] : array();
+
+		return $this;
 	}
 
 	/**
 	 * Inserts global input variables into this object
 	 *
 	 * @param   array  $include  list of which variables to insert, empty for all
-	 * @return  Base
+	 * @return  Input
 	 *
 	 * @since  2.0.0
 	 */

@@ -44,13 +44,13 @@ class Auth extends Base
 		}
 
 		// make sure we don't already have this auth instance
-		if (static::$dic->isInstance('auth', $name))
+		if (static::getDic()->isInstance('auth', $name))
 		{
 			throw new \RuntimeException('FOU-036: An auth instance named ['.$name.'] is already defined.');
 		}
 
 		// create the instance
-		$instance = static::$dic->resolve('auth', array($name, $config));
+		$instance = static::getDic()->resolve('auth', array($name, $config));
 
 		// if this is the first, make it the default instance
 		if ( ! static::$instance)

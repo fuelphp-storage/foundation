@@ -22,9 +22,16 @@ use Fuel\Routing\Match;
 class RouteFilter
 {
 	/**
-	 * @var  string  The app instance
+	 * @var  InjectionFactory  this applications object factory
+	 *
+	 * @since  2.0.0
 	 */
-	protected $app;
+	protected $factory;
+
+	/**
+	 * @var  string  The component instance
+	 */
+	protected $component;
 
 	/**
 	 * @var  string  The type of controller to resolve
@@ -35,12 +42,15 @@ class RouteFilter
 	 * Constructor
 	 * the segments.
 	 *
-	 * @param   Application  The application object
-	 * @return  void
+	 * @param  Component         $component  The component object
+	 * @param  InjectionFactory  $factory    factory object to construct external objects
 	 */
-	public function __construct($app)
+	public function __construct($component, InjectionFactory $factory)
 	{
-		$this->app = $app;
+		$this->component = $component;
+
+		// store the applications object factory
+		$this->factory = $factory;
 	}
 
 	/**
@@ -63,25 +73,28 @@ class RouteFilter
 		}
 		else
 		{
+			// fetch all components loaded by this application
+			$components = $this->component->getApplication()->getComponents();
+
 			// find a match
-			foreach ($this->app->getNamespaces() as $namespace)
+			foreach ($components as $uri => $component)
 			{
-			// skip non-routeable namespaces
-				if ( ! $namespace['routeable'] and $this->app->factory->isMainRequest())
+				// skip non-routeable components
+				if ( ! $component->isRoutable() and $this->factory->isMainRequest())
 				{
 					continue;
 				}
 
 				// skip if we don't have a prefix match
-				if ($namespace['prefix'] and strpos($match->translation, $namespace['prefix']) !== 0)
+				if ($uri and strpos($match->translation, $uri) !== 0)
 				{
 					continue;
 				}
 
-				$match->setNamespace($namespace['namespace']);
+				$match->setNamespace($component->getNamespace());
 
 				// get the segments from the translated route
-				$segments = explode('/', ltrim(substr($match->translation, strlen($namespace['prefix'])),'/'));
+				$segments = explode('/', ltrim(substr($match->translation, strlen($uri)),'/'));
 
 				$arguments = array();
 				while(count($segments))
@@ -89,7 +102,7 @@ class RouteFilter
 					$class = $match->namespace.$this->type.'\\'.implode('\\', array_map('ucfirst', $segments));
 					if (class_exists($class))
 					{
-						$match->path = $namespace['path'];
+						$match->path = $component->getPath();
 						$match->controller = $class;
 						break;
 					}

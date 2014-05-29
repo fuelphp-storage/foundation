@@ -20,11 +20,12 @@ namespace Fuel\Foundation\Facades;
 abstract class Base
 {
 	/**
-	 * @var  Container  the DiC
-	 *
-	 * @since  2.0.0
+	 * Shortcut method to get access to the DiC
 	 */
-	protected static $dic;
+	protected static function getDic()
+	{
+		return \Fuel::getDic();
+	}
 
 	/**
 	* Static method interface on dynamic objects

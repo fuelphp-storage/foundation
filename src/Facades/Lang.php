@@ -30,7 +30,7 @@ class Lang extends Base
 	 */
 	public static function forge($name)
 	{
-		$instance = static::$dic->multiton('config', 'lang-'.$name);
+		$instance = static::getDic()->multiton('config', 'lang-'.$name);
 		return $instance;
 	}
 
@@ -140,6 +140,6 @@ class Lang extends Base
 	 */
 	public static function getInstance($lang = null)
 	{
-		return \Application::getInstance()->getLanguage($lang);
+		return \Application::getInstance()->getComponent()->getLanguage($lang);
 	}
 }

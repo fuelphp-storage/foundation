@@ -11,21 +11,35 @@
 namespace Fuel\Foundation\Facades;
 
 /**
- * Error Facade class
+ * Component Facade class
  *
  * @package  Fuel\Foundation
  *
  * @since  2.0.0
  */
-class Error extends Base
+class Component extends Base
 {
 	/**
 	 * Get the object instance for this Facade
+	 *
+	 * @return  Component
 	 *
 	 * @since  2.0.0
 	 */
 	public static function getInstance()
 	{
-		return static::getDic()->resolve('errorhandler');
+		// get the current requests' application object
+		$stack = static::getDic()->resolve('requeststack');
+		if ($request = $stack->top())
+		{
+			$component = $request->getComponent();
+		}
+		else
+		{
+			// fall back to the main component
+			$component = static::getDic()->resolve('application::__main')->getComponent();
+		}
+
+		return $component;
 	}
 }

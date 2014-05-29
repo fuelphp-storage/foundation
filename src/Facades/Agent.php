@@ -41,7 +41,7 @@ class Agent extends Base
 		$args = func_get_args();
 		array_shift($args);
 
-		return static::$dic->multiton('agent', $name, $args);
+		return static::getDic()->multiton('agent', $name, $args);
 	}
 
 	/**
@@ -54,4 +54,3 @@ class Agent extends Base
 		return static::forge();
 	}
 }
-

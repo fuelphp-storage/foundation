@@ -27,11 +27,13 @@ class FuelServiceProvider extends ServiceProvider
 	 * @var  array  list of service names provided by this provider
 	 */
 	public $provides = array(
-		'application', 'environment', 'input', 'log', 'routefilter',
+		'environment', 'component', 'requeststack', 'input',
+		'session.db', 'session.memcached', 'session.redis',
+		'routefilter', 'log',
+
 		'request', 'request.local',
 		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml', 'response.redirect',
 		'storage.db', 'storage.memcached', 'storage.redis',
-		'session.db', 'session.memcached', 'session.redis',
 	);
 
 	/**
@@ -44,23 +46,175 @@ class FuelServiceProvider extends ServiceProvider
 		 */
 		$this->extension('getApplicationInstance', function($container, $instance)
 		{
-			$stack = $this->container->resolve('requeststack');
-			if ($request = $stack->top())
+			try
 			{
-				$app = $request->getApplication();
-			}
-			else
-			{
-				$app = $this->container->resolve('application.main');
-			}
+				$stack = $container->resolve('requeststack');
+				if ($request = $stack->top())
+				{
+					$app = $request->getComponent()->getApplication();
+				}
+				else
+				{
+					$app = $container->resolve('application::__main');
+				}
 
-			if (is_callable(array($instance, 'setApplication')))
-			{
-				$instance->setApplication($app);
+				if (is_callable(array($instance, 'setApplication')))
+				{
+					$instance->setApplication($app);
+				}
+				else
+				{
+					$instance->app = $app;
+				}
 			}
-			else
+			catch (\Fuel\Dependency\ResolveException $e)
 			{
-				$instance->app = $app;
+				// ignore
+			}
+		});
+
+		$this->extension('getConfigInstance', function($container, $instance)
+		{
+			try
+			{
+				$stack = $this->container->resolve('requeststack');
+				if ($request = $stack->top())
+				{
+					$config = $request->getComponent()->getConfig();
+				}
+				else
+				{
+					$config = $this->container->resolve('application::__main')->getComponent()->getConfig();
+				}
+
+				if (is_callable(array($instance, 'setConfig')))
+				{
+					$instance->setConfig($config);
+				}
+				else
+				{
+					$instance->config = $config;
+				}
+			}
+			catch (\Fuel\Dependency\ResolveException $e)
+			{
+				// ignore
+			}
+		});
+
+		$this->extension('getInputInstance', function($container, $instance)
+		{
+			try
+			{
+				$stack = $this->container->resolve('requeststack');
+				if ($request = $stack->top())
+				{
+					$input = $request->getComponent()->getInput();
+				}
+				else
+				{
+					$input = $this->container->resolve('application::__main')->getComponent()->getInput();
+				}
+
+				if (is_callable(array($instance, 'setInput')))
+				{
+					$instance->setInput($input);
+				}
+				else
+				{
+					$instance->input = $input;
+				}
+			}
+			catch (\Fuel\Dependency\ResolveException $e)
+			{
+				// ignore
+			}
+		});
+
+		$this->extension('getLogInstance', function($container, $instance)
+		{
+			try
+			{
+				$stack = $this->container->resolve('requeststack');
+				if ($request = $stack->top())
+				{
+					$log = $request->getComponent()->getApplication()->getLog();
+				}
+				else
+				{
+					$log = $this->container->resolve('application::__main')->getLog();
+				}
+
+				if (is_callable(array($instance, 'setLog')))
+				{
+					$instance->setLog($log);
+				}
+				else
+				{
+					$instance->log = $log;
+				}
+			}
+			catch (\Fuel\Dependency\ResolveException $e)
+			{
+				// ignore
+			}
+		});
+
+		$this->extension('getRouterInstance', function($container, $instance)
+		{
+			try
+			{
+				$stack = $this->container->resolve('requeststack');
+				if ($request = $stack->top())
+				{
+					$router = $request->getComponent()->getRouter();
+				}
+				else
+				{
+					$router = $this->container->resolve('application::__main')->getComponent()->getRouter();
+				}
+
+				if (is_callable(array($instance, 'setRouter')))
+				{
+					$instance->setRouter($router);
+				}
+				else
+				{
+					$instance->router = $router;
+				}
+			}
+			catch (\Fuel\Dependency\ResolveException $e)
+			{
+				// ignore
+			}
+		});
+
+		$this->extension('getEnvironmentInstance', function($container, $instance)
+		{
+			try
+			{
+				$stack = $this->container->resolve('requeststack');
+				if ($request = $stack->top())
+				{
+					$environment = $request->getComponent()->getApplication()->getEnvironment();
+				}
+				else
+				{
+					$environment = $this->container->resolve('application::__main')->getEnvironment();
+				}
+
+				if (is_callable(array($instance, 'setEnvironment')))
+				{
+					$instance->setEnvironment($environment);
+				}
+				else
+				{
+					$instance->environment = $environment;
+				}
+			}
+			catch (\Fuel\Dependency\ResolveException $e)
+			{
+				// ignore
 			}
 		});
 
@@ -77,214 +231,19 @@ class FuelServiceProvider extends ServiceProvider
 			}
 		});
 
-		$this->extension('getLogInstance', function($container, $instance)
-		{
-			$stack = $this->container->resolve('requeststack');
-			if ($request = $stack->top())
-			{
-				$log = $request->getApplication()->getLog();
-			}
-			else
-			{
-				$log = $this->container->resolve('application.main')->getLog();
-			}
 
-			if (is_callable(array($instance, 'setLog')))
-			{
-				$instance->setLog($log);
-			}
-			else
-			{
-				$instance->log = $log;
-			}
-		});
 
-		$this->extension('getConfigInstance', function($container, $instance)
-		{
-			$stack = $this->container->resolve('requeststack');
-			if ($request = $stack->top())
-			{
-				$config = $request->getApplication()->getConfig();
-			}
-			else
-			{
-				try
-				{
-					$config = $this->container->resolve('application.main')->getConfig();
-				}
-				catch (ResolveException $e)
-				{
-					$config = $this->container->resolve('config.global');
-				}
-			}
 
-			if ($config)
-			{
-				if (is_callable(array($instance, 'setConfig')))
-				{
-					$instance->setConfig($config);
-				}
-				else
-				{
-					$instance->config = $config;
-				}
-			}
-		});
 
-		$this->extension('getRouterInstance', function($container, $instance)
-		{
-			$stack = $this->container->resolve('requeststack');
-			if ($request = $stack->top())
-			{
-				$router = $request->getApplication()->getRouter();
-			}
-			else
-			{
-				$router = $this->container->resolve('application.main')->getRouter();
-			}
 
-			if (is_callable(array($instance, 'setRouter')))
-			{
-				$instance->setRouter($router);
-			}
-			else
-			{
-				$instance->router = $router;
-			}
-		});
-
-		$this->extension('getEnvironmentInstance', function($container, $instance)
-		{
-			$stack = $this->container->resolve('requeststack');
-			if ($request = $stack->top())
-			{
-				$environment = $request->getApplication()->getEnvironment();
-			}
-			else
-			{
-				$environment = $this->container->resolve('application.main')->getEnvironment();
-			}
-
-			if (is_callable(array($instance, 'setEnvironment')))
-			{
-				$instance->setEnvironment($environment);
-			}
-			else
-			{
-				$instance->environment = $environment;
-			}
-		});
-
-		$this->extension('getInputInstance', function($container, $instance)
-		{
-			$stack = $this->container->resolve('requeststack');
-			if ($request = $stack->top())
-			{
-				$input = $request->getInput();
-			}
-			else
-			{
-				$input = $this->container->resolve('application.main')->getInput();
-			}
-
-			$instance->input = $input;
-		});
-
-		$this->extension('newFormatInstance', function($container, $instance)
-		{
-			$instance->format = $container->resolve('format');
-		});
-
-		/**
-		 * Register the resources provided by this service provider
+		/*
+		 * Instance definitions
 		 */
 
-		// \Fuel\Foundation\Input
-		$this->register('input', function ($dic, array $inputVars = array())
-		{
-			// find the parent input container
-			$stack = $this->container->resolve('requeststack');
-			if ($request = $stack->top())
-			{
-				$parent = $request->getApplication()->getInput();
-			}
-			else
-			{
-				try
-				{
-					$parent = $this->container->resolve('application.main')->getInput();
-					if ( ! $parent)
-					{
-						$parent = $this->container->resolve('input.global');
-					}
-				}
-				catch (ResolveException $e)
-				{
-					$parent = null;
-				}
-			}
-
-			return $dic->resolve('Fuel\Foundation\Input', array($inputVars, $parent));
-		});
-		$this->extend('input', 'getConfigInstance');
-
-		// \Fuel\Foundation\Application
-		$this->register('application', function ($dic, $name, $path = null, $namespace = null, $environment = null)
-		{
-			// config was passed as an array, extract the data
-			if (is_array($path))
-			{
-				// make sure the required fields exist
-				$path = array_merge(array('path' => null, 'namespace' => '', 'environment' => ''), $path);
-
-				// and extract them
-				extract($path);
-			}
-
-			// application path
-			if (empty($path))
-			{
-				$path = APPSPATH.$name;
-			}
-			$appPath = realpath($path);
-			if ( ! is_dir($appPath))
-			{
-				throw new \InvalidArgumentException('FOU-004: The path ['.$path.'] does not exist for application ['.$name.'].');
-			}
-
-			// application namespace, defaults to global
-			if (empty($namespace))
-			{
-				$namespace = '';
-			}
-
-			// application environment, defaults to 'development'
-			if (empty($environment))
-			{
-				$environment = 'development';
-			}
-
-			// add the root namespace for this application to composer
-			$dic->resolve('autoloader')->add($namespace, $appPath.DS.'classes', true);
-
-			return $dic->multiton('Fuel\Foundation\Application', $name, array($name, $appPath, $namespace, $environment));
-		});
-
 		// \Fuel\Foundation\Environment
-		$this->register('environment', function ($dic, $environment)
+		$this->register('environment', function ($dic, $environment, $app)
 		{
-			// get current application and input objects
-			$stack = $this->container->resolve('requeststack');
-			if ($request = $stack->top())
-			{
-				$app = $request->getApplication();
-			}
-			else
-			{
-				$app = $this->container->resolve('application.main');
-			}
-
-			return $dic->resolve('Fuel\Foundation\Environment', array($environment, $app, $app->getInput(), $app->getConfig()));
+			return $dic->resolve('Fuel\Foundation\Environment', array($environment, $app));
 		});
 
 		$this->registerSingleton('requeststack', function ($dic)
@@ -292,21 +251,79 @@ class FuelServiceProvider extends ServiceProvider
 			return $dic->resolve('Fuel\Dependency\Stack');
 		});
 
-		// \Fuel\Foundation\Request\...
-		$this->register('request', function ($dic, $resource, Array $input = array(), $type = null)
+		// \Fuel\Foundation\Component
+		$this->register('component', function ($dic, $app, $uri, $namespace, $paths, $routeable, $parent)
 		{
-			// get current application and input objects
-			$stack = $this->container->resolve('requeststack');
-			if ($request = $stack->top())
+			// make sure paths is an array
+			$paths = (array) $paths;
+
+			// get the autoloader instance
+			$loader = $dic->resolve('autoloader');
+
+			// get all defined namespaces
+			$prefixes = array_merge($loader->getPrefixes(), $loader->getPrefixesPsr4());
+
+			// check if we have a definition for this namespace
+			if (isset($prefixes[$namespace]))
 			{
-				$app = $request->getApplication();
-				$parentInput = $request->getInput();
+				$paths = array_merge($prefixes[$namespace], $paths);
 			}
-			else
+			elseif (isset($prefixes[$namespace .= '\\']))
 			{
-				$app = $this->container->resolve('application.main');
-				$parentInput = $app->getInput();
+				$paths = array_merge($prefixes[$namespace], $paths);
 			}
+
+			if (empty($paths))
+			{
+				throw new \InvalidArgumentException('FOU-xxx: Location of component identified by namespace ['.trim($namespace, '\\').'] can not be determined. Can not create a component instance.');
+			}
+
+			// create the component instance for this namespace
+			$config = $this->container->multiton('config', trim($namespace, '\\'));
+			$input = $this->container->resolve('input');
+			$input->setConfig($config);
+			if ($parent)
+			{
+				$config->setParent($parent->getConfig());
+				$input->setParent($parent->getInput());
+			}
+
+			return $dic->multiton('Fuel\Foundation\Component', $uri, array($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $dic->resolve('router')));
+		});
+
+		// \Fuel\Foundation\Input
+		$this->register('input', function ($dic, $inputVars = array(), $parent = null)
+		{
+			return $dic->resolve('Fuel\Foundation\Input', array($inputVars, $parent));
+		});
+		$this->extend('input', 'getConfigInstance');
+
+		// \Fuel\Foundation\Session\Db
+		$this->register('session.db', function ($dic, Array $config = array())
+		{
+			$name = empty($config['db']['name']) ? null : $config['db']['name'];
+			return $dic->resolve('Fuel\Foundation\Session\Db', array($config, $dic->resolve('storage.db', array($name))));
+		});
+
+		// \Fuel\Foundation\Session\Memcached
+		$this->register('session.memcached', function ($dic, Array $config = array())
+		{
+			$name = empty($config['memcached']['name']) ? null : $config['memcached']['name'];
+			return $dic->resolve('Fuel\Foundation\Session\Memcached', array($config, $dic->resolve('storage.memcached', array($name))));
+		});
+
+		// \Fuel\Foundation\Session\Redis
+		$this->register('session.redis', function ($dic, Array $config = array())
+		{
+			$name = empty($config['redis']['name']) ? null : $config['redis']['name'];
+			return $dic->resolve('Fuel\Foundation\Session\Redis', array($config, $dic->resolve('storage.redis', array($name))));
+		});
+
+		// \Fuel\Foundation\Request\...
+		$this->register('request', function ($dic, $component, $resource, Array $input = array(), $type = null)
+		{
+			// get the parent input objects
+			$parentInput = $component->getInput();
 
 			// determine the type of request to return
 			if ($type === null)
@@ -328,7 +345,7 @@ class FuelServiceProvider extends ServiceProvider
 				else
 				{
 					// http request for this current base url?
-					if (strpos($resource, $app->getEnvironment()->getBaseUrl()) === 0)
+					if (strpos($resource, $component->getApplication()->getEnvironment()->getBaseUrl()) === 0)
 					{
 						// request for the current base URL, so it's a local request too
 						$resource  = empty($url['path']) ? '/' : $url['path'];
@@ -351,26 +368,74 @@ class FuelServiceProvider extends ServiceProvider
 			$input = $dic->resolve('input', array($input, $parentInput));
 
 			// return the constructed request
-			return $dic->resolve('request.'.$type, array($app, $resource, $input));
+			return $dic->resolve('request.'.$type, array($component, $resource, $input));
 		});
 
 		// \Fuel\Foundation\Request\Local
-		$this->register('request.local', function ($dic, $app, $resource = '', $inputInstance = null)
+		$this->register('request.local', function ($dic, $component, $resource = '', $inputInstance = null)
 		{
-			return $dic->resolve('Fuel\Foundation\Request\Local', array($app, $resource, $inputInstance));
+			return $dic->resolve('Fuel\Foundation\Request\Local', array($component, $resource, $inputInstance));
 		});
-		$this->extend('request.local', 'getApplicationInstance');
-		$this->extend('request.local', 'getRouterInstance');
-		$this->extend('request.local', 'getLogInstance');
 
 		// \Fuel\Foundation\Request\Cli
-		$this->register('request.cli', function ($dic, $app, $resource = '', $inputInstance = null)
+		$this->register('request.cli', function ($dic, $component, $resource = '', $inputInstance = null)
 		{
-			return $dic->resolve('Fuel\Foundation\Request\Cli', array($app, $resource, $inputInstance));
+			return $dic->resolve('Fuel\Foundation\Request\Cli', array($component, $resource, $inputInstance));
 		});
-		$this->extend('request.cli', 'getApplicationInstance');
-		$this->extend('request.cli', 'getRouterInstance');
-		$this->extend('request.cli', 'getLogInstance');
+
+		// \FuelPHP specific route filter
+		$this->register('routefilter', function ($dic, $component)
+		{
+			return $dic->resolve('Fuel\Foundation\RouteFilter', array($component));
+		});
+
+		/**
+		 * Service definitions for required non-Fuel classes
+		 */
+
+		// \Monolog\Logger
+		$this->register('log', function ($dic, $name, array $handlers = array(), array $processors = array())
+		{
+			return new \Monolog\Logger($name, $handlers, $processors);
+		});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		$this->extension('newFormatInstance', function($container, $instance)
+		{
+			$instance->format = $container->resolve('format');
+		});
+
+		/**
+		 * Register the resources provided by this service provider
+		 */
+
 
 		// \Fuel\Foundation\Uri
 		$this->register('uri', function ($dic, $uri)
@@ -750,43 +815,6 @@ class FuelServiceProvider extends ServiceProvider
 
 			// return the instance
 			return $instance;
-		});
-
-		// \Fuel\Foundation\Session\Db
-		$this->register('session.db', function ($dic, Array $config = array())
-		{
-			$name = empty($config['db']['name']) ? null : $config['db']['name'];
-			return $dic->resolve('Fuel\Foundation\Session\Db', array($config, $dic->resolve('storage.db', array($name))));
-		});
-
-		// \Fuel\Foundation\Session\Memcached
-		$this->register('session.memcached', function ($dic, Array $config = array())
-		{
-			$name = empty($config['memcached']['name']) ? null : $config['memcached']['name'];
-			return $dic->resolve('Fuel\Foundation\Session\Memcached', array($config, $dic->resolve('storage.memcached', array($name))));
-		});
-
-		// \Fuel\Foundation\Session\Redis
-		$this->register('session.redis', function ($dic, Array $config = array())
-		{
-			$name = empty($config['redis']['name']) ? null : $config['redis']['name'];
-			return $dic->resolve('Fuel\Foundation\Session\Redis', array($config, $dic->resolve('storage.redis', array($name))));
-		});
-
-		// \Monolog\Logger
-		$this->register('routefilter', function ($dic, $app)
-		{
-			return new RouteFilter($app);
-		});
-
-		/**
-		 * Service definitions for required non-Fuel classes
-		 */
-
-		// \Monolog\Logger
-		$this->register('log', function ($dic, $name, array $handlers = array(), array $processors = array())
-		{
-			return new \Monolog\Logger($name, $handlers, $processors);
 		});
 	}
 }

@@ -28,7 +28,7 @@ class Debug extends Base
 	 */
 	public static function forge()
 	{
-		return static::$dic->resolve('debug', func_get_args());
+		return static::getDic()->resolve('debug', func_get_args());
 	}
 
 	/**

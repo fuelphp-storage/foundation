@@ -29,7 +29,7 @@ class Log extends Base
 	 */
 	public static function forge($name)
 	{
-		return static::$dic->multiton('log', $name, func_get_args());
+		return static::getDic()->multiton('log', $name, func_get_args());
 	}
 
 	/**

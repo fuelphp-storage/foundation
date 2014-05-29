@@ -9,9 +9,6 @@
  */
 namespace Fuel\Foundation\Request;
 
-use Fuel\Dependency\Container;
-use \Fuel\Dependency\ResolveException;
-
 use Fuel\Foundation\InjectionFactory;
 
 /**
@@ -42,33 +39,5 @@ class RequestInjectionFactory extends InjectionFactory
 	{
 		$stack = $this->container->resolve('requeststack');
 		$stack->pop();
-	}
-
-	/**
-	 * create an instance of the controller
-	 *
-	 * @return  Controller\Base
-	 *
-	 * @since  2.0.0
-	 */
-	public function createControllerInstance($controller)
-	{
-		$this->container->register('controller', $controller);
-		$this->container->extend('controller', 'getApplicationInstance');
-		$this->container->extend('controller', 'getRequestInstance');
-
-		return $this->container->resolve('controller');
-	}
-
-	/**
-	 * create an instance of the controller
-	 *
-	 * @return  Controller\Base
-	 *
-	 * @since  2.0.0
-	 */
-	public function createUriInstance($uri)
-	{
-		return $this->container->resolve('uri', array($uri));
 	}
 }

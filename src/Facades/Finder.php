@@ -30,7 +30,7 @@ class Finder extends Base
 	 */
 	public static function forge()
 	{
-		return static::$dic->resolve('finder', func_get_args());
+		return static::getDic()->resolve('finder', func_get_args());
 	}
 
 	/**

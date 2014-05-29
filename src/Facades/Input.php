@@ -30,7 +30,7 @@ class Input extends Base
 	 */
 	public static function forge(Array $input = array())
 	{
-		return static::$dic->resolve('input', func_get_args());
+		return static::getDic()->resolve('input', func_get_args());
 	}
 
 	/**
@@ -49,6 +49,6 @@ class Input extends Base
 		}
 
 		// no active request, return the current application instance
-		return \Application::getInstance()->getInput();
+		return \Application::getInstance()->getComponent()->getInput();
 	}
 }

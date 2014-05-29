@@ -20,31 +20,6 @@ namespace Fuel\Foundation\Facades;
 class Application extends Base
 {
 	/**
-	 * Forge a new application
-	 *
-	 * @param  $name  name of the auth instance to create
-	 * @param  $config  array with auth configuration information
-	 *
-	 * @throws InvalidArgumentException if a required config value is missing or incorrect
-	 * @throws RuntimeException if the application to forge already exists
-	 *
-	 * @returns	Application
-	 *
-	 * @since  2.0.0
-	 */
-	public static function forge($name, array $config = array())
-	{
-		// make sure we don't already have this application instance
-		if (static::$dic->isInstance('application', $name))
-		{
-			throw new \RuntimeException('FOU-035: An application named ['.$name.'] is already defined.');
-		}
-
-		// create and return this application instance
-		return static::$dic->multiton('application', $name, func_get_args());
-	}
-
-	/**
 	 * Get a defined application instance
 	 *
 	 * @param  $name  name of the application
@@ -58,13 +33,13 @@ class Application extends Base
 	public static function get($name)
 	{
 		// make sure we have this application instance
-		if ( ! static::$dic->isInstance('application', $name))
+		if ( ! static::getDic()->isInstance('application', $name))
 		{
 			throw new \RuntimeException('FOU-014: There is no application defined named ['.$name.'].');
 		}
 
 		// return the application instance
-		return static::$dic->multiton('application', $name);
+		return static::getDic()->multiton('application', $name);
 	}
 
 	/**
@@ -77,15 +52,15 @@ class Application extends Base
 	public static function getInstance()
 	{
 		// get the current requests' application object
-		$stack = static::$dic->resolve('requeststack');
+		$stack = static::getDic()->resolve('requeststack');
 		if ($request = $stack->top())
 		{
-			$app = $request->getApplication();
+			$app = $request->getComponent()->getApplication();
 		}
 		else
 		{
 			// fall back to the main application
-			$app = static::$dic->resolve('application.main');
+			$app = static::getDic()->resolve('application::__main');
 		}
 
 		return $app;

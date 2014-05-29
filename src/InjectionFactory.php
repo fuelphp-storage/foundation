@@ -31,15 +31,13 @@ class InjectionFactory
 		$this->container = $container;
 	}
 
+	// Instance creation
+
 	/**
 	 *
 	 */
 	public function createConfigContainer($name, $parent = null)
 	{
-		if ($parent === null)
-		{
-			$parent = $this->container->resolve('config.global');
-		}
 		$config = $this->container->multiton('config', $name);
 		$config->setParent($parent);
 
@@ -49,9 +47,9 @@ class InjectionFactory
 	/**
 	 *
 	 */
-	public function createInputContainer(Array $input = array())
+	public function createInputContainer($input = array(), $parent = null)
 	{
-		return $this->container->resolve('input', func_get_args());
+		return $this->container->resolve('input', array($input, $parent));
 	}
 
 	/**
@@ -81,9 +79,9 @@ class InjectionFactory
 	/**
 	 *
 	 */
-	public function createRouterInstance($name)
+	public function createRouterInstance()
 	{
-		return $this->container->multiton('router', $name);
+		return $this->container->resolve('router');
 	}
 
 	/**
@@ -97,9 +95,9 @@ class InjectionFactory
 	/**
 	 *
 	 */
-	public function createRequestInstance($uri, $input)
+	public function createRequestInstance($component, $uri, $input)
 	{
-		return $this->container->resolve('request', array($uri, $input));
+		return $this->container->resolve('request', array($component, $uri, $input));
 	}
 
 	/**
@@ -124,5 +122,81 @@ class InjectionFactory
 	public function createCookieJar(array $cookies = array())
 	{
 		return $this->container->resolve('cookiejar', $cookies);
+	}
+
+	/**
+	 *
+	 */
+	public function createEnvironmentContainer($name, $environment, $app)
+	{
+		return $this->container->multiton('environment', $name, array($environment, $app));
+	}
+
+	/**
+	 *
+	 */
+	public function createComponentInstance($app, $uri, $namespace, $paths = null, $routeable = true, $parent = null)
+	{
+		return $this->container->resolve('component', array($app, $uri, $namespace, $paths, $routeable, $parent));
+	}
+
+	/**
+	 *
+	 */
+	public function createViewmanagerInstance()
+	{
+		return $this->container->resolve('viewmanager', array(
+			$this->container->resolve('finder', array(array(realpath(__DIR__.DS.'..'.DS.'defaults')))),
+		));
+	}
+
+	/**
+	 *
+	 */
+	public function createViewParserInstance($name)
+	{
+		return $this->container->resolve($name);
+	}
+
+	/**
+	 * create an instance of the controller
+	 *
+	 * @return  Controller\Base
+	 *
+	 * @since  2.0.0
+	 */
+	public function createControllerInstance($controller)
+	{
+		$this->container->register('controller', $controller);
+		$this->container->extend('controller', 'getApplicationInstance');
+		$this->container->extend('controller', 'getRequestInstance');
+
+		return $this->container->resolve('controller');
+	}
+
+	/**
+	 * create an instance of the controller
+	 *
+	 * @return  Controller\Base
+	 *
+	 * @since  2.0.0
+	 */
+	public function createUriInstance($uri)
+	{
+		return $this->container->resolve('uri', array($uri));
+	}
+
+	/**
+	 *
+	 */
+	public function getRouteFilter($component)
+	{
+		return $this->container->resolve('routefilter', array($component));
+	}
+
+	public function isMainRequest()
+	{
+		$stack = $this->container->resolve('requeststack');
+		return count($stack) === 1;
 	}
 }

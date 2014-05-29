@@ -24,13 +24,6 @@ use Fuel\Foundation\Exception\NotFound;
 class Local extends Base
 {
 	/**
-	 * @var  \Fuel\Config\Container
-	 *
-	 * @since  2.0.0
-	 */
-	protected $config;
-
-	/**
 	 * Constructor
 	 *
 	 * @param  string  $resource
@@ -38,12 +31,9 @@ class Local extends Base
 	 *
 	 * @since  1.0.0
 	 */
-	public function __construct($app, $resource = '', $inputInstance = null, RequestInjectionFactory $factory)
+	public function __construct($component, $resource = '', $inputInstance = null, RequestInjectionFactory $factory)
 	{
-		parent::__construct($app, $resource, $inputInstance, $factory);
-
-		// store this requests config container
-		$this->config = $app->getConfig();
+		parent::__construct($component, $resource, $inputInstance, $factory);
 
 		// make sure the request has the correct format
 		$this->request  = '/'.trim(strval($resource), '/');
@@ -78,7 +68,7 @@ class Local extends Base
 		$this->log->info('Executing request');
 
 		// get a route object for this request
-		$this->route = $this->router->translate($this->request, $this->input->getMethod() );
+		$this->route = $this->router->translate($this->request, $this->input->getMethod());
 
 		// create a URI object
 		$this->uri = $this->factory->createUriInstance($this->route->uri);
@@ -120,9 +110,7 @@ class Local extends Base
 		// add the root path to the config, lang and view manager objects
 		if (isset($this->route->path))
 		{
-			$this->app->getViewManager()->getFinder()->addPath($this->route->path);
-			$this->config->addPath($this->route->path.'config'.DS);
-			$this->app->getLanguage()->addPath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
+			$this->component->getApplication()->getViewManager()->getFinder()->addPath($this->route->path);
 		}
 
 		try
@@ -151,9 +139,7 @@ class Local extends Base
 		// remove the root path to the config, lang and view manager objects
 		if (isset($this->route->path))
 		{
-			$this->app->getLanguage()->removePath($this->route->path.'lang'.DS.$this->config->get('lang.fallback', 'en').DS);
-			$this->config->removePath($this->route->path.'config'.DS);
-			$this->app->getViewManager()->getFinder()->removePath($this->route->path);
+			$this->component->getApplication()->getViewManager()->getFinder()->removePath($this->route->path);
 		}
 
 		// log the request termination

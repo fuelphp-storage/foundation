@@ -28,6 +28,6 @@ class Router extends Base
 	 */
 	public static function getInstance()
 	{
-		return \Application::getInstance()->getRouter();
+		return \Component::getInstance()->getRouter();
 	}
 }

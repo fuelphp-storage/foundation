@@ -20,11 +20,11 @@ namespace Fuel\Foundation\Request;
 abstract class Base
 {
 	/**
-	 * @var  Application  app that created this request
+	 * @var  Component  Component that created this request
 	 *
 	 * @since  2.0.0
 	 */
-	protected $app;
+	protected $component;
 
 	/**
 	 * @var  RequestInjectionFactory  this applications object factory
@@ -46,6 +46,13 @@ abstract class Base
 	 * @since  2.0.0
 	 */
 	protected $input;
+
+	/**
+	 * @var  \Fuel\Config\Container
+	 *
+	 * @since  2.0.0
+	 */
+	protected $config;
 
 	/**
 	 * @var  \Fuel\Foundation\Uri
@@ -81,19 +88,28 @@ abstract class Base
 	 *
 	 * @since  1.0.0
 	 */
-	public function __construct($app, $resource = '', $inputInstance = null, RequestInjectionFactory $factory)
+	public function __construct($component, $resource = '', $input = null, RequestInjectionFactory $factory)
 	{
-		// store the current application
-		$this->app = $app;
+		// store the calling component
+		$this->component = $component;
 
 		// store the injecttion factory
 		$this->factory = $factory;
 
 		// store the requests input container
-		$this->input = $inputInstance;
+		$this->input = $input;
 
 		// store the request
 		$this->request = $resource;
+
+		// get the log instance
+		$this->log = $component->getApplication()->getLog();
+
+		// get the router instance
+		$this->router = $component->getRouter();
+
+		// get the config instance
+		$this->config = $component->getConfig();
 	}
 
 	/**
@@ -108,27 +124,27 @@ abstract class Base
 	abstract public function execute();
 
 	/**
-	 * Returns this requests Application instance
+	 * Returns this requests Component instance
 	 *
-	 * @return  Application
+	 * @return  Component
 	 *
 	 * @since  1.1.0
 	 */
-	public function getApplication()
+	public function getComponent()
 	{
-		return $this->app;
+		return $this->component;
 	}
 
 	/**
-	 * Sets this requests Application instance
+	 * Sets this requests Component instance
 	 *
-	 * @param  Application  $app
+	 * @param  Component  $component
 	 *
 	 * @since  1.1.0
 	 */
-	public function setApplication($app)
+	public function setComponent($component)
 	{
-		$this->app = $app;
+		$this->component = $component;
 	}
 
 	/**

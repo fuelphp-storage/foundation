@@ -30,25 +30,46 @@ class Environment
 	protected $app;
 
 	/**
-	 * @var  Fuel\Foundation\Input  global input instance
-	 *
-	 * @since  2.0.0
-	 */
-	protected $input;
-
-	/**
-	 * @var  Fuel\Config\Container  global config instance
-	 *
-	 * @since  2.0.0
-	 */
-	protected $config;
-
-	/**
 	 * @var  string  name of the current environment
 	 *
 	 * @since  2.0.0
 	 */
 	protected $name = 'development';
+
+	/**
+	 * Locale to be used for this environment instance
+	 *
+	 * @since  1.0.0
+	 */
+	protected $locale = null;
+
+	/**
+	 * Timezone to be used for this environment instance
+	 *
+	 * @since  1.0.0
+	 */
+	protected $timezone = 'UTC';
+
+	/**
+	 * Character encoding to be used for this environment instance
+	 *
+	 * @since  1.0.0
+	 */
+	protected $encoding = 'UTF-8';
+
+	/**
+	 * Whether we're running in CLI mode
+	 *
+	 * @since  1.0.0
+	 */
+	protected $isCli = false;
+
+	/**
+	 * Whether we have readline support in CLI mode
+	 *
+	 * @since  1.0.0
+	 */
+	protected $readlineSupport = false;
 
 	/**
 	 * @var  array  container for environment variables
@@ -58,13 +79,6 @@ class Environment
 	protected $vars = array();
 
 	/**
-	 * @var  array  paths registered in the global environment
-	 *
-	 * @since  2.0.0
-	 */
-	protected $paths = array();
-
-	/**
 	 * Setup the framework environment. This will include all required global
 	 * classes, paths, and other configuration required to start the app.
 	 *
@@ -72,7 +86,7 @@ class Environment
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct($environment, $app, $input, $config)
+	public function __construct($environment, $app)
 	{
 		// store some initial environment values
 		$this->vars['initTime'] = defined('FUEL_INIT_TIME') ? FUEL_INIT_TIME : microtime(true);
@@ -80,46 +94,35 @@ class Environment
 
 		// store the objects passed
 		$this->app = $app;
-		$this->input = $input;
-		$this->config = $config;
 
 		// fetch URL data from the config, construct it if not set
-		if ($this->config->baseUrl === null)
+		if ($this->app->getConfig()->baseUrl === null)
 		{
-			$this->config->baseUrl = $this->input->getBaseUrl();
+			$this->app->getConfig()->baseUrl = $this->app->getInput()->getBaseUrl();
 		}
 
-		// store the application path
-		$this->addPath($this->app->getName(), $this->app->getPath());
+		// set the environment
+		$this->setName($environment);
 
-		// load the defined environments
-		$environments = $this->app->getPath().'environments.php';
-		if (file_exists($environments))
+		// configure the localization options for PHP
+		$this->encoding = $this->app->getConfig()->get('encoding', $this->encoding);
+		$this->setEncoding($this->encoding);
+
+		$this->locale = $this->app->getConfig()->get('locale', $this->locale);
+		$this->setLocale($this->locale);
+
+		$this->timezone = $this->app->getConfig()->get('default_timezone') ?: date_default_timezone_get();
+		$this->setTimezone($this->timezone);
+
+		// determine the Cli state
+		if ($this->isCli = (bool) defined('STDIN'))
 		{
-			$environments = require $environments;
+			$this->readlineSupport = extension_loaded('readline');
 		}
 		else
 		{
-			$environments = array();
-		}
-
-		// run default environment
-		$finishCallbacks = array();
-		if (isset($environments['default']))
-		{
-			$finishCallbacks[] = call_user_func($environments['default'], $this);
-		}
-
-		// run specific environment config when given
-		if (isset($environments[$environment]))
-		{
-			$finishCallbacks[] = call_user_func($environments[$environment], $this);
-		}
-
-		// run environment callbacks to finish up
-		foreach ($finishCallbacks as $cb)
-		{
-			is_callable($cb) and call_user_func($cb, $this);
+			// start up output buffering if needed
+			ob_start($this->app->getConfig()->get('ob_callback', null));
 		}
 	}
 
@@ -186,26 +189,58 @@ class Environment
 	}
 
 	/**
-	 * Fetch the full path for a given pathname
-	 *
-	 * @param   string  $name
-	 * @return  string
-	 * @throws  \OutOfBoundsException
+	 * Sets and initializes the environment
 	 *
 	 * @since  2.0.0
 	 */
-	public function getPath($name)
+	public function setName($name)
 	{
-		if ( ! isset($this->paths[$name]))
+		// local storage, to prevent loading multiple times
+		static $environments = array();
+
+		// store the environment name
+		$this->name = $name;
+
+		// load the defined environments
+		if (empty($environments))
 		{
-			throw new \OutOfBoundsException('FOU-006: ['.$name.']: Unknown path requested.');
+			// get the apps main components paths
+			$paths = $this->app->getComponent()->getPaths();
+
+			foreach($paths as $path)
+			{
+				if (file_exists($path .= DS.'config'.DS.'environments.php'))
+				{
+					$environments = array_merge($environments, include $path);
+				}
+			}
 		}
 
-		return $this->paths[$name];
+		// run default environment
+		$finishCallbacks = array();
+		if (isset($environments['default']))
+		{
+			$finishCallbacks[] = call_user_func($environments['default'], $this);
+		}
+
+		// run specific environment config when given
+		if (isset($environments[$name]))
+		{
+			$finishCallbacks[] = call_user_func($environments[$name], $this);
+		}
+
+		// run environment callbacks to finish up
+		foreach ($finishCallbacks as $cb)
+		{
+			if (is_callable($cb))
+			{
+				call_user_func($cb, $this);
+			}
+		}
 	}
 
 	/**
-	 * Get the name of the current environment
+	 * Returns the environment name
 	 *
 	 * @return  string
 	 *
@@ -217,46 +252,121 @@ class Environment
 	}
 
 	/**
-	 * Attempt make the path relative to a registered path
+	 * Set the character encoding (only when mbstring is enabled)
 	 *
-	 * @param   string  $path
-	 * @return  string
-	 *
-	 * @since  1.0.0
-	 */
-	public function cleanPath($path)
-	{
-		$path = str_replace('\\/', DS, $path);
-		foreach ($this->paths as $name => $p)
-		{
-			if (strpos($path, $p) === 0)
-			{
-				return $name.'::'.substr(str_replace('\\', DS, $path), strlen($p));
-			}
-		}
-		return $path;
-	}
-
-	/**
-	 * Register a new named path
-	 *
-	 * @param   string       $name       name for the path
-	 * @param   string       $path       the full path
-	 * @param   bool         $overwrite  whether or not overwriting existing name is allowed
-	 * @return  Environment  to allow method chaining
-	 * @throws  \OutOfBoundsException
+	 * @param   string|null  $encoding  encoding name
 	 *
 	 * @since  2.0.0
 	 */
-	public function addPath($name, $path, $overwrite = false)
+	public function setEncoding($encoding)
 	{
-		if ( ! $overwrite and isset($this->paths[$name]))
+		$this->encoding = $encoding;
+		if (MBSTRING and $this->encoding)
 		{
-			throw new \OutOfBoundsException('FOU-007: A path is already registered for name ['.$name.'].');
+			mb_internal_encoding($this->encoding);
 		}
+	}
 
-		$this->paths[$name] = rtrim(str_replace('\\/', DS, $path), '/\\').DS;
+	/**
+	 * Get the character encoding
+	 *
+	 * @return  string|null  $encoding  encoding name
+	 *
+	 * @since  2.0.0
+	 */
+	public function getEncoding()
+	{
+		return $this->encoding;
+	}
 
-		return $this;
+	/**
+	 * Set the locale
+	 *
+	 * @param   string|null  $locale  locale name (OS dependent)
+	 * @return  Environment  to allow method chaining
+	 *
+	 * @since  2.0.0
+	 */
+	public function setLocale($locale)
+	{
+		$this->locale = $locale;
+		if ($this->locale !== null)
+		{
+			if ( ! setlocale(LC_ALL, $this->locale))
+			{
+				throw new \Exception('FOU-018: The locale ['.$locale.'] is not installed on this server');
+			}
+		}
+	}
+
+	/**
+	 * Get the locale
+	 *
+	 * @return  string|null  locale name (OS dependent)
+	 *
+	 * @since  2.0.0
+	 */
+	public function getLocale()
+	{
+		return $this->locale;
+	}
+
+	/**
+	 * Set the timezone
+	 *
+	 * @param   string|null  $timezone  timezone name (http://php.net/timezones)
+	 *
+	 * @since  2.0.0
+	 */
+	public function setTimezone($timezone)
+	{
+		$this->timezone = $timezone;
+
+		// set a default timezone if one is defined
+		try
+		{
+			date_default_timezone_set($this->timezone);
+		}
+		catch (\Exception $e)
+		{
+			date_default_timezone_set('UTC');
+			throw new \Exception($e->getMessage());
+		}
+	}
+
+	/**
+	 * Get the timezone
+	 *
+	 * @return  string|null  timezone name (http://php.net/timezones)
+	 *
+	 * @since  2.0.0
+	 */
+	public function getTimezone()
+	{
+		return $this->timezone;
+	}
+
+	/**
+	 * Are we in CLI mode?
+	 *
+	 * @return  bool
+	 *
+	 * @since  2.0.0
+	 */
+	public function isCli()
+	{
+		return $this->isCli;
+	}
+
+	/**
+	 * Do we have readline support in CLI mode?
+	 *
+	 * @return  bool
+	 *
+	 * @since  2.0.0
+	 */
+	public function hasReadlineSupport()
+	{
+		return $this->readlineSupport;
 	}
 }

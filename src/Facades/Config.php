@@ -32,7 +32,7 @@ class Config extends Base
 			return $request->getConfig();
 		}
 
-		// no active request, return the current application instance
-		return \Application::getInstance()->getConfig();
+		// no active request, return the current components instance
+		return \Component::getInstance()->getConfig();
 	}
 }
