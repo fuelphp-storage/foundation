@@ -29,7 +29,7 @@ class FuelServiceProvider extends ServiceProvider
 	public $provides = array(
 		'environment', 'component', 'requeststack', 'input',
 		'session.db', 'session.memcached', 'session.redis',
-		'routefilter', 'log',
+		'router', 'log',
 
 		'request', 'request.local',
 		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml', 'response.redirect',
@@ -300,7 +300,7 @@ class FuelServiceProvider extends ServiceProvider
 				$input->setParent($parent->getInput());
 			}
 
-			return $dic->multiton('Fuel\Foundation\Component', $uri, array($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $dic->resolve('router'), $dic->resolve('autoloader')));
+			return $dic->multiton('Fuel\Foundation\Component', $uri, array($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $dic->resolve('autoloader')));
 		});
 
 		// \Fuel\Foundation\Input
@@ -395,10 +395,10 @@ class FuelServiceProvider extends ServiceProvider
 			return $dic->resolve('Fuel\Foundation\Request\Cli', array($component, $resource, $inputInstance));
 		});
 
-		// \FuelPHP specific route filter
-		$this->register('routefilter', function ($dic, $component)
+		// \Fuel\Foundation\Router
+		$this->register('router', function ($dic, $component)
 		{
-			return $dic->resolve('Fuel\Foundation\RouteFilter', array($component));
+			return $dic->resolve('Fuel\Foundation\Router', array($component));
 		});
 
 		/**

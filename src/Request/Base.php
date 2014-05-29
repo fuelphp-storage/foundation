@@ -105,9 +105,6 @@ abstract class Base
 		// get the log instance
 		$this->log = $component->getApplication()->getLog();
 
-		// get the router instance
-		$this->router = $component->getRouter();
-
 		// get the config instance
 		$this->config = $component->getConfig();
 	}

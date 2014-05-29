@@ -67,21 +67,21 @@ class Local extends Base
 		// log the request
 		$this->log->info('Executing request');
 
+		// determine the router instance to use
 		// get a route object for this request
-		$this->route = $this->router->translate($this->request, $this->input->getMethod());
-
-		// did the route resolve to a controller?
-		if (empty($this->route->controller))
+		foreach($this->component->getApplication()->getComponents() as $uri => $component)
 		{
-			// no, see if we can find one dynamically
-			$this->route = $this->router->applyAutoFilter($this->route);
-
-			// still not found? Then bail out!
-			if (empty($this->route->controller))
+			// check if we have a uri match for this component
+			if (empty($uri) or strpos($this->request, '/'.$uri) === 0)
 			{
-				throw new NotFound('No route match has been found for this request.');
+				// match found, resolve the route request
+				$this->router = $component->getRouter();
+				break;
 			}
 		}
+
+		// match found, resolve the route request
+		$this->route = $this->router->translate($this->request, $this->input->getMethod());
 
 		// create a URI object
 		$this->uri = $this->factory->createUriInstance($this->route->uri);

@@ -95,13 +95,12 @@ class Component
 	 * @param  Component                  $parent      parent Component instance
 	 * @param  Fuel\Config\Datacontainer  $config      Config Container instance
 	 * @param  Input                      $input       Input Container instance
-	 * @param  Fuel\Routing\Router        $router      Routing engine instance
 	 * @param  Composer\ClassLoader       $autoloader  Autoloader instance
 	 * @param  InjectionFactory           $factory     factory object to construct external objects
 	 *
 	 * @since  2.0.0
 	 */
-	public function __construct($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $router, $autoloader, InjectionFactory $factory)
+	public function __construct($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $autoloader, InjectionFactory $factory)
 	{
 		// store the component object factory
 		$this->factory = $factory;
@@ -145,9 +144,6 @@ class Component
 		{
 			// make a backlink to link parent and child
 			$parent->setChild($this);
-
-			// link to our parents router
-			$this->router = $parent->getRouter();
 		}
 		// otherwise we're the main application component, do some initalisation
 		else
@@ -160,12 +156,6 @@ class Component
 
 			// assign the configuration container to this input instance
 			$input->setConfig($config);
-
-			// store the router instance
-			$this->router = $router;
-
-			// add our route filter to be able to resolve controllers
-			$this->router->setAutoFilter(array($this->factory->getRouteFilter($this), 'filter'));
 		}
 
 		// add the paths to the config
@@ -188,6 +178,9 @@ class Component
 
 		// store our parent object
 		$this->parent = $parent ?: $app;
+
+		// create the router instance
+		$this->router = $this->factory->createRouterInstance($this);
 
 		// and load any defined routes in this module
 		$this->loadRoutes();
@@ -345,7 +338,7 @@ class Component
 	public function newComponent($uri, $namespace, $routeable = true, $paths = null, $parent = null)
 	{
 		// we construct components in Application, so bubble up until we get there
-		return $this->parent->newComponent($uri, $namespace, $paths, $routeable, $parent ?: $this);
+		return $this->parent->newComponent($uri, $namespace, $routeable, $paths, $parent ?: $this);
 	}
 
 	/**

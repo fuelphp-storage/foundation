@@ -80,9 +80,9 @@ class InjectionFactory
 	/**
 	 *
 	 */
-	public function createRouterInstance()
+	public function createRouterInstance($component)
 	{
-		return $this->container->resolve('router');
+		return $this->container->resolve('router', array($component));
 	}
 
 	/**
@@ -185,14 +185,6 @@ class InjectionFactory
 	public function createUriInstance($uri)
 	{
 		return $this->container->resolve('uri', array($uri));
-	}
-
-	/**
-	 *
-	 */
-	public function getRouteFilter($component)
-	{
-		return $this->container->resolve('routefilter', array($component));
 	}
 
 	public function isMainRequest()
