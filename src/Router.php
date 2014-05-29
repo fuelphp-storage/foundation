@@ -106,12 +106,16 @@ class Router extends \Fuel\Routing\Router
 		{
 			// no, see if we can find one dynamically
 			$route = $this->resolveController($match);
+		}
+		elseif (empty($route->controller))
+		{
+			$route = $this->resolveController($route);
+		}
 
-			// still not found? Then bail out!
-			if (empty($route->controller))
-			{
-				throw new NotFound('No route match has been found.');
-			}
+		// controller not found? Then bail out!
+		if (empty($route->controller))
+		{
+			throw new NotFound('No route match has been found.');
 		}
 
 		return $route;
@@ -123,7 +127,10 @@ class Router extends \Fuel\Routing\Router
 	public function recursiveTranslate($uri, $method, $reset = false)
 	{
 		// try to resolve it using the local routing instance
-		$route = parent::translate($uri, $method);
+		$route = parent::translate($this->stripPrefix($uri), $method);
+
+		// store this components namespace
+		$route->namespace = $this->component->getNamespace();
 
 		// if not found, try our parent
 		if( ! $route->route and $parent = $this->component->getParent() and $parent instanceOf Component)
@@ -208,5 +215,20 @@ class Router extends \Fuel\Routing\Router
 		}
 
 		return $match;
+	}
+
+	/**
+	 * Strip the component prefix from the URI passed
+	 */
+	protected function stripPrefix($uri)
+	{
+		$uri = trim($uri, '/');
+		$componentUri = $this->component->getUri();
+		if ($componentUri and strpos($uri, $componentUri) === 0)
+		{
+			$uri = substr($uri, strlen($componentUri)+1);
+		}
+
+		return $uri;
 	}
 }
