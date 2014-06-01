@@ -38,45 +38,31 @@ class Presenter extends Base
 			$view = $uri;
 		}
 
-		// prepend the current namespace, we'll check that first
+		// get the current request namespace
 		$currentNamespace = \Request::getInstance()->getRoute()->namespace;
 
-		// find the matching presenter
-		$presenter = null;
+		// pop the last one off, and add the Presenter namespace
+		$currentNamespace = explode('\\', $currentNamespace);
+		end($currentNamespace);
+		$currentNamespace[key($currentNamespace)] = 'Presenter';
+		$currentNamespace = implode('\\', $currentNamespace);
 
-		// find the correct component
-		foreach (\Application::getInstance()->getComponents() as $prefix => $component)
+		// get the segments from the presenter string passed
+		$segments = explode('/', $uri);
+		while(count($segments))
 		{
-			// normalize the namespace
-			$namespace = trim($component->getNamespace(), '\\').'\\';
-
-			if ($namespace != $currentNamespace)
+			$class = $currentNamespace.'\\'.implode('\\', array_map('ucfirst', $segments));
+			if (class_exists($class))
 			{
-				continue;
-			}
-
-			// get the segments from the presenter string passed
-			$segments = explode('/', $uri);
-			while(count($segments))
-			{
-				$class = $namespace.'Presenter\\'.implode('\\', array_map('ucfirst', $segments));
-				if (class_exists($class))
-				{
-					$presenter = new $class(\View::getInstance(), $method, $autoFilter, $view);
-					break;
-				}
-
-				array_pop($segments);
-			}
-
-			if ($presenter)
-			{
+				$presenter = new $class(\View::getInstance(), $method, $autoFilter, $view);
 				break;
 			}
+
+			array_pop($segments);
 		}
 
 		// bail out if the presenter class could not be loaded
-		if ( ! is_object($presenter))
+		if ( ! isset($presenter))
 		{
 			throw new \RuntimeException('FOU-012: Presenter class identified by ['.$uri.'] could not be found.');
 		}
