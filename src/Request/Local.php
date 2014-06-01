@@ -81,7 +81,7 @@ class Local extends Base
 		}
 
 		// match found, resolve the route request
-		$this->route = $this->router->translate($this->request, $this->input->getMethod());
+		$this->route = $this->router->resolveRoute($this->request, $this->input->getMethod());
 
 		// create a URI object
 		$this->uri = $this->factory->createUriInstance($this->route->uri);

@@ -73,53 +73,120 @@ class Router extends \Fuel\Routing\Router
 	}
 
 	/**
-	 * Fuel route translation
+	 * Fuel route resolver
 	 */
-	public function translate($uri, $method)
+	public function resolveRoute($uri, $method, $lastMatch = null)
 	{
-		// stack of processed URI's to detect routing loops
-		$loopDetection = array();
+		// trim slashes
+		$uri = trim($uri, '/');
 
-		// recusively resolve the route
-		$route = $this->recursiveTranslate($uri, $method);
-
-		// loop until we have a controller or route exhaustion
-		while ( ! $route->controller and $route->uri !== $route->translation)
+		// check which component needs to process this uri, based on the component prefix
+		$processors = array();
+		foreach ($this->component->getApplication()->getComponents() as $prefix => $component)
 		{
-			// save the one we found
-			$match = $route;
-
-			// check if we've seen this uri before
-			if (in_array($route->uri, $loopDetection))
+			// if we have a prefix match
+			if (empty($prefix) or strpos($uri, $prefix) === 0)
 			{
-				$loopDetection[] = $route->uri;
-				throw new ServerError('Recursive route detected: '.implode(' => ', $loopDetection));
+				// use the corresponding component
+				array_unshift($processors, $component);
 			}
-			$loopDetection[] = $route->uri;
-
-			// recusively resolve the route
-			$route = $this->recursiveTranslate($route->translation, $method);
 		}
 
-		// did the route resolve to a controller?
-		if (isset($match) and empty($match->controller))
+		// if no uri match is found, use the current components router
+		if (empty($processors))
 		{
-			// no, see if we can find one dynamically
-			$route = $this->resolveController($match);
-		}
-		elseif (empty($route->controller))
-		{
-			$route = $this->resolveController($route);
+			$processors[] = $this->component;
 		}
 
-		// controller not found? Then bail out!
-		if (empty($route->controller))
+		// resolve the route
+		foreach ($processors as $component)
 		{
-			throw new NotFound('No route match has been found.');
+			// do a route lookup
+			$route = $component->getRouter()->translate($uri, $method);
+
+			// was a route found, then bailout
+			if ($route->route)
+			{
+				break;
+			}
+		}
+
+		// if we don't have a controller or route exhaustion, recurse
+		if ( ! $route->controller and $route->uri !== $route->translation)
+		{
+			// and do a recursive lookup
+			$route = $this->resolveRoute($route->translation, $method, $route);
+		}
+
+		if (! $route->controller )
+		{
+			// use the last know good route
+			$route = $lastMatch ?: $route;
+
+			// is the route target a closure?
+			if ($route->translation instanceOf Closure)
+			{
+				$route->controller = $route->translation;
+			}
+			else
+			{
+				// get the segments from the translated route
+				if (empty($prefix = $component->getUri()) or strpos($uri, $prefix) === 0)
+				{
+					// strip the prefix from the uri
+					$segments = explode('/', ltrim(substr($route->translation, strlen($prefix)), '/'));
+				}
+				else
+				{
+					$segments = explode('/', $route->translation);
+				}
+
+				$arguments = array();
+				while(count($segments))
+				{
+					$class = $route->namespace.'\\'.implode('\\', array_map('ucfirst', $segments));
+					if (class_exists($class))
+					{
+						$route->path = $component->getPath();
+						$route->controller = $class;
+						break;
+					}
+					array_unshift($arguments, array_pop($segments));
+				}
+
+				// any segments left?
+				if ( ! empty($segments))
+				{
+					$route->action = ucfirst(array_shift($arguments));
+				}
+
+				// more? set them as additional segments
+				$route->uri = implode('/', $arguments);
+			}
 		}
 
 		return $route;
 	}
+
+	/**
+	 * Resolve the route, and add the namespace and namespace prefix of this routers component
+	 */
+	public function translate($uri, $method)
+	{
+		// if we have a prefix match
+		if (empty($prefix = $this->component->getUri()) or strpos($uri, $prefix) === 0)
+		{
+			// strip the prefix from the uri
+			$uri = ltrim(substr($uri, strlen($prefix)), '/');
+		}
+
+		$route = parent::translate($uri, $method);
+
+		$route->namespace = $this->component->getNamespace().'\\'.$this->namespacePrefix;
+
+		return $route;
+	}
+
 
 	/**
 	 * Fuel recusive reverse route fetching
@@ -151,26 +218,6 @@ class Router extends \Fuel\Routing\Router
 					break;
 				}
 			}
-		}
-
-		return $route;
-	}
-
-	/**
-	 * Fuel recusive route translation
-	 */
-	public function recursiveTranslate($uri, $method, $reset = false)
-	{
-		// try to resolve it using the local routing instance
-		$route = parent::translate($this->stripPrefix($uri), $method);
-
-		// store this components namespace
-		$route->namespace = $this->component->getNamespace();
-
-		// if not found, try our parent
-		if( ! $route->route and $parent = $this->component->getParent() and $parent instanceOf Component)
-		{
-			$route = $parent->getRouter()->recursiveTranslate($uri, $method);
 		}
 
 		return $route;
