@@ -10,6 +10,7 @@
 
 namespace Fuel\Foundation;
 
+use Closure;
 use Fuel\Routing\Match;
 use Fuel\Foundation\Exception\NotFound;
 use Fuel\Foundation\Exception\ServerError;
@@ -131,7 +132,8 @@ class Router extends \Fuel\Routing\Router
 			else
 			{
 				// get the segments from the translated route
-				if (empty($prefix = $component->getUri()) or strpos($uri, $prefix) === 0)
+				$prefix = $component->getUri();
+				if (empty($prefix) or strpos($uri, $prefix) === 0)
 				{
 					// strip the prefix from the uri
 					$segments = explode('/', ltrim(substr($route->translation, strlen($prefix)), '/'));
@@ -174,7 +176,8 @@ class Router extends \Fuel\Routing\Router
 	public function translate($uri, $method)
 	{
 		// if we have a prefix match
-		if (empty($prefix = $this->component->getUri()) or strpos($uri, $prefix) === 0)
+		$prefix = $this->component->getUri();
+		if (empty($prefix) or strpos($uri, $prefix) === 0)
 		{
 			// strip the prefix from the uri
 			$uri = ltrim(substr($uri, strlen($prefix)), '/');
