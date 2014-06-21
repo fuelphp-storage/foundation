@@ -39,9 +39,9 @@ class FuelLibraryProvider extends LibraryProvider
 		$alias->alias('Fuel', 'Fuel\Foundation\Fuel');
 
 		/**
-		 * Alias all Foundation facade classes to global
+		 * Alias all Foundation proxy classes to global
 		 */
-		$alias->aliasNamespace('Fuel\Foundation\Facades', '');
+		$alias->aliasNamespace('Fuel\Foundation\Proxy', '');
 
 		/**
 		 * Alias the base controllers to the Fuel\Controller namespace
