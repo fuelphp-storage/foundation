@@ -89,10 +89,10 @@ class Fuel
 		catch (\Fuel\Dependency\ResolveException $e)
 		{
 			// setup the shutdown, error & exception handlers
-//			$errorhandler = new Error($dic);
+			$errorhandler = new Error($dic);
 
 			// setup the shutdown, error & exception handlers
-//			$dic->inject('errorhandler', $errorhandler);
+			$dic->inject('errorhandler', $errorhandler);
 		}
 
 		// get all defined namespaces
