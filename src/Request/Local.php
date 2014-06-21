@@ -98,15 +98,27 @@ class Local extends Base
 			$this->route->parameters = array_merge($this->route->parameters, $this->route->segments);
 		}
 
-		if (is_callable($this->route->controller))
+		// nothing was found, so bail out
+		if ( ! $this->route->controller)
 		{
+			throw new NotFound('The router could not resolve the URI to a callable controller');
+		}
+
+		// or if an inline controller is returned
+		elseif (is_callable($this->route->controller))
+		{
+			// simply use it
 			$controller = $this->route->controller;
 		}
-		else
+
+		// or if a controller class name is returned
+		elseif($this->route->controller)
 		{
+			// resolve it
 			$controller = $this->factory->createControllerInstance($this->route->controller);
 		}
 
+		// bail out if we don't have a callable controller!
 		if ( ! is_callable($controller))
 		{
 			throw new NotFound('The Controller returned by routing is not callable. Does it extend a base controller?');
