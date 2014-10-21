@@ -260,7 +260,7 @@ class FuelServiceProvider extends ServiceProvider
 
 		$this->registerSingleton('requeststack', function ($dic)
 		{
-			return $dic->resolve('Fuel\Dependency\Stack');
+			return $dic->resolve('Fuel\Foundation\Stack');
 		});
 
 		// \Fuel\Foundation\Component
