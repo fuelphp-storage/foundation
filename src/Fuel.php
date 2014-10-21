@@ -220,17 +220,17 @@ class Fuel
 			static::$dic = new Dic;
 
 			// register the DiC on classname so it can be auto-resolved
-			static::$dic->registerSingleton('Fuel\Dependency\Container', function($container)
+			static::$dic->registerSingleton('Fuel\Dependency\Container', function($context)
 			{
-				return $container;
+				return $context->getContainer();
 			});
 
 		}
 
 		// register the dic for manual resolving
-		static::$dic->registerSingleton('dic', function($container)
+		static::$dic->registerSingleton('dic', function($context)
 		{
-			return $container;
+			return $context->getContainer();
 		});
 
 		return static::$dic;
