@@ -133,10 +133,11 @@ class Router extends \Fuel\Routing\Router
 			{
 				// get the segments from the translated route
 				$prefix = $component->getUri();
+
 				if (empty($prefix) or strpos($uri, $prefix) === 0)
 				{
 					// strip the prefix from the uri
-					$segments = explode('/', ltrim(substr($route->translation, strlen($prefix)), '/'));
+					$segments = explode('/', ltrim(substr($uri, strlen($prefix)), '/'));
 				}
 				else
 				{
