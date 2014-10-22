@@ -76,7 +76,7 @@ class Router extends \Fuel\Routing\Router
 	/**
 	 * Fuel route resolver
 	 */
-	public function resolveRoute($uri, $method, $lastMatch = null)
+	public function resolveRoute($uri, $method)
 	{
 		// trim slashes
 		$uri = trim($uri, '/');
@@ -116,14 +116,11 @@ class Router extends \Fuel\Routing\Router
 		if ( ! $route->controller and $route->uri !== $route->translation)
 		{
 			// and do a recursive lookup
-			$route = $this->resolveRoute($route->translation, $method, $route);
+			$route = $this->resolveRoute($route->translation, $method);
 		}
 
-		if (! $route->controller )
+		if ( ! $route->controller )
 		{
-			// use the last know good route
-			$route = $lastMatch ?: $route;
-
 			// is the route target a closure?
 			if ($route->translation instanceOf Closure)
 			{
