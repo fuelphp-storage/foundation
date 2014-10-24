@@ -11,7 +11,7 @@
 namespace Fuel\Foundation\Proxy;
 
 /**
- * Response Facade class
+ * Response Proxy class
  *
  * @package  Fuel\Foundation
  *

@@ -33,11 +33,11 @@ class Redirect extends Base
 	 */
 	public function __construct($app, $url = '', $method = 'location', $status = 200, array $headers = array())
 	{
-		parent::__construct($app, '', $status, $headers);
+		parent::__construct('', $status, $headers);
 
 		if (strpos($url, '://') === false)
 		{
-			$url = $this->app->getEnvironment()->getBaseUrl().$url;
+			$url = $app->getConfig()->baseUrl.$url;
 		}
 
 		if ($method == 'location')
