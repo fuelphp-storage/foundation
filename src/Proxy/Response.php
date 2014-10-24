@@ -28,9 +28,12 @@ class Response extends Base
 	 *
 	 * @return  Response
 	 */
-	public static function forge()
+	public static function forge($type)
 	{
-		return static::getDic()->resolve('response', func_get_args());
+		$args = func_get_args();
+		array_shift($args);
+
+		return static::getDic()->resolve('response.'.$type, $args);
 	}
 
 }
