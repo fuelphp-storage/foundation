@@ -504,8 +504,20 @@ class FuelServiceProvider extends ServiceProvider
 		// \Fuel\Foundation\Response\Redirect
 		$this->register('response.redirect', function ($dic, $url = '', $method = 'location', $status = 302, array $headers = array())
 		{
-			return $dic->resolve('Fuel\Foundation\Response\Redirect', array($url, $method, $status, $headers));
+			// get the correct config instance
+			$stack = $dic->resolve('requeststack');
+			if ($request = $stack->top())
+			{
+				$app = $request->getComponent()->getApplication();
+			}
+			else
+			{
+				$app = $dic->resolve('application::__main');
+			}
+
+			return $dic->resolve('Fuel\Foundation\Response\Redirect', array($app, $url, $method, $status, $headers));
 		});
+		$this->extend('response.redirect', 'getRequestInstance');
 
 		// \Fuel\Database\Connection
 		$this->register('storage.db', function ($dic, $config = null)
