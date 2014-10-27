@@ -80,6 +80,14 @@ class Local extends Base
 			}
 		}
 
+		// if the component is different then the requested one
+		if ($component !== $this->component)
+		{
+			// set it to the actual one
+			$this->component = $component;
+			$this->config = $component->getConfig();
+		}
+
 		// match found, resolve the route request
 		$this->route = $this->router->resolveRoute($this->request, $this->input->getMethod());
 
