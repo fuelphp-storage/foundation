@@ -236,15 +236,27 @@ class Application
 	}
 
 	/**
-	 * Returns the applications main component object
+	 * Returns the applications root component object
 	 *
 	 * @return  Component
 	 *
 	 * @since  2.0.0
 	 */
-	public function getComponent()
+	public function getRootComponent()
 	{
 		return $this->_component;
+	}
+
+	/**
+	 * Returns a named registered applications component object
+	 *
+	 * @return  Component
+	 *
+	 * @since  2.0.0
+	 */
+	public function getComponent($uri)
+	{
+		return isset($this->_components[$uri]) ? $this->_components[$uri] : null;
 	}
 
 	/**
