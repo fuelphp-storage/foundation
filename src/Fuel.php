@@ -194,7 +194,7 @@ class Fuel
 		}
 
 		// return the created applications main component
-		return $app->getComponent();
+		return $app->getRootComponent();
 	}
 
 	/**

@@ -84,7 +84,7 @@ class FuelServiceProvider extends ServiceProvider
 				}
 				else
 				{
-					$config = $container->resolve('application::__main')->getComponent()->getConfig();
+					$config = $container->resolve('application::__main')->getRootComponent()->getConfig();
 				}
 
 				if (is_callable(array($instance, 'setConfig')))
@@ -113,7 +113,7 @@ class FuelServiceProvider extends ServiceProvider
 				}
 				else
 				{
-					$input = $container->resolve('application::__main')->getComponent()->getInput();
+					$input = $container->resolve('application::__main')->getRootComponent()->getInput();
 				}
 
 				if (is_callable(array($instance, 'setInput')))
@@ -171,7 +171,7 @@ class FuelServiceProvider extends ServiceProvider
 				}
 				else
 				{
-					$router = $container->resolve('application::__main')->getComponent()->getRouter();
+					$router = $container->resolve('application::__main')->getRootComponent()->getRouter();
 				}
 
 				if (is_callable(array($instance, 'setRouter')))

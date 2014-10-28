@@ -205,7 +205,7 @@ class Environment
 		if (empty($environments))
 		{
 			// get the apps main components paths
-			$paths = $this->app->getComponent()->getPaths();
+			$paths = $this->app->getRootComponent()->getPaths();
 
 			foreach($paths as $path)
 			{

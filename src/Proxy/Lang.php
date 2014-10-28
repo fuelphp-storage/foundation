@@ -140,6 +140,6 @@ class Lang extends Base
 	 */
 	public static function getInstance($lang = null)
 	{
-		return \Application::getInstance()->getComponent()->getLanguage($lang);
+		return \Application::getInstance()->getRootComponent()->getLanguage($lang);
 	}
 }

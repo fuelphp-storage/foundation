@@ -280,7 +280,7 @@ class Application
 	 */
 	public function getConfig()
 	{
-		return $this->getComponent()->getConfig();
+		return $this->getRootComponent()->getConfig();
 	}
 
 	/**
@@ -316,7 +316,7 @@ class Application
 	 */
 	public function getInput()
 	{
-		return $this->getComponent()->getInput();
+		return $this->getRootComponent()->getInput();
 	}
 
 	/**

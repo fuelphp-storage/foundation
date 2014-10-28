@@ -37,7 +37,7 @@ class Component extends Base
 		else
 		{
 			// fall back to the main component
-			$component = static::getDic()->resolve('application::__main')->getComponent();
+			$component = static::getDic()->resolve('application::__main')->getRootComponent();
 		}
 
 		return $component;

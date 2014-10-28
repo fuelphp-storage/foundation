@@ -49,6 +49,6 @@ class Input extends Base
 		}
 
 		// no active request, return the current application instance
-		return \Application::getInstance()->getComponent()->getInput();
+		return \Application::getInstance()->getRootComponent()->getInput();
 	}
 }
