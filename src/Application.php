@@ -45,7 +45,7 @@ class Application
 	protected $_components = array();
 
 	/**
-	 * @var  Fuel/Event/Container  this applications event container
+	 * @var  League/Event/EmitterInterface
 	 *
 	 * @since  2.0.0
 	 */
@@ -124,11 +124,19 @@ class Application
 		// setup the event container...
 		$this->_event = $this->factory->createEventInstance();
 
+		$shutdown = new Event\Shutdown($this);
+
 		// setup a global shutdown event for this event container
-		register_shutdown_function(function($event) { $event->trigger('shutdown'); }, $this->_event);
+		register_shutdown_function(function($event, $shutdown)
+		{
+			$event->emit($shutdown);
+		}, $this->_event, $shutdown);
 
 		// setup a shutdown event for writing cookies
-		$this->event->on('shutdown', function($event) { $this->getCookie()->send(); }, $this->_component->getInput());
+		$this->_event->addListener('shutdown', function($shutdown)
+		{
+			$shutdown->getApp()->getRootComponent()->getInput()->getCookie()->send();
+		});
 
 		// load the session config
 		$session = $this->getConfig()->load('session', true);

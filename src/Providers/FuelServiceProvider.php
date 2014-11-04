@@ -29,7 +29,7 @@ class FuelServiceProvider extends ServiceProvider
 	public $provides = [
 		'environment', 'component', 'requeststack', 'input',
 		'session.db', 'session.memcached', 'session.redis',
-		'router', 'log',
+		'router', 'log', 'event',
 
 		'request', 'request.local',
 		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml', 'response.redirect',
@@ -409,6 +409,12 @@ class FuelServiceProvider extends ServiceProvider
 		$this->register('log', function ($dic, $name, array $handlers = [], array $processors = [])
 		{
 			return new \Monolog\Logger($name, $handlers, $processors);
+		});
+
+		// \League\Event\Emitter
+		$this->register('event', function($dic)
+		{
+			return $dic->resolve('League\Event\Emitter');
 		});
 
 

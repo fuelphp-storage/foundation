@@ -1,6 +1,5 @@
 {
 	"name": "fuelphp/foundation",
-	"type": "library",
 	"description": "FuelPHP Framework foundation library.",
 	"homepage": "https://github.com/fuelphp/foundation",
 	"license": "MIT",
@@ -14,27 +13,26 @@
 		"php": ">=5.4",
 		"filp/whoops": "dev-master",
 		"monolog/monolog": "1.6.0",
+		"league/event": "dev-master",
 		"fuelphp/dependency": "dev-master",
 		"fuelphp/agent": "dev-master",
 		"fuelphp/alias": "dev-master",
 		"fuelphp/common": "dev-master",
 		"fuelphp/display": "dev-master",
 		"fuelphp/config": "dev-master",
-		"fuelphp/event": "dev-master",
 		"fuelphp/upload": "dev-master",
 		"fuelphp/session": "dev-master",
 		"fuelphp/database": "dev-master",
 		"fuelphp/security": "dev-master",
 		"fuelphp/routing": "dev-master"
 	},
-	"require-dev": {
-		"mockery/mockery": "0.7.*"
-	},
 	"suggest": {
 		"michelf/php-markdown": "Required if you want to use the Markdown facade class"
 	},
 	"autoload": {
-		"psr-4": { "Fuel\\Foundation\\": "src/" }
+		"psr-4": {
+			"Fuel\\Foundation\\": "src/"
+		}
 	},
 	"minimum-stability": "dev"
 }
