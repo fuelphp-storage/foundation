@@ -38,7 +38,7 @@ return array(
 	 *
 	 * Must be writable by the application.
 	 */
-	'cacheDir' => realpath(__DIR__.DS.'..'.DS.'cache'),
+	'cache_dir' => realpath(__DIR__.DS.'..'.DS.'cache'),
 
 	/**
 	 * browscap parsing configuration.
