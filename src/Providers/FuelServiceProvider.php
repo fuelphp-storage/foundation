@@ -17,16 +17,16 @@ use Fuel\Foundation\RouteFilter;
 /**
  * FuelPHP ServiceProvider class for this package
  *
- * @package  Fuel\Foundation
+ * @package Fuel\Foundation
  *
- * @since  2.0.0
+ * @since 2.0.0
  */
 class FuelServiceProvider extends ServiceProvider
 {
 	/**
-	 * @var  array  list of service names provided by this provider
+	 * @var array list of service names provided by this provider
 	 */
-	public $provides = array(
+	public $provides = [
 		'environment', 'component', 'requeststack', 'input',
 		'session.db', 'session.memcached', 'session.redis',
 		'router', 'log',
@@ -34,7 +34,7 @@ class FuelServiceProvider extends ServiceProvider
 		'request', 'request.local',
 		'response', 'response.html', 'response.json', 'response.jsonp', 'response.csv', 'response.xml', 'response.redirect',
 		'storage.db', 'storage.memcached', 'storage.redis',
-	);
+	];
 
 	/**
 	 * Service provider definitions
@@ -58,7 +58,7 @@ class FuelServiceProvider extends ServiceProvider
 					$app = $container->resolve('application::__main');
 				}
 
-				if (is_callable(array($instance, 'setApplication')))
+				if (is_callable([$instance, 'setApplication']))
 				{
 					$instance->setApplication($app);
 				}
@@ -87,7 +87,7 @@ class FuelServiceProvider extends ServiceProvider
 					$config = $container->resolve('application::__main')->getRootComponent()->getConfig();
 				}
 
-				if (is_callable(array($instance, 'setConfig')))
+				if (is_callable([$instance, 'setConfig']))
 				{
 					$instance->setConfig($config);
 				}
@@ -116,7 +116,7 @@ class FuelServiceProvider extends ServiceProvider
 					$input = $container->resolve('application::__main')->getRootComponent()->getInput();
 				}
 
-				if (is_callable(array($instance, 'setInput')))
+				if (is_callable([$instance, 'setInput']))
 				{
 					$instance->setInput($input);
 				}
@@ -145,7 +145,7 @@ class FuelServiceProvider extends ServiceProvider
 					$log = $container->resolve('application::__main')->getLog();
 				}
 
-				if (is_callable(array($instance, 'setLog')))
+				if (is_callable([$instance, 'setLog']))
 				{
 					$instance->setLog($log);
 				}
@@ -174,7 +174,7 @@ class FuelServiceProvider extends ServiceProvider
 					$router = $container->resolve('application::__main')->getRootComponent()->getRouter();
 				}
 
-				if (is_callable(array($instance, 'setRouter')))
+				if (is_callable([$instance, 'setRouter']))
 				{
 					$instance->setRouter($router);
 				}
@@ -203,7 +203,7 @@ class FuelServiceProvider extends ServiceProvider
 					$environment = $container->resolve('application::__main')->getEnvironment();
 				}
 
-				if (is_callable(array($instance, 'setEnvironment')))
+				if (is_callable([$instance, 'setEnvironment']))
 				{
 					$instance->setEnvironment($environment);
 				}
@@ -221,7 +221,7 @@ class FuelServiceProvider extends ServiceProvider
 		$this->extension('getRequestInstance', function($container, $instance)
 		{
 			$stack = $container->resolve('requeststack');
-			if (is_callable(array($instance, 'setRequest')))
+			if (is_callable([$instance, 'setRequest']))
 			{
 				$instance->setRequest($stack->top());
 			}
@@ -234,7 +234,7 @@ class FuelServiceProvider extends ServiceProvider
 		$this->extension('getAutoloaderInstance', function($container, $instance)
 		{
 			$autoloader = $container->resolve('autoloader');
-			if (is_callable(array($instance, 'setAutoloader')))
+			if (is_callable([$instance, 'setAutoloader']))
 			{
 				$instance->setAutoloader($autoloader);
 			}
@@ -255,7 +255,7 @@ class FuelServiceProvider extends ServiceProvider
 		// \Fuel\Foundation\Environment
 		$this->register('environment', function ($dic, $environment, $app)
 		{
-			return $dic->resolve('Fuel\Foundation\Environment', array($environment, $app));
+			return $dic->resolve('Fuel\Foundation\Environment', [$environment, $app]);
 		});
 
 		$this->registerSingleton('requeststack', function ($dic)
@@ -300,39 +300,39 @@ class FuelServiceProvider extends ServiceProvider
 				$input->setParent($parent->getInput());
 			}
 
-			return $dic->multiton('Fuel\Foundation\Component', $uri, array($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $dic->resolve('autoloader')));
+			return $dic->multiton('Fuel\Foundation\Component', $uri, [$app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $dic->resolve('autoloader')]);
 		});
 
 		// \Fuel\Foundation\Input
-		$this->register('input', function ($dic, $inputVars = array(), $parent = null)
+		$this->register('input', function ($dic, $inputVars = [], $parent = null)
 		{
-			return $dic->resolve('Fuel\Foundation\Input', array($inputVars, $parent));
+			return $dic->resolve('Fuel\Foundation\Input', [$inputVars, $parent]);
 		});
 		$this->extend('input', 'getConfigInstance');
 
 		// \Fuel\Foundation\Session\Db
-		$this->register('session.db', function ($dic, Array $config = array())
+		$this->register('session.db', function ($dic, array $config = [])
 		{
 			$name = empty($config['db']['name']) ? null : $config['db']['name'];
-			return $dic->resolve('Fuel\Foundation\Session\Db', array($config, $dic->resolve('storage.db', array($name))));
+			return $dic->resolve('Fuel\Foundation\Session\Db', [$config, $dic->resolve('storage.db', [$name])]);
 		});
 
 		// \Fuel\Foundation\Session\Memcached
-		$this->register('session.memcached', function ($dic, Array $config = array())
+		$this->register('session.memcached', function ($dic, array $config = [])
 		{
 			$name = empty($config['memcached']['name']) ? null : $config['memcached']['name'];
-			return $dic->resolve('Fuel\Foundation\Session\Memcached', array($config, $dic->resolve('storage.memcached', array($name))));
+			return $dic->resolve('Fuel\Foundation\Session\Memcached', [$config, $dic->resolve('storage.memcached', [$name])]);
 		});
 
 		// \Fuel\Foundation\Session\Redis
-		$this->register('session.redis', function ($dic, Array $config = array())
+		$this->register('session.redis', function ($dic, array $config = [])
 		{
 			$name = empty($config['redis']['name']) ? null : $config['redis']['name'];
-			return $dic->resolve('Fuel\Foundation\Session\Redis', array($config, $dic->resolve('storage.redis', array($name))));
+			return $dic->resolve('Fuel\Foundation\Session\Redis', [$config, $dic->resolve('storage.redis', [$name])]);
 		});
 
 		// \Fuel\Foundation\Request\...
-		$this->register('request', function ($dic, $component, $resource, Array $input = array(), $type = null)
+		$this->register('request', function ($dic, $component, $resource, array $input = [], $type = null)
 		{
 			// get the parent input objects
 			$parentInput = $component->getInput();
@@ -377,28 +377,28 @@ class FuelServiceProvider extends ServiceProvider
 			}
 
 			// construct an input instance for this request
-			$input = $dic->resolve('input', array($input, $parentInput));
+			$input = $dic->resolve('input', [$input, $parentInput]);
 
 			// return the constructed request
-			return $dic->resolve('request.'.$type, array($component, $resource, $input));
+			return $dic->resolve('request.'.$type, [$component, $resource, $input]);
 		});
 
 		// \Fuel\Foundation\Request\Local
 		$this->register('request.local', function ($dic, $component, $resource = '', $inputInstance = null)
 		{
-			return $dic->resolve('Fuel\Foundation\Request\Local', array($component, $resource, $inputInstance));
+			return $dic->resolve('Fuel\Foundation\Request\Local', [$component, $resource, $inputInstance]);
 		});
 
 		// \Fuel\Foundation\Request\Cli
 		$this->register('request.cli', function ($dic, $component, $resource = '', $inputInstance = null)
 		{
-			return $dic->resolve('Fuel\Foundation\Request\Cli', array($component, $resource, $inputInstance));
+			return $dic->resolve('Fuel\Foundation\Request\Cli', [$component, $resource, $inputInstance]);
 		});
 
 		// \Fuel\Foundation\Router
 		$this->register('router', function ($dic, $component)
 		{
-			return $dic->resolve('Fuel\Foundation\Router', array($component));
+			return $dic->resolve('Fuel\Foundation\Router', [$component]);
 		});
 
 		/**
@@ -406,7 +406,7 @@ class FuelServiceProvider extends ServiceProvider
 		 */
 
 		// \Monolog\Logger
-		$this->register('log', function ($dic, $name, array $handlers = array(), array $processors = array())
+		$this->register('log', function ($dic, $name, array $handlers = [], array $processors = [])
 		{
 			return new \Monolog\Logger($name, $handlers, $processors);
 		});
@@ -452,57 +452,57 @@ class FuelServiceProvider extends ServiceProvider
 		// \Fuel\Foundation\Uri
 		$this->register('uri', function ($dic, $uri)
 		{
-			return $dic->resolve('Fuel\Foundation\Uri', array($uri));
+			return $dic->resolve('Fuel\Foundation\Uri', [$uri]);
 		});
 
 		// \Fuel\Foundation\Response\Html
-		$this->register('response', function ($dic, $type = 'html', $content = '', $status = 200, array $headers = array())
+		$this->register('response', function ($dic, $type = 'html', $content = '', $status = 200, array $headers = [])
 		{
-			return $dic->resolve('Fuel\Foundation\Response\\'.ucfirst($type), array($content, $status, $headers));
+			return $dic->resolve('Fuel\Foundation\Response\\'.ucfirst($type), [$content, $status, $headers]);
 		});
 		$this->extend('response', 'getRequestInstance');
 
 		// \Fuel\Foundation\Response\Html
-		$this->register('response.html', function ($dic, $content = '', $status = 200, array $headers = array())
+		$this->register('response.html', function ($dic, $content = '', $status = 200, array $headers = [])
 		{
-			return $dic->resolve('Fuel\Foundation\Response\Html', array($content, $status, $headers));
+			return $dic->resolve('Fuel\Foundation\Response\Html', [$content, $status, $headers]);
 		});
 		$this->extend('response.html', 'getRequestInstance');
 
 		// \Fuel\Foundation\Response\Json
-		$this->register('response.json', function ($dic, $content = '', $status = 200, array $headers = array())
+		$this->register('response.json', function ($dic, $content = '', $status = 200, array $headers = [])
 		{
-			return $dic->resolve('Fuel\Foundation\Response\Json', array($content, $status, $headers));
+			return $dic->resolve('Fuel\Foundation\Response\Json', [$content, $status, $headers]);
 		});
 		$this->extend('response.json', 'getRequestInstance');
 		$this->extend('response.json', 'newFormatInstance');
 
 		// \Fuel\Foundation\Response\Jsonp
-		$this->register('response.jsonp', function ($dic, $content = '', $status = 200, array $headers = array())
+		$this->register('response.jsonp', function ($dic, $content = '', $status = 200, array $headers = [])
 		{
-			return $dic->resolve('Fuel\Foundation\Response\Jsonp', array($content, $status, $headers));
+			return $dic->resolve('Fuel\Foundation\Response\Jsonp', [$content, $status, $headers]);
 		});
 		$this->extend('response.jsonp', 'getRequestInstance');
 		$this->extend('response.jsonp', 'newFormatInstance');
 
 		// \Fuel\Foundation\Response\Csv
-		$this->register('response.csv', function ($dic, $content = '', $status = 200, array $headers = array())
+		$this->register('response.csv', function ($dic, $content = '', $status = 200, array $headers = [])
 		{
-			return $dic->resolve('Fuel\Foundation\Response\Csv', array($content, $status, $headers));
+			return $dic->resolve('Fuel\Foundation\Response\Csv', [$content, $status, $headers]);
 		});
 		$this->extend('response.csv', 'getRequestInstance');
 		$this->extend('response.csv', 'newFormatInstance');
 
 		// \Fuel\Foundation\Response\Xml
-		$this->register('response.xml', function ($dic, $content = '', $status = 200, array $headers = array())
+		$this->register('response.xml', function ($dic, $content = '', $status = 200, array $headers = [])
 		{
-			return $dic->resolve('Fuel\Foundation\Response\Xml', array($content, $status, $headers));
+			return $dic->resolve('Fuel\Foundation\Response\Xml', [$content, $status, $headers]);
 		});
 		$this->extend('response.xml', 'getRequestInstance');
 		$this->extend('response.xml', 'newFormatInstance');
 
 		// \Fuel\Foundation\Response\Redirect
-		$this->register('response.redirect', function ($dic, $url = '', $method = 'location', $status = 302, array $headers = array())
+		$this->register('response.redirect', function ($dic, $url = '', $method = 'location', $status = 302, array $headers = [])
 		{
 			// get the correct config instance
 			$stack = $dic->resolve('requeststack');
@@ -515,7 +515,7 @@ class FuelServiceProvider extends ServiceProvider
 				$app = $dic->resolve('application::__main');
 			}
 
-			return $dic->resolve('Fuel\Foundation\Response\Redirect', array($app, $url, $method, $status, $headers));
+			return $dic->resolve('Fuel\Foundation\Response\Redirect', [$app, $url, $method, $status, $headers]);
 		});
 		$this->extend('response.redirect', 'getRequestInstance');
 
@@ -546,7 +546,7 @@ class FuelServiceProvider extends ServiceProvider
 				}
 				$name = $config;
 
-				$config = $app->getConfig()->get('db.'.$config, array());
+				$config = $app->getConfig()->get('db.'.$config, []);
 			}
 			else
 			{
@@ -559,7 +559,7 @@ class FuelServiceProvider extends ServiceProvider
 				$config['driver'] = 'mysql';
 			}
 
-			return $dic->multiton('Fuel\Database\Connection\\'.ucfirst($config['driver']), $name, array($config));
+			return $dic->multiton('Fuel\Database\Connection\\'.ucfirst($config['driver']), $name, [$config]);
 		});
 
 		// \Memcached
@@ -595,7 +595,7 @@ class FuelServiceProvider extends ServiceProvider
 				}
 				$name = $config;
 
-				$config = $app->getConfig()->get('memcached.'.$config, array());
+				$config = $app->getConfig()->get('memcached.'.$config, []);
 			}
 			else
 			{
@@ -606,7 +606,7 @@ class FuelServiceProvider extends ServiceProvider
 			$persistent_id = isset($config['persistent_id']) ? $config['persistent_id'] : null;
 
 			// fetch the instance
-			$instance = $dic->multiton('Memcached', $name, array($persistent_id, null));
+			$instance = $dic->multiton('Memcached', $name, [$persistent_id, null]);
 
 			// new instance? then configure it
 			$servers = $instance->getServerList();
@@ -666,7 +666,7 @@ class FuelServiceProvider extends ServiceProvider
 				}
 				$name = $config;
 
-				$config = $app->getConfig()->get('redis.'.$config, array());
+				$config = $app->getConfig()->get('redis.'.$config, []);
 			}
 			else
 			{
@@ -699,7 +699,7 @@ class FuelServiceProvider extends ServiceProvider
 						}
 						else
 						{
-							$server = array();
+							$server = [];
 						}
 
 						// validate some config
@@ -774,7 +774,7 @@ class FuelServiceProvider extends ServiceProvider
 					}
 
 					// fetch the instance
-					$instance = $dic->multiton('Predis\Client', $name, array($config['servers'], $config['options']));
+					$instance = $dic->multiton('Predis\Client', $name, [$config['servers'], $config['options']]);
 
 				break;
 
@@ -793,7 +793,7 @@ class FuelServiceProvider extends ServiceProvider
 					}
 					else
 					{
-						$server = array('host' => 'localhost', 'port' => 6379);
+						$server = ['host' => 'localhost', 'port' => 6379];
 					}
 
 					// prefix with the correct scheme if needed
@@ -815,7 +815,7 @@ class FuelServiceProvider extends ServiceProvider
 					}
 
 					// fetch the instance
-					$instance = $dic->multiton('redisent\Redis', $name, array($server['host'], $server['timeout']));
+					$instance = $dic->multiton('redisent\Redis', $name, [$server['host'], $server['timeout']]);
 
 					// authenticate if needed
 					if ( ! empty($server['auth']))
