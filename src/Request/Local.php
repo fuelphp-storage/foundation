@@ -138,6 +138,15 @@ class Local extends Base
 		// add the root path to the config, lang and view manager objects
 		$paths = $this->component->getPaths();
 		$finder = $this->component->getApplication()->getViewManager()->getFinder();
+
+		if ( ! $this->factory->isMainRequest())
+		{
+			$originalFinder = $finder;
+			$finder = clone $finder;
+
+			$this->component->getApplication()->getViewManager()->setFinder($finder);
+		}
+
 		$finder->addPaths($paths);
 
 		try
@@ -164,7 +173,10 @@ class Local extends Base
 		}
 
 		// remove the root path to the config, lang and view manager objects
-		$finder->removePaths($paths);
+		if ( ! $this->factory->isMainRequest())
+		{
+			$this->component->getApplication()->getViewManager()->setFinder($originalFinder);
+		}
 
 		// log the request termination
 		$this->log->info('Request executed');
