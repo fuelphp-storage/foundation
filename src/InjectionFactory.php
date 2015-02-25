@@ -50,7 +50,7 @@ class InjectionFactory
 	 */
 	public function createInputContainer($input = array(), $parent = null)
 	{
-		return $this->container->resolve('input', array($input, $parent));
+		return $this->container->get('input', array($input, $parent));
 	}
 
 	/**
@@ -66,7 +66,7 @@ class InjectionFactory
 	 */
 	public function createEventInstance()
 	{
-		return $this->container->resolve('event');
+		return $this->container->get('event');
 	}
 
 	/**
@@ -74,7 +74,7 @@ class InjectionFactory
 	 */
 	public function createSessionInstance()
 	{
-		return $this->container->resolve('session');
+		return $this->container->get('session');
 	}
 
 	/**
@@ -82,7 +82,7 @@ class InjectionFactory
 	 */
 	public function createRouterInstance($component)
 	{
-		return $this->container->resolve('router', array($component));
+		return $this->container->get('router', array($component));
 	}
 
 	/**
@@ -98,7 +98,7 @@ class InjectionFactory
 	 */
 	public function createRequestInstance($component, $uri, $input)
 	{
-		return $this->container->resolve('request', array($component, $uri, $input));
+		return $this->container->get('request', array($component, $uri, $input));
 	}
 
 	/**
@@ -106,7 +106,7 @@ class InjectionFactory
 	 */
 	public function createResponseInstance($type, $content = '', $status = 200, array $headers = array())
 	{
-		return $this->container->resolve('response.'.$type, array($content, $status, $headers));
+		return $this->container->get('response.'.$type, array($content, $status, $headers));
 	}
 
 	/**
@@ -114,7 +114,7 @@ class InjectionFactory
 	 */
 	public function createDataContainer(array $contents = array())
 	{
-		return $this->container->resolve('datacontainer', $contents);
+		return $this->container->get('datacontainer', $contents);
 	}
 
 	/**
@@ -122,7 +122,7 @@ class InjectionFactory
 	 */
 	public function createCookieJar(array $cookies = array())
 	{
-		return $this->container->resolve('cookiejar', $cookies);
+		return $this->container->get('cookiejar', $cookies);
 	}
 
 	/**
@@ -138,7 +138,7 @@ class InjectionFactory
 	 */
 	public function createComponentInstance($app, $uri, $namespace, $paths = null, $routeable = true, $parent = null)
 	{
-		return $this->container->resolve('component', array($app, $uri, $namespace, $paths, $routeable, $parent));
+		return $this->container->get('component', array($app, $uri, $namespace, $paths, $routeable, $parent));
 	}
 
 	/**
@@ -146,8 +146,8 @@ class InjectionFactory
 	 */
 	public function createViewmanagerInstance()
 	{
-		return $this->container->resolve('viewmanager', array(
-			$this->container->resolve('finder', array(array(realpath(__DIR__.DS.'..'.DS.'defaults')))),
+		return $this->container->get('viewmanager', array(
+			$this->container->get('finder', array(array(realpath(__DIR__.DS.'..'.DS.'defaults')))),
 		));
 	}
 
@@ -156,7 +156,7 @@ class InjectionFactory
 	 */
 	public function createViewParserInstance($name)
 	{
-		return $this->container->resolve($name);
+		return $this->container->get($name);
 	}
 
 	/**
@@ -168,11 +168,11 @@ class InjectionFactory
 	 */
 	public function createControllerInstance($controller)
 	{
-		$this->container->register('controller', $controller);
-		$this->container->extend('controller', 'getApplicationInstance');
-		$this->container->extend('controller', 'getRequestInstance');
+		$this->container->add('controller', $controller)
+			->withMethodCall('setApplication', 'applicationInstance')
+			->withMethodCall('setRequest', 'requestInstance');
 
-		return $this->container->resolve('controller');
+		return $this->container->get('controller');
 	}
 
 	/**
@@ -184,12 +184,12 @@ class InjectionFactory
 	 */
 	public function createUriInstance($uri)
 	{
-		return $this->container->resolve('uri', array($uri));
+		return $this->container->get('uri', array($uri));
 	}
 
 	public function isMainRequest()
 	{
-		$stack = $this->container->resolve('requeststack');
+		$stack = $this->container->get('requeststack');
 		return count($stack) === 1;
 	}
 }

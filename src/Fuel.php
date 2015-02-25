@@ -12,6 +12,7 @@ namespace Fuel\Foundation;
 
 use Fuel\Config\Container as Config;
 use Fuel\Dependency\Container as Dic;
+use League\Container\Exception\ReflectionException;
 
 /**
  * Fuel class
@@ -70,29 +71,29 @@ class Fuel
 		// setup the autoloader if none was set yet
 		try
 		{
-			$loader = $dic->resolve('autoloader');
+			$loader = $dic->get('autoloader');
 		}
-		catch (\Fuel\Dependency\ResolveException $e)
+		catch (ReflectionException $e)
 		{
 			// fetch the composer autoloader instance
 			$loader = require VENDORPATH.'autoload.php';
 
 			// allow the framework to access the composer autoloader
-			$dic->inject('autoloader', $loader);
+			$dic->add('autoloader', $loader);
 		}
 
 		// setup the errorhandler if none was set yet
 		try
 		{
-			$errorhandler = $dic->resolve('errorhandler');
+			$errorhandler = $dic->get('errorhandler');
 		}
-		catch (\Fuel\Dependency\ResolveException $e)
+		catch (ReflectionException $e)
 		{
 			// setup the shutdown, error & exception handlers
 			$errorhandler = new Error($dic);
 
 			// setup the shutdown, error & exception handlers
-			$dic->inject('errorhandler', $errorhandler);
+			$dic->add('errorhandler', $errorhandler);
 		}
 
 		// get all defined namespaces
@@ -115,7 +116,7 @@ class Fuel
 			if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelServiceProvider'))
 			{
 				// register it with the DiC
-				$dic->registerService(new $class);
+				$dic->addServiceProvider(new $class);
 			}
 		}
 
@@ -168,28 +169,28 @@ class Fuel
 		try
 		{
 			// check if we already have an application by this name
-			$app = $dic->resolve('application::'.$name);
+			$app = $dic->multiton('application', $name);
 			throw new \InvalidArgumentException('FOU-xxx: An application by the name of ['.$name.'] already exists.');
 		}
-		catch (\Fuel\Dependency\ResolveException $e)
+		catch (ReflectionException $e)
 		{
 			// create the application instance
-			$app = $dic->resolve('Fuel\Foundation\Application', array($name, $appNamespace, $appEnvironment));
+			$app = $dic->get('Fuel\Foundation\Application', [$name, $appNamespace, $appEnvironment]);
 
 			// allow the framework to access the application object
-			$dic->inject('application::'.$name, $app);
+			$dic->add('application::'.$name, $app);
 		}
 
 		// make the first one defined the main application
 		try
 		{
 			// check if we already have an main application defined
-			$dic->resolve('application::__main');
+			$dic->multiton('application', '__main');
 		}
-		catch (\Fuel\Dependency\ResolveException $e)
+		catch (ReflectionException $e)
 		{
 			// create the main application as an alias of the created application
-			$dic->inject('application::__main', $app);
+			$dic->add('application::__main', $app);
 			static::$app = $app;
 		}
 
@@ -220,18 +221,12 @@ class Fuel
 			static::$dic = new Dic;
 
 			// register the DiC on classname so it can be auto-resolved
-			static::$dic->registerSingleton('Fuel\Dependency\Container', function($context)
-			{
-				return $context->getContainer();
-			});
+			static::$dic->add('Fuel\Dependency\Container', $dic);
 
 		}
 
 		// register the dic for manual resolving
-		static::$dic->registerSingleton('dic', function($context)
-		{
-			return $context->getContainer();
-		});
+		static::$dic->add('dic', $dic);
 
 		return static::$dic;
 	}
