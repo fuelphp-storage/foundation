@@ -29,6 +29,9 @@
 		"fuelphp/fieldset": "~2.0",
 		"fuelphp/orm": "~2.0"
 	},
+	"require-dev": {
+		"codeception/codeception": "~2.0"
+	},
 	"suggest": {
 		"michelf/php-markdown": "Required if you want to use the Markdown facade class"
 	},
