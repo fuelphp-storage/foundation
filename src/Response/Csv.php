@@ -21,6 +21,8 @@ namespace Fuel\Foundation\Response;
  */
 class Csv extends Base
 {
+	use FormatAware;
+
 	/**
 	 * @var  string  mime type of the return body
 	 */

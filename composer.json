@@ -1,6 +1,6 @@
 {
 	"name": "fuelphp/foundation",
-	"description": "FuelPHP Framework foundation library.",
+	"description": "FuelPHP Framework foundation",
 	"homepage": "https://github.com/fuelphp/foundation",
 	"license": "MIT",
 	"authors": [
@@ -35,6 +35,11 @@
 	"autoload": {
 		"psr-4": {
 			"Fuel\\Foundation\\": "src/"
+		}
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "2.0-dev"
 		}
 	},
 	"minimum-stability": "dev"

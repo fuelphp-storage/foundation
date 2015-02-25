@@ -21,6 +21,8 @@ namespace Fuel\Foundation\Response;
  */
 class Jsonp extends Base
 {
+	use FormatAware;
+
 	/**
 	 * @var  string  mime type of the return body
 	 */
