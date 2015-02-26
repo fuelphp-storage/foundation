@@ -28,7 +28,7 @@
 		"fuelphp/validation": "~2.0",
 		"fuelphp/fieldset": "~2.0",
 		"fuelphp/orm": "~2.0",
-		"fuelphp/leagacy": "~2.0"
+		"fuelphp/legacy": "~2.0"
 	},
 	"require-dev": {
 		"codeception/codeception": "~2.0"
