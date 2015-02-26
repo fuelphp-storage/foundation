@@ -102,7 +102,6 @@ class Application
 
 		// store the application name
 		$this->_name = $name;
-
 		// create the main application component
 		$this->_component = $this->newComponent('/', $appNamespace);
 

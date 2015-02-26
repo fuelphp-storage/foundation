@@ -8,19 +8,12 @@
  * @link       http://fuelphp.com
  */
 
-namespace Fuel\Foundation\Response;
-
-use Fuel\Common\Format;
+namespace Fuel\Foundation\Request;
 
 /**
- * Accepts a Format instance
+ * Accepts a Request instance
  */
-interface FormatAware
+interface RequestAware
 {
-	/**
-	 * Sets the Format instance
-	 *
-	 * @param Format $format
-	 */
-	public function setFormat(Format $format);
+	public function setRequest($request);
 }

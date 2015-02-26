@@ -28,7 +28,7 @@ class FuelServiceProvider extends ServiceProvider
 		'langInstance', 'inputInstance', 'logInstance', 'routerInstance',
 		'environmentInstance', 'requestInstance',
 
-		'environment', 'component', 'requeststack', 'input',
+		'environment', 'component', 'requeststack', 'injectionfactory', 'input',
 		'session.db', 'session.memcached', 'session.redis',
 		'router', 'log', 'event',
 
@@ -53,7 +53,7 @@ class FuelServiceProvider extends ServiceProvider
 					return $request->getComponent()->getApplication();
 				}
 
-				return $this->container->multiton('application', '__main');
+				return $this->container->get('application::__main');
 			}
 			catch (ReflectionException $e)
 			{
@@ -75,7 +75,7 @@ class FuelServiceProvider extends ServiceProvider
 					return $request->getComponent();
 				}
 
-				return $app = $this->container->multiton('application', '__main')->getRootComponent();
+				return $app = $this->container->get('application::__main')->getRootComponent();
 			}
 			catch (ReflectionException $e)
 			{
@@ -147,7 +147,11 @@ class FuelServiceProvider extends ServiceProvider
 			return new Foundation\Environment($environment, $app);
 		});
 
-		$this->singleton('requeststack', 'Fuel\Foundation\Stack');
+		$this->container->singleton('requeststack', 'Fuel\Foundation\Stack')
+			->withArgument('Fuel\Dependency\Container');
+
+		$this->container->singleton('injectionfactory', 'Fuel\Foundation\InjectionFactory')
+			->withArgument('Fuel\Dependency\Container');
 
 		$this->container->add('component', function ($app, $uri, $namespace, $paths, $routeable, $parent)
 		{
@@ -186,13 +190,22 @@ class FuelServiceProvider extends ServiceProvider
 				$input->setParent($parent->getInput());
 			}
 
-			return $this->container->multiton('Fuel\Foundation\Component', $uri, [$app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $this->container->get('autoloader')]);
+			$autoloader = $this->container->get('autoloader');
+			$injectionFactory = $this->container->get('injectionfactory');
+
+			return new Foundation\Component($app, $uri, $namespace, $paths, $routeable, $parent, $config, $input, $autoloader, $injectionFactory);
 		});
 
 		$this->container->add('input', function ($inputVars = [], $parent = null)
 		{
-			return new Foundation\Input($inputVars, $parent);
-		})->withMethodCall('setConfig', 'configInstance');
+			$injectionFactory = $this->container->get('injectionfactory');
+
+			$input = new Foundation\Input($inputVars, $parent, $injectionFactory);
+
+			// $input->setConfig($this->container->get('configInstance'));
+
+			return $input;
+		});
 
 		$this->container->add('session.db', function (array $config = [])
 		{
@@ -217,6 +230,9 @@ class FuelServiceProvider extends ServiceProvider
 
 			return new Foundation\Session\Redis($config, $storage);
 		});
+
+		$this->container->singleton('requestinjectionfactory', 'Fuel\Foundation\Request\RequestInjectionFactory')
+			->withArgument('Fuel\Dependency\Container');
 
 		$this->container->add('request', function ($component, $resource, array $input = [], $type = null)
 		{
@@ -269,19 +285,28 @@ class FuelServiceProvider extends ServiceProvider
 			return $this->container->get('request.'.$type, [$component, $resource, $input]);
 		});
 
+		$this->container->inflector('Fuel\Foundation\Request\RequestAware')
+			->invokeMethod('setRequest', ['requestInstance']);
+
 		$this->container->add('request.local', function ($component, $resource = '', $inputInstance = null)
 		{
-			return new Foundation\Request\Local($component, $resource, $inputInstance);
+			$injectionFactory = $this->container->get('requestinjectionfactory');
+
+			return new Foundation\Request\Local($component, $resource, $inputInstance, $injectionFactory);
 		});
 
 		$this->container->add('request.cli', function ($component, $resource = '', $inputInstance = null)
 		{
-			return new Foundation\Request\Cli($component, $resource, $inputInstance);
+			$injectionFactory = $this->container->get('requestinjectionfactory');
+
+			return new Foundation\Request\Cli($component, $resource, $inputInstance, $injectionFactory);
 		});
 
 		$this->container->add('router', function ($component)
 		{
-			return new Foundation\Router($component);
+			$injectionFactory = $this->container->get('injectionfactory');
+
+			return new Foundation\Router($component, $injectionFactory);
 		});
 
 
@@ -296,57 +321,50 @@ class FuelServiceProvider extends ServiceProvider
 
 
 
-		$this->extension('newFormatInstance', function($container, $instance)
-		{
-			$instance->format = $container->resolve('format');
-		});
-
-
 		$this->container->add('uri', function ($uri)
 		{
-			return new Foundation\Uri($url);
+			return new Foundation\Uri($uri);
 		});
 
 		$this->container->add('response', function ($type = 'html', $content = '', $status = 200, array $headers = [])
 		{
 			return $this->container->get('response.'.$type, [$content, $status, $headers]);
-		})->withMethodCall('setRequest', 'requestInstance');
+		});
+
+		$this->container->inflector('Fuel\Foundation\Response\FormatAware')
+			->invokeMethod('setFormat', ['format']);
 
 		$this->container->add('response.html', function ($content = '', $status = 200, array $headers = [])
 		{
 			return new Foundation\Response\Html($content, $status, $headers);
-		})->withMethodCall('setRequest', 'requestInstance');
+		});
 
 		$this->container->add('response.json', function ($content = '', $status = 200, array $headers = [])
 		{
 			return new Foundation\Response\Json($content, $status, $headers);
-		})->withMethodCall('setRequest', 'requestInstance')
-		->withMethodCall('setFormat', 'format');
+		});
 
 		$this->container->add('response.jsonp', function ($content = '', $status = 200, array $headers = [])
 		{
 			return new Foundation\Response\Jsonp($content, $status, $headers);
-		})->withMethodCall('setRequest', 'requestInstance')
-		->withMethodCall('setFormat', 'format');
+		});
 
 		$this->container->add('response.csv', function ($content = '', $status = 200, array $headers = [])
 		{
 			return new Foundation\Response\Csv($content, $status, $headers);
-		})->withMethodCall('setRequest', 'requestInstance')
-		->withMethodCall('setFormat', 'format');
+		});
 
 		$this->container->add('response.xml', function ($content = '', $status = 200, array $headers = [])
 		{
 			return new Foundation\Response\Xml($content, $status, $headers);
-		})->withMethodCall('setRequest', 'requestInstance')
-		->withMethodCall('setFormat', 'format');
+		});
 
 		$this->container->add('response.redirect', function ($url = '', $method = 'location', $status = 302, array $headers = [])
 		{
 			$app = $this->container->get('applicationInstance', [false]);
 
 			return new Foundation\Response\Redirect($app, $url, $method, $status, $headers);
-		})->withMethodCall('setRequest', 'requestInstance');
+		});
 
 		// \Fuel\Database\Connection
 		$this->container->add('storage.db', function ($config = null)

@@ -19,9 +19,9 @@ namespace Fuel\Foundation\Response;
  *
  * @since  2.0.0
  */
-class Json extends Base
+class Json extends Base implements FormatAware
 {
-	use FormatAware;
+	use FormatAcceptor;
 
 	/**
 	 * @var  string  mime type of the return body

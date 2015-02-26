@@ -52,17 +52,6 @@ class Application extends Base
 	public static function getInstance()
 	{
 		// get the current requests' application object
-		$stack = static::getDic()->resolve('requeststack');
-		if ($request = $stack->top())
-		{
-			$app = $request->getComponent()->getApplication();
-		}
-		else
-		{
-			// fall back to the main application
-			$app = static::getDic()->resolve('application::__main');
-		}
-
-		return $app;
+		return static::getDic()->get('applicationInstance', [false]);
 	}
 }

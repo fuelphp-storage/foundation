@@ -29,7 +29,7 @@ class RequestInjectionFactory extends InjectionFactory
 	 */
 	public function setActiveRequest($request)
 	{
-		$stack = $this->container->resolve('requeststack');
+		$stack = $this->container->get('requeststack');
 		$stack->push($request);
 	}
 
@@ -38,7 +38,7 @@ class RequestInjectionFactory extends InjectionFactory
 	 */
 	public function resetActiveRequest()
 	{
-		$stack = $this->container->resolve('requeststack');
+		$stack = $this->container->get('requeststack');
 		$stack->pop();
 	}
 }

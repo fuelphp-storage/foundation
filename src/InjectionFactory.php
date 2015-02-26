@@ -169,8 +169,9 @@ class InjectionFactory
 	public function createControllerInstance($controller)
 	{
 		$this->container->add('controller', $controller)
-			->withMethodCall('setApplication', 'applicationInstance')
-			->withMethodCall('setRequest', 'requestInstance');
+			->withArgument('injectionfactory')
+			->withMethodCall('setApplication', ['applicationInstance'])
+			->withMethodCall('setRequest', ['requestInstance']);
 
 		return $this->container->get('controller');
 	}

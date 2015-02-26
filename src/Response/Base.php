@@ -10,6 +10,8 @@
 
 namespace Fuel\Foundation\Response;
 
+use Fuel\Foundation\Request\RequestAware;
+
 /**
  * FuelPHP base response class
  *
@@ -19,7 +21,7 @@ namespace Fuel\Foundation\Response;
  *
  * @since  2.0.0
  */
-abstract class Base
+abstract class Base implements RequestAware
 {
 	/**
 	 * @var  array  An array of status codes and messages

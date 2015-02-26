@@ -31,7 +31,7 @@ class FuelLibraryProvider extends LibraryProvider
 	public function initialize()
 	{
 		// fetch the alias instance
-		$alias = $this->dic->resolve('alias');
+		$alias = $this->dic->get('alias');
 
 		/**
 		 * Alias the Fuel class to global

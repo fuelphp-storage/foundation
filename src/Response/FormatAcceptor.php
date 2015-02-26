@@ -15,12 +15,18 @@ use Fuel\Common\Format;
 /**
  * Accepts a Format instance
  */
-interface FormatAware
+trait FormatAcceptor
 {
 	/**
-	 * Sets the Format instance
-	 *
-	 * @param Format $format
+	 * @var Format
 	 */
-	public function setFormat(Format $format);
+	protected $format;
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function setFormat(Format $format)
+	{
+		$this->format = $format;
+	}
 }
