@@ -28,7 +28,7 @@ class FuelServiceProvider extends ServiceProvider
 		'langInstance', 'inputInstance', 'logInstance', 'routerInstance',
 		'environmentInstance', 'requestInstance',
 
-		'environment', 'component', 'requeststack', 'injectionfactory', 'input',
+		'application', 'environment', 'component', 'requeststack', 'injectionfactory', 'input',
 		'session.db', 'session.memcached', 'session.redis',
 		'router', 'log', 'event',
 
@@ -139,6 +139,14 @@ class FuelServiceProvider extends ServiceProvider
 			$stack = $this->container->get('requeststack');
 
 			return $stack->top();
+		});
+
+
+		$this->container->add('application', function($name, $appNamespace, $appEnvironment)
+		{
+			$injectionFactory = $this->container->get('injectionfactory');
+
+			return new Foundation\Application($name, $appNamespace, $appEnvironment, $injectionFactory);
 		});
 
 

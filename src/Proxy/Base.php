@@ -24,7 +24,7 @@ abstract class Base
 	 */
 	protected static function getDic()
 	{
-		return \Fuel::getDic();
+		return \Fuel::getContainer();
 	}
 
 	/**

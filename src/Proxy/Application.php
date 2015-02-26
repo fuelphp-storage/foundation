@@ -39,7 +39,7 @@ class Application extends Base
 		}
 
 		// return the application instance
-		return static::getDic()->multiton('application', $name);
+		return static::getDic()->multiton('application::'.$name);
 	}
 
 	/**

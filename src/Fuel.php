@@ -4,57 +4,41 @@
  * @version    2.0
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010 - 2014 Fuel Development Team
+ * @copyright  2010 - 2015 Fuel Development Team
  * @link       http://fuelphp.com
  */
 
 namespace Fuel\Foundation;
 
-use Fuel\Config\Container as Config;
 use Fuel\Dependency\Container;
-use League\Container\Exception\ReflectionException;
 
 /**
- * Fuel class
- *
- * @package  Fuel\Foundation
- *
- * @since  1.0.0
+ * Fuel bootstrapping class
  */
 class Fuel
 {
 	/**
-	 * @var  string  The global version of framework
-	 *
-	 * @since  1.0.0
+	 * @var string
 	 */
 	const VERSION = '2.0-dev';
 
 	/**
 	 * Whether or not the framework is initialized
-	 *
-	 * @since  1.0.0
 	 */
 	protected static $initialized = false;
 
 	/**
-	 * This frameworks Dependency object
-	 *
-	 * @since  1.0.0
+	 * Dependency container
 	 */
-	protected static $dic = null;
+	protected static $container;
 
 	/**
-	 * This frameworks Appliction object
-	 *
-	 * @since  1.0.0
+	 * Appliction object
 	 */
-	protected static $app = null;
+	protected static $app;
 
 	/**
 	 * Initialize the framework
-	 *
-	 * @since  1.0.0
 	 */
 	protected static function initialize()
 	{
@@ -66,61 +50,54 @@ class Fuel
 		defined('MBSTRING') or define('MBSTRING', function_exists('mb_get_info'));
 
 		// get the Dependency Container instance
-		$dic = static::getDic();
+		$container = static::getContainer();
 
 		// setup the autoloader if none was set yet
-		try
-		{
-			$loader = $dic->get('autoloader');
-		}
-		catch (ReflectionException $e)
+		if ( ! $container->isInstance('autoloader'))
 		{
 			// fetch the composer autoloader instance
 			$loader = require VENDORPATH.'autoload.php';
 
 			// allow the framework to access the composer autoloader
-			$dic->add('autoloader', $loader);
+			$container->add('autoloader', $loader);
 		}
 
 		// setup the errorhandler if none was set yet
-		try
+		if ( ! $container->isInstance('errorhandler'))
 		{
-			$errorhandler = $dic->get('errorhandler');
+			$container->add('errorhandler', new Error());
 		}
-		catch (ReflectionException $e)
-		{
-			// setup the shutdown, error & exception handlers
-			$errorhandler = new Error($dic);
 
-			// setup the shutdown, error & exception handlers
-			$dic->add('errorhandler', $errorhandler);
-		}
+		$autoloader = $container->get('autoloader');
 
 		// get all defined namespaces
-		$prefixes = array_merge($loader->getPrefixes(), $loader->getPrefixesPsr4());
+		$prefixes = array_merge($autoloader->getPrefixes(), $autoloader->getPrefixesPsr4());
 
 		// determine the installation root if needed
+		// TODO: find a better way to do that
 		if ( ! defined('ROOTPATH'))
 		{
 			$path = reset($prefixes['Fuel\\Foundation\\']);
+
 			if ($path = realpath(substr($path, 0, strpos($path, '/fuelphp/foundation')).DS.'..'.DS))
 			{
 				define('ROOTPATH', $path.DS);
 			}
 		}
 
-		// scan all composer packages loaded for the presence of FuelServiceProviders
-		foreach ($prefixes as $namespace => $paths)
+		$fuelNamespaces = array_filter(array_keys($prefixes), function($key)
 		{
-			// does this package define a service provider
-			if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelServiceProvider'))
-			{
-				// register it with the DiC
-				$dic->addServiceProvider(new $class);
-			}
-		}
+			return substr($key, 0, 5) === 'Fuel\\';
+		});
 
-		// TODO: needs to be changed to something more clever!
+		$nonFuelNamespaces = array_diff(array_keys($prefixes), $fuelNamespaces);
+
+		// scan all fuel packages loaded for the presence of FuelServiceProviders
+		static::loadServiceProviders($fuelNamespaces);
+
+		// scan the rest of composer packages loaded for the presence of FuelServiceProviders
+		static::loadServiceProviders($nonFuelNamespaces);
+
 		// scan all composer packages loaded for the presence of FuelLibraryProviders
 		foreach ($prefixes as $namespace => $paths)
 		{
@@ -128,7 +105,7 @@ class Fuel
 			if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelLibraryProvider'))
 			{
 				// load the library provider
-				$provider = new $class($dic, $namespace, $paths);
+				$provider = new $class($container, $namespace, $paths);
 
 				// validate the provider
 				if ( ! $provider instanceOf LibraryProvider)
@@ -146,15 +123,32 @@ class Fuel
 	}
 
 	/**
-	 * Create a new application instance, the main application component
+	 * Scans a set of namespaces for service providers and loads them
+	 *
+	 * @param array $namespaces
+	 */
+	protected static function loadServiceProviders(array $namespaces)
+	{
+		foreach ($namespaces as $namespace)
+		{
+			// does this package define a service provider
+			if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelServiceProvider'))
+			{
+				// register it with the Container
+				static::getContainer()->addServiceProvider($class);
+			}
+		}
+	}
+
+	/**
+	 * Creates a new application instance, the main application component
 	 * or return an already created one
 	 *
-	 * @param  string  name to identify this application
-	 * @param  string  the namespace of the main application component
-	 * @param  string  the environment this application component has to run in
-	 * @return  Component  the created application object
+	 * @param string $name
+	 * @param string $appNamespace
+	 * @param string $appEnvironment
 	 *
-	 * @since  2.0.0
+	 * @return Component
 	 */
 	public static function forge($name, $appNamespace, $appEnvironment = 'development')
 	{
@@ -164,33 +158,22 @@ class Fuel
 		}
 
 		// get the Dependency Container instance
-		$dic = static::getDic();
+		$container = static::getContainer();
 
-		try
+		// check if we already have an application by this name
+		if ($container->isInstance('application', $name))
 		{
-			// check if we already have an application by this name
-			$app = $dic->get('application::'.$name);
-			throw new \InvalidArgumentException('FOU-xxx: An application by the name of ['.$name.'] already exists.');
+			throw new \InvalidArgumentException(sprintf('FOU-xxx: An application by the name of [%s] already exists.', $name));
 		}
-		catch (ReflectionException $e)
-		{
-			// create the application instance
-			$app = new Application($name, $appNamespace, $appEnvironment, $dic->get('injectionfactory'));
 
-			// allow the framework to access the application object
-			$dic->add('application::'.$name, $app);
-		}
+		// create the application instance
+		$app = $container->multiton('application', $name, [$name, $appNamespace, $appEnvironment]);
 
 		// make the first one defined the main application
-		try
-		{
-			// check if we already have an main application defined
-			$dic->get('application::__main');
-		}
-		catch (ReflectionException $e)
+		if ( ! $container->isInstance('application', '__main'))
 		{
 			// create the main application as an alias of the created application
-			$dic->add('application::__main', $app);
+			$container->add('application::__main', $app);
 			static::$app = $app;
 		}
 
@@ -199,60 +182,50 @@ class Fuel
 	}
 
 	/**
-	 * set the DiC
+	 * Returns the Container
 	 *
-	 * @param   Fuel\Dependency\Container  $dic  This frameworks DiC instance
-	 * @return   Fuel\Dependency\Container  This frameworks DiC instance
-	 *
-	 * @since  2.0.0
+	 * @return Container
 	 */
-	public static function setDic($dic = null)
+	public static function getContainer()
 	{
-		// if a custom DiC is passed, use that
-		if ($dic and $dic instanceof Container)
+		if ( ! isset(static::$container))
 		{
-			static::$dic = $dic;
+			static::setContainer();
 		}
 
-		// else set one up if not done yet
-		elseif ( ! static::$dic)
+		return static::$container;
+	}
+
+	/**
+	 * Sets the Container
+	 *
+	 * @param Container $container
+	 */
+	public static function setContainer(Container $container = null)
+	{
+		if ( ! isset($container))
 		{
 			// get us a Dependency Container instance
-			static::$dic = new Container;
+			$container = new Container;
 
-			// register the DiC on classname so it can be auto-resolved
-			static::$dic->add('Fuel\Dependency\Container', static::$dic);
+			// register the Container on classname so it can be auto-resolved
+			$container->add('Fuel\Dependency\Container', $container);
 		}
 
 		// register the dic for manual resolving
-		static::$dic->add('dic', static::$dic);
+		$container->add('dic', $container);
+		$container->add('container', $container);
 
-		return static::$dic;
+		static::$container = $container;
 	}
 
 	/**
-	 * get the DiC
+	 * Returns the main application object
 	 *
-	 * @return   Fuel\Dependency\Container  This frameworks DiC instance
-	 *
-	 * @since  2.0.0
-	 */
-	public static function getDic()
-	{
-		return static::$dic ?: static::setDic();
-	}
-
-	/**
-	 * get the application object
-	 *
-	 * @return   Application  This frameworks Application object
-	 *
-	 * @since  2.0.0
+	 * @return Application
 	 */
 	public static function getApp()
 	{
 		return static::$app;
 	}
-
 }
-
