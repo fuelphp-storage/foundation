@@ -50,7 +50,7 @@ class Auth extends Base
 		}
 
 		// create the instance
-		$instance = static::getDic()->resolve('auth', array($name, $config));
+		$instance = static::getDic()->get('auth', array($name, $config));
 
 		// if this is the first, make it the default instance
 		if ( ! static::$instance)

@@ -26,6 +26,6 @@ class Error extends Base
 	 */
 	public static function getInstance()
 	{
-		return static::getDic()->resolve('errorhandler');
+		return static::getDic()->get('errorhandler');
 	}
 }

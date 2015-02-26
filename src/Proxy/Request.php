@@ -30,7 +30,7 @@ class Request extends Base
 	 */
 	public static function forge($resource, Array $input = array(), $type = null)
 	{
-		return static::getDic()->resolve('request', func_get_args());
+		return static::getDic()->get('request', func_get_args());
 	}
 
 	/**
@@ -42,7 +42,7 @@ class Request extends Base
 	 */
 	public static function isMainRequest()
 	{
-		$stack = Dependency::resolve('requeststack');
+		$stack = static::getDic()->get('requeststack');
 		return count($stack) === 1;
 	}
 
@@ -55,7 +55,7 @@ class Request extends Base
 	 */
 	public static function isHMVCRequest()
 	{
-		$stack = Dependency::resolve('requeststack');
+		$stack = static::getDic()->get('requeststack');
 		return count($stack) !== 1;
 	}
 
@@ -68,7 +68,7 @@ class Request extends Base
 	 */
 	public static function getInstance()
 	{
-		$stack = Dependency::resolve('requeststack');
+		$stack = static::getDic()->get('requeststack');
 		return $stack->top();
 	}
 }

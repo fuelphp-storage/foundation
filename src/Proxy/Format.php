@@ -30,7 +30,7 @@ class Format extends Base
 	 */
 	public static function forge()
 	{
-		return static::getDic()->resolve('format', func_get_args());
+		return static::getDic()->get('format', func_get_args());
 	}
 
 	/**

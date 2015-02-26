@@ -30,7 +30,7 @@ class Input extends Base
 	 */
 	public static function forge(Array $input = array())
 	{
-		return static::getDic()->resolve('input', func_get_args());
+		return static::getDic()->get('input', func_get_args());
 	}
 
 	/**

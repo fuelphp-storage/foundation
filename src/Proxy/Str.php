@@ -28,7 +28,7 @@ class Str extends Base
 	 */
 	public static function forge()
 	{
-		return static::getDic()->resolve('str', func_get_args());
+		return static::getDic()->get('str', func_get_args());
 	}
 
 	/**

@@ -28,18 +28,6 @@ class Component extends Base
 	 */
 	public static function getInstance()
 	{
-		// get the current requests' application object
-		$stack = static::getDic()->resolve('requeststack');
-		if ($request = $stack->top())
-		{
-			$component = $request->getComponent();
-		}
-		else
-		{
-			// fall back to the main component
-			$component = static::getDic()->resolve('application::__main')->getRootComponent();
-		}
-
-		return $component;
+		return static::getDic()->gett('componentInstance', [false]);
 	}
 }

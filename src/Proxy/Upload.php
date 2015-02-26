@@ -41,7 +41,8 @@ class Upload extends Base
 	 */
 	public static function delete($name)
 	{
-		return static::getDic()->remove('upload::'.$name);
+		$dic = static::getDic();
+		unset($dic['upload::'.$name]);
 	}
 
 

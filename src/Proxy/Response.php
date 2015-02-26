@@ -33,7 +33,7 @@ class Response extends Base
 		$args = func_get_args();
 		array_shift($args);
 
-		return static::getDic()->resolve('response.'.$type, $args);
+		return static::getDic()->get('response.'.$type, $args);
 	}
 
 }

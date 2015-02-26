@@ -27,7 +27,7 @@ class Session extends Base
 	public static function forge($config = array())
 	{
 		// create the session manager
-		$manager = static::getDic()->resolve('session', func_get_args());
+		$manager = static::getDic()->get('session', func_get_args());
 
 		// if the current application doesn't have a default session
 		if ( ! \Application::getInstance()->getSession())
