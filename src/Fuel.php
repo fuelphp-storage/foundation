@@ -177,6 +177,8 @@ class Fuel
 			static::$app = $app;
 		}
 
+		$app->initialize();
+
 		// return the created applications main component
 		return $app->getRootComponent();
 	}

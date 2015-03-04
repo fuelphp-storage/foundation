@@ -11,105 +11,106 @@
 namespace Fuel\Foundation;
 
 use Fuel\Foundation\Fuel;
+use Fuel\Session\Manager as SessionManager;
 
 /**
- * Application class
- *
  * Defines the FuelPHP application, and provides the applictions global environment
- *
- * @package  Fuel\Foundation
- *
- * @since  2.0.0
  */
 class Application
 {
 	/**
-	 * @var  InjectionFactory  this applications object factory
-	 *
-	 * @since  2.0.0
+	 * @var boolean
+	 */
+	protected $initialized = false;
+
+	/**
+	 * @var string
+	 */
+	protected $name;
+
+	/**
+	 * @var string
+	 */
+	protected $appNamespace;
+
+	/**
+	 * @var string
+	 */
+	protected $environmentName;
+
+	/**
+	 * @var InjectionFactory
 	 */
 	protected $factory;
 
 	/**
-	 * @var  string  name of this application
+	 * List or URI to component mappings
 	 *
-	 * @since  2.0.0
+	 * @var array
 	 */
-	protected $_name;
+	protected $components = [];
 
 	/**
-	 * @var  array  list or URI to component mappings
-	 *
-	 * @since  2.0.0
+	 * @var Component
 	 */
-	protected $_components = array();
+	protected $component;
 
 	/**
-	 * @var  League/Event/EmitterInterface
-	 *
-	 * @since  2.0.0
+	 * @var Environment
 	 */
-	protected $_event;
+	protected $environment;
 
 	/**
-	 * @var  Fuel/Session/Manager  this applications session object
-	 *
-	 * @since  2.0.0
+	 * @var \Psr\Log\LoggerInterface
 	 */
-	protected $_session;
+	protected $log;
 
 	/**
-	 * @var  Fuel/Display/ViewManager  this applications view manager object
-	 *
-	 * @since  2.0.0
+	 * @var \League\Event\EmitterInterface
 	 */
-	protected $_viewManager;
+	protected $event;
 
 	/**
-	 * @var  Component  this applications main component object
-	 *
-	 * @since  2.0.0
+	 * @var SessionManager
 	 */
-	protected $_component;
+	protected $session;
 
 	/**
-	 * @var  Environment  this applications environment object
-	 *
-	 * @since  2.0.0
+	 * @var \Fuel\Display\ViewManager
 	 */
-	protected $_environment;
+	protected $viewManager;
 
 	/**
-	 * @var  Psr/Log/LoggerInterface  this applications log object
-	 *
-	 * @since  2.0.0
-	 */
-	protected $_log;
-
-	/**
-	 * Constructor
-	 *
-	 * @param  string            $appNamespace  this applications base namespace
-	 * @param  string            $environment   this applications runtime environment
-	 * @param  InjectionFactory  $factory       factory object to construct external objects
-	 *
-	 * @since  2.0.0
+	 * @param string           $name
+	 * @param string           $appNamespace
+	 * @param string           $environment
+	 * @param InjectionFactory $factory
 	 */
 	public function __construct($name, $appNamespace, $environment = 'development', InjectionFactory $factory)
 	{
-		// store the applications object factory
+		$this->name = $name;
+		$this->appNamespace = $appNamespace;
+		$this->environmentName = $environment;
 		$this->factory = $factory;
+	}
 
-		// store the application name
-		$this->_name = $name;
+	public function initialize()
+	{
+		if ($this->initialized)
+		{
+			throw new \LogicException('Application is already initialized');
+		}
+
+		$this->initialized = true;
+
 		// create the main application component
-		$this->_component = $this->newComponent('/', $appNamespace);
+		$this->component = $this->newComponent('/', $this->appNamespace);
 
 		// create the environment for this application
-		$this->_environment = $this->factory->createEnvironmentContainer($name, $environment, $this);
+		$this->environment = $this->factory->createEnvironmentContainer($this->name, $this->environmentName, $this);
 
 		// create the log instance for this application
-		$this->_log = $this->factory->createLogInstance('fuel');
+		$this->log = $this->factory->createLogInstance('fuel');
 
 		// load the log config
 		$log = $this->getConfig()->load('log', true);
@@ -117,11 +118,11 @@ class Application
 		// a log customizer defined?
 		if (isset($log['customize']) and $log['customize'] instanceOf \Closure)
 		{
-			$log['customize']($this, $this->_log);
+			$log['customize']($this, $this->log);
 		}
 
-		// setup the event container...
-		$this->_event = $this->factory->createEventInstance();
+		// setup the event container
+		$this->event = $this->factory->createEventInstance();
 
 		$shutdown = new Event\Shutdown($this);
 
@@ -129,10 +130,10 @@ class Application
 		register_shutdown_function(function($event, $shutdown)
 		{
 			$event->emit($shutdown);
-		}, $this->_event, $shutdown);
+		}, $this->event, $shutdown);
 
 		// setup a shutdown event for writing cookies
-		$this->_event->addListener('shutdown', function($shutdown)
+		$this->event->addListener('shutdown', function($shutdown)
 		{
 			$shutdown->getApp()->getRootComponent()->getInput()->getCookie()->send();
 		});
@@ -144,17 +145,17 @@ class Application
 		if (isset($session['auto_initialize']) and $session['auto_initialize'])
 		{
 			// create a session instance
-			$this->_session = $factory->createSessionInstance();
+			$this->session = $this->factory->createSessionInstance();
 		}
 
 		// create the view manager instance for this application
-		$this->_viewManager = $factory->createViewmanagerInstance();
+		$this->viewManager = $this->factory->createViewmanagerInstance();
 
 		// load the view config
 		$this->getConfig()->load('view', true);
 
 		// get the defined view parsers
-		$parsers = $this->getConfig()->get('view.parsers', array());
+		$parsers = $this->getConfig()->get('view.parsers', []);
 
 		// and register them to the View Manager
 		foreach($parsers as $extension => $parser)
@@ -164,25 +165,23 @@ class Application
 				$extension = $parser;
 				$parser = 'parser.'.$extension;
 			}
-			$this->_viewManager->registerParser($extension, $factory->createViewParserInstance($parser));
+			$this->viewManager->registerParser($extension, $this->factory->createViewParserInstance($parser));
 		}
 
 		// log we're alive!
-		$this->_log->info('Application initialized.');
+		$this->log->info('Application initialized.');
 	}
 
 	/**
-	 * Construct a new application component
+	 * Creates a new application component
 	 *
-	 * @param  string            $uri               base URI for this component
-	 * @param  string            $namespace         namespace that identifies this component
-	 * @param  boolean           $routeable         whether or not this component is publicly routable
-	 * @param  string|array      $paths             optional Path or paths to the root folder of the component
-	 * @param  string|Component  $parent            Parent component, or URI of the parent Component
+	 * @param string           $uri
+	 * @param string           $namespace
+	 * @param boolean          $routeable
+	 * @param string|array     $paths
+	 * @param string|Component $parent
 	 *
-	 * @return  Component  the newly constucted component object
-	 *
-	 * @since  2.0.0
+	 * @return Component
 	 */
 	public function newComponent($uri, $namespace, $routeable = true, $paths = null, $parent = null)
 	{
@@ -196,41 +195,39 @@ class Application
 		$routeable = (bool) $routeable;
 
 		// resolve the parent if needed
-		if (is_string($parent) and isset($this->_components[$parent]))
+		if (is_string($parent) and isset($this->components[$parent]))
 		{
-			$parent = $this->_components[$parent];
+			$parent = $this->components[$parent];
 		}
 
 		// create the component instance, store it, and return it
-		$this->_components[$uri] = $this->factory->createComponentInstance($this, $uri, $namespace, $paths, $routeable, $parent);
+		$this->components[$uri] = $this->factory->createComponentInstance($this, $uri, $namespace, $paths, $routeable, $parent);
 
 		// sort it so it's easier to do URI lookups
-		krsort($this->_components);
+		krsort($this->components);
 
 		// and return the component we've created
-		return $this->_components[$uri];
+		return $this->components[$uri];
 	}
 
 	/**
 	 * Returns the applications environment string
 	 *
-	 * @return  string
-	 *
-	 * @since  2.0.0
+	 * @return string
 	 */
 	public function environment()
 	{
-		return $this->_environment->getName();
+		return $this->environmentName;
 	}
 
 	/**
-	 * Get a property that is available through a getter
+	 * Returns a property that is available through a getter
 	 *
-	 * @param   string  $property
-	 * @return  mixed
-	 * @throws  \OutOfBoundsException
+	 * @param string $property
 	 *
-	 * @since  2.0.0
+	 * @return mixed
+	 *
+	 * @throws \OutOfBoundsException
 	 */
 	public function __get($property)
 	{
@@ -245,45 +242,37 @@ class Application
 	/**
 	 * Returns the applications root component object
 	 *
-	 * @return  Component
-	 *
-	 * @since  2.0.0
+	 * @return Component
 	 */
 	public function getRootComponent()
 	{
-		return $this->_component;
+		return $this->component;
 	}
 
 	/**
 	 * Returns a named registered applications component object
 	 *
-	 * @return  Component
-	 *
-	 * @since  2.0.0
+	 * @return Component
 	 */
 	public function getComponent($uri)
 	{
-		return isset($this->_components[$uri]) ? $this->_components[$uri] : null;
+		return isset($this->components[$uri]) ? $this->components[$uri] : null;
 	}
 
 	/**
 	 * Returns all applications component objects
 	 *
-	 * @return  array of Component
-	 *
-	 * @since  2.0.0
+	 * @return Component[]
 	 */
 	public function getComponents()
 	{
-		return $this->_components;
+		return $this->components;
 	}
 
 	/**
 	 * Returns the applications config object
 	 *
-	 * @return  Fuel\Config\Datacontainer
-	 *
-	 * @since  2.0.0
+	 * @return Fuel\Config\Container
 	 */
 	public function getConfig()
 	{
@@ -293,33 +282,27 @@ class Application
 	/**
 	 * Returns the applications environment object
 	 *
-	 * @return  Fuel\Config\Datacontainer
-	 *
-	 * @since  2.0.0
+	 * @return Fuel\Foundation\Environment
 	 */
 	public function getEnvironment()
 	{
-		return $this->_environment;
+		return $this->environment;
 	}
 
 	/**
 	 * Return the applications event manager
 	 *
-	 * @return  Fuel\Event\Container
-	 *
-	 * @since  2.0.0
+	 * @return \League\Event\Emitter
 	 */
 	public function getEvent()
 	{
-		return $this->_event;
+		return $this->event;
 	}
 
 	/**
 	 * Return the applications Input instance
 	 *
-	 * @return  Input
-	 *
-	 * @since  2.0.0
+	 * @return Input
 	 */
 	public function getInput()
 	{
@@ -327,64 +310,52 @@ class Application
 	}
 
 	/**
-	 * Return the applications Log manager
+	 * Return the applications Logger
 	 *
-	 * @return  Psr\Log\LoggerInterface
-	 *
-	 * @since  2.0.0
+	 * @return \Psr\Log\LoggerInterface
 	 */
 	public function getLog()
 	{
-		return $this->_log;
+		return $this->log;
 	}
 
 	/**
 	 * Return the defined application name
 	 *
-	 * @return  string
-	 *
-	 * @since  2.0.0
+	 * @return string
 	 */
 	public function getName()
 	{
-		return $this->_name;
+		return $this->name;
 	}
 
 	/**
 	 * Return the applications session manager
 	 *
-	 * @return  Fuel\Session\Manager
-	 *
-	 * @since  2.0.0
+	 * @return SessionManager
 	 */
 	public function getSession()
 	{
-		return $this->_session;
+		return $this->session;
+	}
+
+	/**
+	 * Sets the applications session manager
+	 *
+	 * @param $session SessionManager
+	 */
+	public function setSession(SessionManager $session)
+	{
+		$this->session = $session;
 	}
 
 	/**
 	 * Return the applications View manager
 	 *
-	 * @return  Fuel\Display\ViewManager
-	 *
-	 * @since  2.0.0
+	 * @return \Fuel\Display\ViewManager
 	 */
 	public function getViewManager()
 	{
-		return $this->_viewManager;
-	}
-
-	/**
-	 * Set the applications session manager
-	 *
-	 * @param  SessionManager   instance of Fuel\Session\Manager
-	 *
-	 * @return  void
-	 *
-	 * @since  2.0.0
-	 */
-	public function setSession(SessionManager $session)
-	{
-		$this->_session = $session;
+		return $this->viewManager;
 	}
 }
