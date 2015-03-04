@@ -86,49 +86,49 @@ class FuelServiceProvider extends ServiceProvider
 			}
 		});
 
-		$this->container->add('configInstance', function()
+		$this->container->add('configInstance', function($ignoreException = true)
 		{
-			if ($component = $this->container->get('componentInstance'))
+			if ($component = $this->container->get('componentInstance', [$ignoreException]))
 			{
 				return $component->getConfig();
 			}
 		});
 
-		$this->container->add('langInstance', function()
+		$this->container->add('langInstance', function($ignoreException = true)
 		{
-			if ($component = $this->container->get('componentInstance'))
+			if ($component = $this->container->get('componentInstance', [$ignoreException]))
 			{
 				return $component->getLanguage();
 			}
 		});
 
-		$this->container->add('inputInstance', function()
+		$this->container->add('inputInstance', function($ignoreException = true)
 		{
-			if ($component = $this->container->get('componentInstance'))
+			if ($component = $this->container->get('componentInstance', [$ignoreException]))
 			{
 				return $component->getInput();
 			}
 		});
 
-		$this->container->add('logInstance', function()
+		$this->container->add('logInstance', function($ignoreException = true)
 		{
-			if ($app = $this->container->get('applicationInstance'))
+			if ($app = $this->container->get('applicationInstance', [$ignoreException]))
 			{
 				return $app->getLog();
 			}
 		});
 
-		$this->container->add('routerInstance', function()
+		$this->container->add('routerInstance', function($ignoreException = true)
 		{
-			if ($component = $this->container->get('componentInstance'))
+			if ($component = $this->container->get('componentInstance', [$ignoreException]))
 			{
 				return $component->getRouter();
 			}
 		});
 
-		$this->container->add('environmentInstance', function()
+		$this->container->add('environmentInstance', function($ignoreException = true)
 		{
-			if ($app = $this->container->get('applicationInstance'))
+			if ($app = $this->container->get('applicationInstance', [$ignoreException]))
 			{
 				return $app->getEnvironment();
 			}
