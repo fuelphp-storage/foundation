@@ -136,10 +136,18 @@ class Local extends Base
 		array_unshift($this->route->parameters, $this->route);
 
 		// add the root path to the config, lang and view manager objects
-		if (isset($this->route->path))
+		$paths = $this->component->getPaths();
+		$finder = $this->component->getApplication()->getViewManager()->getFinder();
+
+		if ( ! $this->factory->isMainRequest())
 		{
-			$this->component->getApplication()->getViewManager()->getFinder()->addPath($this->route->path);
+			$originalFinder = $finder;
+			$finder = clone $finder;
+
+			$this->component->getApplication()->getViewManager()->setFinder($finder);
 		}
+
+		$finder->addPaths($paths);
 
 		try
 		{
@@ -165,9 +173,9 @@ class Local extends Base
 		}
 
 		// remove the root path to the config, lang and view manager objects
-		if (isset($this->route->path))
+		if ( ! $this->factory->isMainRequest())
 		{
-			$this->component->getApplication()->getViewManager()->getFinder()->removePath($this->route->path);
+			$this->component->getApplication()->getViewManager()->setFinder($originalFinder);
 		}
 
 		// log the request termination

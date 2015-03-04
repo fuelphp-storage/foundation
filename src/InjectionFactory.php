@@ -188,6 +188,9 @@ class InjectionFactory
 		return $this->container->get('uri', array($uri));
 	}
 
+	/**
+	 * Checks if the current request is the "main" (only one)
+	 */
 	public function isMainRequest()
 	{
 		$stack = $this->container->get('requeststack');

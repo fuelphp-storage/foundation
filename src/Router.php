@@ -147,7 +147,6 @@ class Router extends \Fuel\Routing\Router
 					$class = $route->namespace.'\\'.implode('\\', array_map('ucfirst', $segments));
 					if (class_exists($class))
 					{
-						$route->path = $component->getPath();
 						$route->controller = $class;
 						break;
 					}
@@ -272,7 +271,6 @@ class Router extends \Fuel\Routing\Router
 					$class = $match->namespace.$this->namespacePrefix.'\\'.implode('\\', array_map('ucfirst', $segments));
 					if (class_exists($class))
 					{
-						$match->path = $component->getPath();
 						$match->controller = $class;
 						break;
 					}
