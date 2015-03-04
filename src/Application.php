@@ -211,6 +211,16 @@ class Application
 	}
 
 	/**
+	 * Checks whether the application is initialized
+	 *
+	 * @return boolean
+	 */
+	public function isInitialized()
+	{
+		return $this->initialized;
+	}
+
+	/**
 	 * Returns the applications environment string
 	 *
 	 * @return string
@@ -282,7 +292,7 @@ class Application
 	/**
 	 * Returns the applications environment object
 	 *
-	 * @return Fuel\Foundation\Environment
+	 * @return Environment
 	 */
 	public function getEnvironment()
 	{
