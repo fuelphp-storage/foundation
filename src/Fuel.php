@@ -98,25 +98,11 @@ class Fuel
 		// scan the rest of composer packages loaded for the presence of FuelServiceProviders
 		static::loadServiceProviders($nonFuelNamespaces);
 
-		// scan all composer packages loaded for the presence of FuelLibraryProviders
-		foreach ($prefixes as $namespace => $paths)
-		{
-			// does this package define a service provider
-			if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelLibraryProvider'))
-			{
-				// load the library provider
-				$provider = new $class($container, $namespace, $paths);
+		// scan all fuel packages loaded for the presence of FuelLibraryProviders
+		static::loadLibraryProviders(array_intersect_key($prefixes, array_flip($fuelNamespaces)));
 
-				// validate the provider
-				if ( ! $provider instanceOf LibraryProvider)
-				{
-					throw new \RuntimeException('FOU-025: FuelBootstrap for ['.$namespace.'] must be an instance of \Fuel\Foundation\LibraryProvider');
-				}
-
-				// initialize the loaded library
-				$provider->initialize();
-			}
-		}
+		// scan the rest of composer packages loaded for the presence of FuelLibraryProviders
+		static::loadLibraryProviders(array_intersect_key($prefixes, array_flip($nonFuelNamespaces)));
 
 		// mark we're initialized
 		static::$initialized = true;
@@ -136,6 +122,33 @@ class Fuel
 			{
 				// register it with the Container
 				static::getContainer()->addServiceProvider($class);
+			}
+		}
+	}
+
+	/**
+	 * Scans a set of namespaces for library providers and loads them
+	 *
+	 * @param array $prefixes
+	 */
+	protected static function loadLibraryProviders(array $prefixes)
+	{
+		foreach ($prefixes as $namespace => $paths)
+		{
+			// does this package define a library provider
+			if (class_exists($class = trim($namespace,'\\').'\\Providers\\FuelLibraryProvider'))
+			{
+				// load the library provider
+				$provider = new $class(static::$container, $namespace, $paths);
+
+				// validate the provider
+				if ( ! $provider instanceOf LibraryProvider)
+				{
+					throw new \RuntimeException('FOU-025: FuelBootstrap for ['.$namespace.'] must be an instance of \Fuel\Foundation\LibraryProvider');
+				}
+
+				// initialize the loaded library
+				$provider->initialize();
 			}
 		}
 	}
