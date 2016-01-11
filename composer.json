@@ -11,7 +11,7 @@
 	],
 	"require": {
 		"php": ">=5.4",
-		"filp/whoops": "dev-master",
+		"filp/whoops": "~1.0",
 		"monolog/monolog": "1.6.0",
 		"league/event": "~2.0",
 		"fuelphp/dependency": "~2.0",
