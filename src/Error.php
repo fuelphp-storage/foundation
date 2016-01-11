@@ -13,7 +13,7 @@ namespace Fuel\Foundation;
 use Whoops\Run;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Handler\JsonResponseHandler;
-use function Whoops\isAjaxRequest;
+use Whoops\Util\Misc;
 use Fuel\Foundation\Whoops\ProductionHandler;
 
 /**
@@ -212,14 +212,12 @@ class Error
 		$this->whoops->pushHandler($this->pagehandler);
 
 		// next on the stack goes the JSON handler, to deal with AJAX requests
-		if (isAjaxRequest())
+		if (Misc::isAjaxRequest())
 		{
 			$jsonHandler = new JsonResponseHandler;
 			// $jsonHandler->addTraceToOutput(true);
-			$run->addHandler($jsonHandler)
+			$this->whoops->pushHandler($jsonHandler);
 		}
-
-		$this->whoops->pushHandler($jsonHandler);
 
 		// add the Fuel production handler
 		$productionHandler = new ProductionHandler;
