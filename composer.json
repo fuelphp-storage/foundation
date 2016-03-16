@@ -1,0 +1,31 @@
+{
+	"name": "fuelphp/foundation",
+	"description": "FuelPHP Framework foundation",
+	"homepage": "https://github.com/fuelphp/foundation",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "FuelPHP Development Team",
+			"email": "team@fuelphp.com"
+		}
+	],
+	"require": {
+		"php": ">=7.0.0"
+	},
+	"require-dev": {
+		"codeception/codeception": "^2.1"
+	},
+	"suggest": {
+	},
+	"autoload": {
+		"psr-4": {
+			"Fuel\\Foundation\\": "src/"
+		}
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "2.0-dev"
+		}
+	},
+	"minimum-stability": "dev"
+}

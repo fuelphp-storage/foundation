@@ -1,0 +1,17 @@
+language: php
+
+php:
+  - 7
+
+before_script:
+  - travis_retry composer install --no-interaction
+
+script:
+  - vendor/bin/codecept run unit --coverage-xml
+
+after_script:
+  - wget https://scrutinizer-ci.com/ocular.phar
+  - php ocular.phar code-coverage:upload --format=php-clover tests/_output/coverage.xml
+
+notifications:
+  irc: "irc.freenode.org#fuelphp-status"

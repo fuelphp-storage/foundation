@@ -1,0 +1,28 @@
+tests/_log/
+tests/_output/
+vendor/
+codeception.yml
+composer.lock
+composer.phar
+index.php
+
+### IDE ###
+.buildpath
+.project
+.settings
+nbproject/
+.idea/
+*.tmproj
+*.sublime-project
+*.sublime-workspace
+
+### Cache, temp, etc ###
+.DS_Store
+cache/
+*~
+*.bak
+Thumbs.db
+desktop.ini
+
+tests/_output/*
+tests/_output/*
