@@ -10,10 +10,13 @@
 		}
 	],
 	"require": {
-		"php": ">=7.0.0"
+		"php": ">=7.0.0",
+		"fuelphp/event": "dev-master",
+		"fuelphp/dependency": "dev-master"
 	},
 	"require-dev": {
-		"codeception/codeception": "^2.1"
+		"codeception/codeception": "^2.1",
+		"codeception/mockery-module": "^0.2.2"
 	},
 	"suggest": {
 	},
