@@ -28,7 +28,7 @@ class ApplicationTest extends Test
 		);
 
 		$this->assertInstanceOf(
-			'Fuel\Event\Container',
+			'League\Event\Emitter',
 			$app->getDependencyContainer()->get('fuel.application.event')
 		);
 	}
@@ -45,6 +45,27 @@ class ApplicationTest extends Test
 			'stdClass',
 			$app->getDependencyContainer()->get('fuel.application.event')
 		);
+	}
+
+	public function testEventRegister()
+	{
+		$called = false;
+		$app = Application::init([
+			'events' => [
+				[
+					'name' => 'foobar',
+					'listener' => function() use (&$called) {
+						$called = true;
+					}
+				],
+			],
+		]);
+
+		$app->getDependencyContainer()
+			->get('fuel.application.event')
+			->emit('foobar');
+
+		$this->assertTrue($called);
 	}
 
 }

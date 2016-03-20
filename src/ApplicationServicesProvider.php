@@ -34,7 +34,7 @@ class ApplicationServicesProvider extends ServiceProvider
 	 */
 	public function register()
 	{
-		$this->getContainer()->add('fuel.application.event', 'Fuel\Event\Container', true);
+		$this->getContainer()->add('fuel.application.event', 'League\Event\Emitter', true);
 
 		$this->getContainer()->add('Fuel\Foundation\Request\Cli', 'Fuel\Foundation\Request\Cli', false);
 		$this->getContainer()->add('fuel.application.request', $this->constructRequest(), true);

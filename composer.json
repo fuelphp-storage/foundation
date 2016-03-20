@@ -11,8 +11,8 @@
 	],
 	"require": {
 		"php": ">=7.0.0",
-		"fuelphp/event": "dev-master",
-		"fuelphp/dependency": "dev-master"
+		"fuelphp/dependency": "dev-master",
+		"league/event": "^2.1"
 	},
 	"require-dev": {
 		"codeception/codeception": "^2.1",

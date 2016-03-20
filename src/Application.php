@@ -14,6 +14,7 @@ namespace Fuel\Foundation;
 
 use Fuel\Dependency\Container;
 use League\Container\ContainerInterface;
+use League\Event\Emitter;
 
 class Application
 {
@@ -29,11 +30,15 @@ class Application
 
 	public function __construct(array $config, ContainerInterface $dependencyContainer = null)
 	{
+		// Ensure the DI entry exists
+		$config['di'] = $config['di'] ?? [];
+
 		$this->setDependencyContainer($dependencyContainer ?? new Container($config));
 		$this->dependencyContainer->add('fuel.application', $this);
 		$this->dependencyContainer->addServiceProvider(new ApplicationServicesProvider());
 
-		// TODO: register any events from the config
+		// register any events from the config
+		$this->registerEvents($config);
 
 		// TODO: Load components
 
@@ -63,6 +68,24 @@ class Application
 		// TODO: generate and send response
 
 		// TODO: send shutdown event
+	}
+
+	/**
+	 * @param array $config
+	 */
+	protected function registerEvents(array $config)
+	{
+		/** @var Emitter $eventContainer */
+		$eventContainer = $this->dependencyContainer->get('fuel.application.event');
+
+		foreach ($config['events'] ?? [] as $event)
+		{
+			$eventContainer->addListener(
+				$event['name'],
+				$event['listener'],
+				$event['priority'] ?? $eventContainer::P_NORMAL
+			);
+		}
 	}
 
 }
