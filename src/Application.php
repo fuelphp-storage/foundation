@@ -32,6 +32,12 @@ class Application
 		$this->setDependencyContainer($dependencyContainer ?? new Container($config));
 		$this->dependencyContainer->add('fuel.application', $this);
 		$this->dependencyContainer->addServiceProvider(new ApplicationServicesProvider());
+
+		// TODO: register any events from the config
+
+		// TODO: Load components
+
+		// TODO: trigger app created event
 	}
 
 	public function setDependencyContainer(ContainerInterface $dependencyContainer)
@@ -42,6 +48,21 @@ class Application
 	public function getDependencyContainer() : ContainerInterface
 	{
 		return $this->dependencyContainer;
+	}
+
+	public function run()
+	{
+		// TODO: trigger request started event
+
+		// TODO: route to and call controller
+
+		// TODO: trigger request ended event
+
+		// TODO: trigger response started event
+
+		// TODO: generate and send response
+
+		// TODO: send shutdown event
 	}
 
 }
