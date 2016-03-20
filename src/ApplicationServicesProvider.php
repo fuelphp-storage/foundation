@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation;
 
+use Fuel\Foundation\Request\RequestInterface;
+use Fuel\Foundation\Response\ResponseInterface;
 use League\Container\ServiceProvider;
 
 class ApplicationServicesProvider extends ServiceProvider
@@ -19,6 +21,12 @@ class ApplicationServicesProvider extends ServiceProvider
 
 	protected $provides = [
 		'fuel.application.event',
+
+		'fuel.application.request',
+		'Fuel\Foundation\Request\Cli',
+
+		'fuel.application.response',
+		'Fuel\Foundation\Response\Cli',
 	];
 
 	/**
@@ -26,6 +34,30 @@ class ApplicationServicesProvider extends ServiceProvider
 	 */
 	public function register()
 	{
-		$this->getContainer()->add('fuel.application.event', 'Fuel\Event\Container');
+		$this->getContainer()->add('fuel.application.event', 'Fuel\Event\Container', true);
+
+		$this->getContainer()->add('Fuel\Foundation\Request\Cli', 'Fuel\Foundation\Request\Cli', false);
+		$this->getContainer()->add('fuel.application.request', $this->constructRequest(), true);
+
+		$this->getContainer()->add('Fuel\Foundation\Response\Cli', 'Fuel\Foundation\Response\Cli', false);
+		$this->getContainer()->add('fuel.application.response', $this->constructResponse(), true);
+	}
+
+	/**
+	 * @return RequestInterface
+	 */
+	protected function constructRequest() : RequestInterface
+	{
+		// TODO: perform an actual check to see what kind of request we are dealing with!
+		return $this->getContainer()->get('Fuel\Foundation\Request\Cli');
+	}
+
+	/**
+	 * @return ResponseInterface
+	 */
+	protected function constructResponse() : ResponseInterface
+	{
+		// TODO: perform an actual check to see what kind of request we are dealing with!
+		return $this->getContainer()->get('Fuel\Foundation\Response\Cli');
 	}
 }
