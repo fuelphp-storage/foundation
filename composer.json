@@ -12,7 +12,8 @@
 	"require": {
 		"php": ">=7.0.0",
 		"fuelphp/dependency": "dev-master",
-		"league/event": "^2.1"
+		"league/event": "^2.1",
+		"fuelphp/config": "dev-master"
 	},
 	"require-dev": {
 		"codeception/codeception": "^2.1",
@@ -23,6 +24,12 @@
 	"autoload": {
 		"psr-4": {
 			"Fuel\\Foundation\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Basic\\": "tests/_support/components/Basic/",
+			"Broken\\": "tests/_support/components/Broken/"
 		}
 	},
 	"extra": {

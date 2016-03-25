@@ -34,6 +34,7 @@ class Application
 		$config['di'] = $config['di'] ?? [];
 
 		$this->setDependencyContainer($dependencyContainer ?? new Container($config));
+
 		$this->dependencyContainer->add('fuel.application', $this);
 		$this->dependencyContainer->addServiceProvider(new ApplicationServicesProvider());
 
