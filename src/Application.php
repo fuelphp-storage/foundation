@@ -31,27 +31,26 @@ class Application
 
 	public static function init(array $config) : Application
 	{
+		// Ensure the needed config entries exists
+		$config['events'] = $config['events'] ?? [];
+		$config['components'] = $config['components'] ?? [];
+
 		return new static($config);
 	}
 
 	public function __construct(array $config, ContainerInterface $dependencyContainer = null)
 	{
-		// Ensure the DI entry exists
-		$config['di'] = $config['di'] ?? [];
+		$this->config = $config;
 
-		$this->setDependencyContainer($dependencyContainer ?? new Container($config));
+		$this->setDependencyContainer($dependencyContainer ?? new Container());
 		$this->dependencyContainer->add('fuel.application', $this);
 		$this->dependencyContainer->addServiceProvider(new ApplicationServicesProvider());
 
 		// register any events from the config
-		$config['events'] = $config['events'] ?? [];
 		$this->registerEvents($config['events']);
 
 		// Load components
-		$config['components'] = $config['components'] ?? [];
 		$this->loadComponents($config['components']);
-
-		$this->config = $config;
 
 		// trigger app created event
 		$this->dependencyContainer

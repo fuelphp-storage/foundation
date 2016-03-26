@@ -38,23 +38,6 @@ class ApplicationTest extends Test
 			$app->getDependencyContainer()->get('fuel.application.component_manager')
 		);
 	}
-// TODO: fix this
-//	public function testDiOverride()
-//	{
-//		$app = Application::init([
-//			'di' => [
-//				'fuel.application.request' => [
-//					'singleton' => true,
-//					'definition' => 'stdClass',
-//				],
-//			],
-//		]);
-//
-//		$this->assertInstanceOf(
-//			'stdClass',
-//			$app->getDependencyContainer()->get('fuel.application.request')
-//		);
-//	}
 
 	public function testEventRegister()
 	{
