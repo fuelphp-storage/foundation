@@ -27,6 +27,8 @@ class ApplicationServicesProvider extends ServiceProvider
 
 		'fuel.application.response',
 		'Fuel\Foundation\Response\Cli',
+
+		'fuel.application.component_manager',
 	];
 
 	/**
@@ -41,6 +43,8 @@ class ApplicationServicesProvider extends ServiceProvider
 
 		$this->getContainer()->add('Fuel\Foundation\Response\Cli', 'Fuel\Foundation\Response\Cli', false);
 		$this->getContainer()->add('fuel.application.response', $this->constructResponse(), true);
+
+		$this->getContainer()->add('fuel.application.component_manager', 'Fuel\Foundation\ComponentManager', true);
 	}
 
 	/**

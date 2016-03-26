@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Fuel\Foundation;
 
 use Fuel\Dependency\Container;
+use Fuel\Foundation\Event\AppStarted;
 use League\Container\ContainerInterface;
 use League\Event\Emitter;
 
@@ -22,6 +23,11 @@ class Application
 	 * @var ContainerInterface
 	 */
 	protected $dependencyContainer;
+
+	/**
+	 * @var array
+	 */
+	protected $config;
 
 	public static function init(array $config) : Application
 	{
@@ -34,16 +40,23 @@ class Application
 		$config['di'] = $config['di'] ?? [];
 
 		$this->setDependencyContainer($dependencyContainer ?? new Container($config));
-
 		$this->dependencyContainer->add('fuel.application', $this);
 		$this->dependencyContainer->addServiceProvider(new ApplicationServicesProvider());
 
 		// register any events from the config
-		$this->registerEvents($config);
+		$config['events'] = $config['events'] ?? [];
+		$this->registerEvents($config['events']);
 
-		// TODO: Load components
+		// Load components
+		$config['components'] = $config['components'] ?? [];
+		$this->loadComponents($config['components']);
 
-		// TODO: trigger app created event
+		$this->config = $config;
+
+		// trigger app created event
+		$this->dependencyContainer
+			->get('fuel.application.event')
+			->emit(new AppStarted());
 	}
 
 	public function setDependencyContainer(ContainerInterface $dependencyContainer)
@@ -72,20 +85,35 @@ class Application
 	}
 
 	/**
-	 * @param array $config
+	 * @param array $events
 	 */
-	protected function registerEvents(array $config)
+	protected function registerEvents(array $events)
 	{
 		/** @var Emitter $eventContainer */
 		$eventContainer = $this->dependencyContainer->get('fuel.application.event');
 
-		foreach ($config['events'] ?? [] as $event)
+		foreach ($events as $event)
 		{
 			$eventContainer->addListener(
 				$event['name'],
 				$event['listener'],
 				$event['priority'] ?? $eventContainer::P_NORMAL
 			);
+		}
+	}
+
+	/**
+	 * @param string[] $components
+	 */
+	protected function loadComponents(array $components)
+	{
+		/** @var ComponentManagerInterface $componentManager */
+		$componentManager = $this->getDependencyContainer()
+			->get('fuel.application.component_manager');
+
+		foreach ($components as $component)
+		{
+			$componentManager->load($component);
 		}
 	}
 

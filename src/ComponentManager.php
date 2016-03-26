@@ -21,6 +21,11 @@ use Fuel\Foundation\Exception\ComponentLoad;
  */
 class ComponentManager implements ComponentManagerInterface
 {
+	/**
+	 * Name of the component class to look for.
+	 *
+	 * @var string
+	 */
 	protected static $componentClassName  = 'FuelComponent';
 
 	/**
@@ -29,18 +34,7 @@ class ComponentManager implements ComponentManagerInterface
 	protected $loadedComponents = [];
 
 	/**
-	 * Contains a list of component paths for components that have already been requested, indexed by component name.
-	 *
-	 * @var string[]
-	 */
-	protected $availableComponents = [];
-
-	/**
-	 * Gets a component, loading it if needed.
-	 *
-	 * @param string $name
-	 *
-	 * @return ComponentInterface
+	 * {@inheritdoc}
 	 */
 	public function get(string $name) : ComponentInterface
 	{
@@ -53,13 +47,7 @@ class ComponentManager implements ComponentManagerInterface
 	}
 
 	/**
-	 * Loads the given component.
-	 *
-	 * TODO: Also load dependant components
-	 *
-	 * @param string $name
-	 *
-	 * @return ComponentInterface
+	 * {@inheritdoc}
 	 */
 	public function load(string $name) : ComponentInterface
 	{
@@ -86,11 +74,7 @@ class ComponentManager implements ComponentManagerInterface
 	}
 
 	/**
-	 * Loads a component by name.
-	 *
-	 * @param string $name
-	 *
-	 * @return bool
+	 * {@inheritdoc}
 	 */
 	public function loaded(string $name) : bool
 	{
@@ -98,11 +82,7 @@ class ComponentManager implements ComponentManagerInterface
 	}
 
 	/**
-	 * Unloads a component.
-	 *
-	 * @param string $name
-	 *
-	 * @return ComponentManagerInterface
+	 * {@inheritdoc}
 	 */
 	public function unload(string $name) : ComponentManagerInterface
 	{
