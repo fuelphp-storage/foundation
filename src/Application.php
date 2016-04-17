@@ -12,7 +12,8 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation;
 
-use Fuel\Dependency\Container;
+use Fuel\Config\Container as ConfigContainer;
+use Fuel\Dependency\Container as DependencyContainer;
 use Fuel\Foundation\Event\AppStarted;
 use League\Container\ContainerInterface;
 use League\Event\Emitter;
@@ -40,11 +41,7 @@ class Application
 
 	public function __construct(array $config, ContainerInterface $dependencyContainer = null)
 	{
-		$this->config = $config;
-
-		$this->setDependencyContainer($dependencyContainer ?? new Container());
-		$this->dependencyContainer->add('fuel.application', $this);
-		$this->dependencyContainer->addServiceProvider(new ApplicationServicesProvider());
+		$this->initDependencyContainer($config, $dependencyContainer);
 
 		// register any events from the config
 		$this->registerEvents($config['events']);
@@ -55,7 +52,7 @@ class Application
 		// trigger app created event
 		$this->dependencyContainer
 			->get('fuel.application.event')
-			->emit(new AppStarted());
+			->emit(new AppStarted($this));
 	}
 
 	public function setDependencyContainer(ContainerInterface $dependencyContainer)
@@ -114,6 +111,18 @@ class Application
 		{
 			$componentManager->load($component);
 		}
+	}
+
+	/**
+	 * @param array              $config
+	 * @param ContainerInterface $dependencyContainer
+	 */
+	protected function initDependencyContainer(array $config, ContainerInterface $dependencyContainer = null)
+	{
+		$this->setDependencyContainer($dependencyContainer ?? new DependencyContainer());
+		$this->dependencyContainer->add('fuel.application', $this);
+		$this->dependencyContainer->add('fuel.application.config', $config);
+		$this->dependencyContainer->addServiceProvider(new ApplicationServicesProvider());
 	}
 
 }

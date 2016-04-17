@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation\Event;
 
+use Fuel\Foundation\Application;
 use League\Event\AbstractEvent;
 
 /**
@@ -21,7 +22,22 @@ use League\Event\AbstractEvent;
  */
 class AppStarted extends AbstractEvent
 {
-	public function getName()
+	/**
+	 * @var Application
+	 */
+	protected $application;
+
+	public function __construct(Application $application)
+	{
+		$this->application = $application;
+	}
+
+	public function getApplication() : Application
+	{
+		return $this->application;
+	}
+
+	public function getName() : string
 	{
 		return 'fuel.application.started';
 	}

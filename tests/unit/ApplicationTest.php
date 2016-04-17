@@ -14,6 +14,7 @@ namespace Fuel\Foundation\Test;
 
 use Codeception\TestCase\Test;
 use Fuel\Foundation\Application;
+use Fuel\Foundation\Event\AppStarted;
 use stdClass;
 
 class ApplicationTest extends Test
@@ -78,17 +79,23 @@ class ApplicationTest extends Test
 	public function testAppCreatedEvent()
 	{
 		$called = false;
-		Application::init([
+
+		/** @var AppStarted $event */
+		$event = null;
+
+		$app = Application::init([
 			'events' => [
 				[
 					'name' => 'fuel.application.started',
-					'listener' => function() use (&$called) {
+					'listener' => function(AppStarted $appStarted) use (&$called, &$event) {
 						$called = true;
+						$event = $appStarted;
 					}
 				],
 			],
 		]);
 
 		$this->assertTrue($called);
+		$this->assertEquals($app, $event->getApplication());
 	}
 }
