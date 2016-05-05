@@ -12,7 +12,16 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation;
 
+use ReflectionClass;
+
 abstract class AbstractComponent implements ComponentInterface
 {
-
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getConfigPath() : string
+	{
+		$reflection = new ReflectionClass(static::class);
+		return dirname($reflection->getFileName());
+	}
 }

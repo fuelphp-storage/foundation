@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation;
 
+use Fuel\Config\Container;
 use Fuel\Foundation\Exception\ComponentLoad;
 
 /**
@@ -32,6 +33,16 @@ class ComponentManager implements ComponentManagerInterface
 	 * @var ComponentInterface[]
 	 */
 	protected $loadedComponents = [];
+
+	/**
+	 * @var Container
+	 */
+	protected $configContainer;
+
+	public function __construct(Container $configContainer)
+	{
+		$this->configContainer = $configContainer;
+	}
 
 	/**
 	 * {@inheritdoc}
@@ -70,7 +81,14 @@ class ComponentManager implements ComponentManagerInterface
 
 		$this->loadedComponents[$name] = $component;
 
+		$this->addConfigPath($component);
+
 		return $component;
+	}
+
+	protected function addConfigPath(ComponentInterface $component)
+	{
+		$this->configContainer->addPath($component->getConfigPath());
 	}
 
 	/**

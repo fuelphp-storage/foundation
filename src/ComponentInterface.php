@@ -19,5 +19,12 @@ namespace Fuel\Foundation;
  */
 interface ComponentInterface
 {
-
+	/**
+	 * Gets the directory where the component's configs can be found.
+	 * This uses reflection so if you have a large number of components it would be advisable to extend this and use
+	 * `__DIR__` to generate a return value.
+	 *
+	 * @return string
+	 */
+	public function getConfigPath() : string ;
 }

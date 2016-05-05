@@ -74,6 +74,15 @@ class ApplicationTest extends Test
 				->get('fuel.application.component_manager')
 				->loaded('Basic')
 		);
+
+		$config = $app->getDependencyContainer()->get('fuel.config');
+		$config->load('config');
+
+		// check if the config has been loaded
+		$this->assertEquals(
+			'bar',
+			$config->get('basic_config_foo')
+		);
 	}
 
 	public function testAppCreatedEvent()

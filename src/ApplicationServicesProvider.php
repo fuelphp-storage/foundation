@@ -44,7 +44,12 @@ class ApplicationServicesProvider extends ServiceProvider
 		$this->getContainer()->add('Fuel\Foundation\Response\Cli', 'Fuel\Foundation\Response\Cli', false);
 		$this->getContainer()->add('fuel.application.response', $this->constructResponse(), true);
 
-		$this->getContainer()->add('fuel.application.component_manager', 'Fuel\Foundation\ComponentManager', true);
+		$this->getContainer()->add('fuel.application.component_manager', $this->constructComponentManager(), true);
+	}
+
+	protected function constructComponentManager()
+	{
+		return new ComponentManager($this->getContainer()->get('fuel.config'));
 	}
 
 	/**
