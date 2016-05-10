@@ -14,5 +14,4 @@ namespace Fuel\Foundation\Request;
 
 class Cli implements RequestInterface
 {
-
 }

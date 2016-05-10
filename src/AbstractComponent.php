@@ -22,6 +22,6 @@ abstract class AbstractComponent implements ComponentInterface
 	public function getConfigPath() : string
 	{
 		$reflection = new ReflectionClass(static::class);
-		return dirname($reflection->getFileName());
+		return dirname($reflection->getFileName()) . '/..';
 	}
 }

@@ -14,5 +14,5 @@ namespace Fuel\Foundation\Response;
 
 interface ResponseInterface
 {
-
+	public function getStatusCode();
 }

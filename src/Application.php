@@ -15,6 +15,8 @@ namespace Fuel\Foundation;
 use Fuel\Config\Container as ConfigContainer;
 use Fuel\Dependency\Container as DependencyContainer;
 use Fuel\Foundation\Event\AppStarted;
+use Fuel\Foundation\Request\RequestInterface;
+use Fuel\Foundation\Response\ResponseInterface;
 use League\Container\ContainerInterface;
 use League\Event\Emitter;
 
@@ -67,6 +69,13 @@ class Application
 
 	public function run()
 	{
+		// TODO: make sure the URI is set
+
+		// TODO: send shutdown event
+	}
+
+	public function performRequest(RequestInterface $request) : ResponseInterface
+	{
 		// TODO: trigger request started event
 
 		// TODO: route to and call controller
@@ -76,8 +85,6 @@ class Application
 		// TODO: trigger response started event
 
 		// TODO: generate and send response
-
-		// TODO: send shutdown event
 	}
 
 	/**

@@ -8,11 +8,14 @@
  * @link       http://fuelphp.com
  */
 
-declare(strict_types=1);
-
 namespace Fuel\Foundation\Request;
 
-interface RequestInterface
-{
+use Zend\Diactoros\ServerRequest;
 
+class Http extends ServerRequest implements RequestInterface
+{
+	public static function forge()
+	{
+		return HttpRequestFactory::fromGlobals();
+	}
 }

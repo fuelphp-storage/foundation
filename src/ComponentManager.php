@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation;
 
-use Fuel\Config\Container;
+use Fuel\Config\ContainerInterface;
 use Fuel\Foundation\Exception\ComponentLoad;
 
 /**
@@ -35,11 +35,11 @@ class ComponentManager implements ComponentManagerInterface
 	protected $loadedComponents = [];
 
 	/**
-	 * @var Container
+	 * @var ContainerInterface
 	 */
 	protected $configContainer;
 
-	public function __construct(Container $configContainer)
+	public function __construct(ContainerInterface $configContainer)
 	{
 		$this->configContainer = $configContainer;
 	}
@@ -70,14 +70,14 @@ class ComponentManager implements ComponentManagerInterface
 			throw new ComponentLoad("FOU-001: Unable to load [$fullName]: Class not found");
 		}
 
+		// Load the component
+		$component = new $fullName();
+
 		// Check if it implements the correct interface
-		if ( ! in_array('Fuel\Foundation\ComponentInterface', class_implements($fullName)))
+		if ( ! $component instanceof ComponentInterface)
 		{
 			throw new ComponentLoad("FOU-002: Unable to load [$fullName]: Does not implement ComponentInterface");
 		}
-
-		// Load the component
-		$component = new $fullName();
 
 		$this->loadedComponents[$name] = $component;
 

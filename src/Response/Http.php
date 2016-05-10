@@ -8,21 +8,11 @@
  * @link       http://fuelphp.com
  */
 
-declare(strict_types=1);
-
 namespace Fuel\Foundation\Response;
 
-class Cli implements ResponseInterface
+use Zend\Diactoros\Response;
+
+class Http extends Response implements ResponseInterface
 {
-	protected $statusCode;
 
-	public function setStatusCode($code)
-	{
-		$this->statusCode = $code;
-	}
-
-	public function getStatusCode()
-	{
-		return $this->statusCode;
-	}
 }

@@ -12,11 +12,12 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation;
 
+use Fuel\Foundation\Request\Http;
 use Fuel\Foundation\Request\RequestInterface;
 use Fuel\Foundation\Response\ResponseInterface;
-use League\Container\ServiceProvider;
+use League\Container\ServiceProvider\AbstractServiceProvider;
 
-class ApplicationServicesProvider extends ServiceProvider
+class ApplicationServicesProvider extends AbstractServiceProvider
 {
 
 	protected $provides = [
@@ -24,9 +25,11 @@ class ApplicationServicesProvider extends ServiceProvider
 
 		'fuel.application.request',
 		'Fuel\Foundation\Request\Cli',
+		'Fuel\Foundation\Request\Http',
 
 		'fuel.application.response',
 		'Fuel\Foundation\Response\Cli',
+		'Fuel\Foundation\Response\Http',
 
 		'fuel.application.component_manager',
 	];
@@ -39,9 +42,11 @@ class ApplicationServicesProvider extends ServiceProvider
 		$this->getContainer()->add('fuel.application.event', 'League\Event\Emitter', true);
 
 		$this->getContainer()->add('Fuel\Foundation\Request\Cli', 'Fuel\Foundation\Request\Cli', false);
+		$this->getContainer()->add('Fuel\Foundation\Request\Http', Http::forge(), false);
 		$this->getContainer()->add('fuel.application.request', $this->constructRequest(), true);
 
 		$this->getContainer()->add('Fuel\Foundation\Response\Cli', 'Fuel\Foundation\Response\Cli', false);
+		$this->getContainer()->add('Fuel\Foundation\Response\Http', 'Fuel\Foundation\Response\Http', false);
 		$this->getContainer()->add('fuel.application.response', $this->constructResponse(), true);
 
 		$this->getContainer()->add('fuel.application.component_manager', $this->constructComponentManager(), true);
@@ -57,8 +62,11 @@ class ApplicationServicesProvider extends ServiceProvider
 	 */
 	protected function constructRequest() : RequestInterface
 	{
-		// TODO: perform an actual check to see what kind of request we are dealing with!
-		return $this->getContainer()->get('Fuel\Foundation\Request\Cli');
+		if ($this->isCli()) {
+			return $this->getContainer()->get('Fuel\Foundation\Request\Cli');
+		}
+
+		return $this->getContainer()->get('Fuel\Foundation\Request\Http');
 	}
 
 	/**
@@ -66,7 +74,15 @@ class ApplicationServicesProvider extends ServiceProvider
 	 */
 	protected function constructResponse() : ResponseInterface
 	{
-		// TODO: perform an actual check to see what kind of request we are dealing with!
-		return $this->getContainer()->get('Fuel\Foundation\Response\Cli');
+		if ($this->isCli()) {
+			return $this->getContainer()->get('Fuel\Foundation\Response\Cli');
+		}
+
+		return $this->getContainer()->get('Fuel\Foundation\Response\Http');
+	}
+
+	public function isCli()
+	{
+		return php_sapi_name() === 'cli';
 	}
 }
