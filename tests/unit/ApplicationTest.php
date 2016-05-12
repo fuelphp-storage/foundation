@@ -15,7 +15,8 @@ namespace Fuel\Foundation\Test;
 use Codeception\TestCase\Test;
 use Fuel\Foundation\Application;
 use Fuel\Foundation\Event\AppStarted;
-use stdClass;
+use Fuel\Foundation\Request\Http as HttpRequest;
+use Zend\Diactoros\Request;
 
 class ApplicationTest extends Test
 {
@@ -47,7 +48,7 @@ class ApplicationTest extends Test
 			'events' => [
 				[
 					'name' => 'foobar',
-					'listener' => function() use (&$called) {
+					'listener' => function () use (&$called) {
 						$called = true;
 					}
 				],
@@ -96,7 +97,7 @@ class ApplicationTest extends Test
 			'events' => [
 				[
 					'name' => 'fuel.application.started',
-					'listener' => function(AppStarted $appStarted) use (&$called, &$event) {
+					'listener' => function (AppStarted $appStarted) use (&$called, &$event) {
 						$called = true;
 						$event = $appStarted;
 					}
@@ -106,5 +107,20 @@ class ApplicationTest extends Test
 
 		$this->assertTrue($called);
 		$this->assertEquals($app, $event->getApplication());
+	}
+
+	public function testMakeRequest()
+	{
+		$app = Application::init([
+			'components' => [
+				'Basic',
+			],
+		]);
+
+		$request = new HttpRequest([], [], '/testroute');
+		$response = $app->performRequest($request);
+
+		$this->assertEquals(200, $response->getStatusCode());
+		$this->assertEquals('found me', (string) $response->getBody());
 	}
 }

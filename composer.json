@@ -13,7 +13,7 @@
 		"php": ">=7.0.0",
 		"fuelphp/dependency": "dev-master",
 		"league/event": "^2.1",
-		"league/route": "^2.0",
+		"fuelphp/routing": "dev-master",
 		"fuelphp/config": "dev-master",
 		"zendframework/zend-diactoros": "^1.3"
 	},

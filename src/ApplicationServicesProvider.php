@@ -50,6 +50,8 @@ class ApplicationServicesProvider extends AbstractServiceProvider
 		$this->getContainer()->add('fuel.application.response', $this->constructResponse(), true);
 
 		$this->getContainer()->add('fuel.application.component_manager', $this->constructComponentManager(), true);
+
+		$this->getContainer()->add('fuel.application.router', 'Fuel\Routing\Router', true);
 	}
 
 	protected function constructComponentManager()

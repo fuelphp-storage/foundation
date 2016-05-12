@@ -13,12 +13,16 @@ declare(strict_types=1);
 namespace Fuel\Foundation;
 
 use Fuel\Config\Container as ConfigContainer;
+use Fuel\Config\Container;
 use Fuel\Dependency\Container as DependencyContainer;
 use Fuel\Foundation\Event\AppStarted;
 use Fuel\Foundation\Request\RequestInterface;
 use Fuel\Foundation\Response\ResponseInterface;
+use Fuel\Routing\Router;
 use League\Container\ContainerInterface;
 use League\Event\Emitter;
+use Zend\Diactoros\CallbackStream;
+use Zend\Diactoros\Stream;
 
 class Application
 {
@@ -51,10 +55,27 @@ class Application
 		// Load components
 		$this->loadComponents($config['components']);
 
+		$this->registerRoutes();
+
 		// trigger app created event
 		$this->dependencyContainer
 			->get('fuel.application.event')
 			->emit(new AppStarted($this));
+	}
+
+	protected function registerRoutes()
+	{
+		/** @var Router $router */
+		$router = $this->dependencyContainer->get('fuel.application.router');
+
+		/** @var Container $config */
+		$config = $this->dependencyContainer->get('fuel.config');
+		$config->load('routing', 'routing');
+
+		foreach ($config->get('routing', []) as $uri => $routeConfig)
+		{
+			$router->all($uri)->filters($routeConfig);
+		}
 	}
 
 	public function setDependencyContainer(ContainerInterface $dependencyContainer)
@@ -69,22 +90,49 @@ class Application
 
 	public function run()
 	{
-		// TODO: make sure the URI is set
+		$request = $this->dependencyContainer->get('fuel.application.request');
+		$response = $this->performRequest($request);
+
+		http_response_code($response->getStatusCode());
+		echo $response->getBody();
 
 		// TODO: send shutdown event
 	}
 
 	public function performRequest(RequestInterface $request) : ResponseInterface
 	{
+		$this->dependencyContainer->add('fuel.application.request', $request);
+
 		// TODO: trigger request started event
 
 		// TODO: route to and call controller
+		// TODO: Handle 404 and 500?
+		/** @var Router $router */
+		$router = $this->dependencyContainer->get('fuel.application.router');
+		$match = $router->translate($request->getUri()->getPath(), $request->getMethod());
+
+		// TODO: Use dependency magic to create the controller instance
+		$controller = new $match->controller();
+		// TODO: Pass params through?
+		$controller_result = $controller->{$match->action}();
 
 		// TODO: trigger request ended event
 
 		// TODO: trigger response started event
 
-		// TODO: generate and send response
+		// generate and send response
+		// If the controller response is a response object then just pass that back out
+		if ($controller_result instanceof ResponseInterface) {
+			return $controller_result;
+		}
+
+		// Else update the application response with the controller result#
+		/** @var ResponseInterface $response */
+		$response = $this->dependencyContainer->get('fuel.application.response');
+		$response->withStatus(200);
+		$response = $response->withBody(new CallbackStream(function() use ($controller_result) {return $controller_result; }));
+
+		return $response;
 	}
 
 	/**

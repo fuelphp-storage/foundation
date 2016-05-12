@@ -12,7 +12,14 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation\Request;
 
+use Psr\Http\Message\UriInterface;
+
 interface RequestInterface
 {
+	/**
+	 * @return UriInterface
+	 */
+	public function getUri();
 
+	public function getMethod();
 }

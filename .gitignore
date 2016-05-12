@@ -5,6 +5,7 @@ codeception.yml
 composer.lock
 composer.phar
 index.php
+public
 
 ### IDE ###
 .buildpath
