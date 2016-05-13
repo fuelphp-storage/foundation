@@ -15,6 +15,7 @@ namespace Fuel\Foundation;
 use Fuel\Foundation\Request\Http;
 use Fuel\Foundation\Request\RequestInterface;
 use Fuel\Foundation\Response\ResponseInterface;
+use Fuel\Routing\Router;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 
 class ApplicationServicesProvider extends AbstractServiceProvider
@@ -51,10 +52,23 @@ class ApplicationServicesProvider extends AbstractServiceProvider
 
 		$this->getContainer()->add('fuel.application.component_manager', $this->constructComponentManager(), true);
 
-		$this->getContainer()->add('fuel.application.router', 'Fuel\Routing\Router', true);
+		$this->getContainer()->add('fuel.application.router', $this->constructRouter(), true);
 	}
 
-	protected function constructComponentManager()
+	/**
+	 * @return Router
+	 */
+	protected function constructRouter() : Router
+	{
+		$router = new Router;
+		$router->setType('string', Router::MATCH_ANY);
+		$router->setType('num', Router::MATCH_NUM);
+		$router->setType('int', Router::MATCH_NUM);
+
+		return $router;
+	}
+
+	protected function constructComponentManager() : ComponentManager
 	{
 		return new ComponentManager($this->getContainer()->get('fuel.config'));
 	}
@@ -83,7 +97,10 @@ class ApplicationServicesProvider extends AbstractServiceProvider
 		return $this->getContainer()->get('Fuel\Foundation\Response\Http');
 	}
 
-	public function isCli()
+	/**
+	 * @return bool
+	 */
+	public function isCli() : bool
 	{
 		return php_sapi_name() === 'cli';
 	}

@@ -11,10 +11,10 @@ namespace Basic\Controller;
 
 use Fuel\Foundation\Controller\AbstractController;
 
-class TestController extends AbstractController
+class ParamsController extends AbstractController
 {
 	public function actionIndex()
 	{
-		return 'found me';
+		return 'got: ' . $this->getRouteParam('myParam');
 	}
 }

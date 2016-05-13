@@ -31,7 +31,8 @@
 	"autoload-dev": {
 		"psr-4": {
 			"Basic\\": "tests/_support/components/Basic/src",
-			"Broken\\": "tests/_support/components/Broken/src"
+			"Broken\\": "tests/_support/components/Broken/src",
+			"Fuel\\Foundation\\Test\\Stubs\\": "tests/_support/stubs"
 		}
 	},
 	"extra": {
