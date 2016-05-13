@@ -15,6 +15,8 @@ namespace Fuel\Foundation\Test;
 use Codeception\TestCase\Test;
 use Fuel\Foundation\Application;
 use Fuel\Foundation\Event\AppStarted;
+use Fuel\Foundation\Event\RequestFinished;
+use Fuel\Foundation\Event\RequestStarted;
 use Fuel\Foundation\Request\Http as HttpRequest;
 use Zend\Diactoros\Request;
 
@@ -106,14 +108,37 @@ class ApplicationTest extends Test
 		]);
 
 		$this->assertTrue($called);
-		$this->assertEquals($app, $event->getApplication());
+		$this->assertSame($app, $event->getApplication());
 	}
 
 	public function testMakeRequest()
 	{
+		$requestStartCalled = false;
+		$requestStartApplication = null;
+
+		$requestEndCalled = false;
+		$requestEndApplication = null;
+
+
 		$app = Application::init([
 			'components' => [
 				'Basic',
+			],
+			'events' => [
+				[
+					'name' => 'fuel.request.started',
+					'listener' => function (RequestStarted $requestStarted) use (&$requestStartCalled, &$requestStartApplication) {
+						$requestStartCalled = true;
+						$requestStartApplication = $requestStarted->getApplication();
+					}
+				],
+				[
+					'name' => 'fuel.request.finished',
+					'listener' => function (RequestFinished $requestFinished) use (&$requestEndCalled, &$requestEndApplication) {
+						$requestEndCalled = true;
+						$requestEndApplication = $requestFinished->getApplication();
+					}
+				],
 			],
 		]);
 
@@ -122,5 +147,11 @@ class ApplicationTest extends Test
 
 		$this->assertEquals(200, $response->getStatusCode());
 		$this->assertEquals('found me', (string) $response->getBody());
+
+		$this->assertTrue($requestStartCalled);
+		$this->assertSame($app, $requestStartApplication);
+
+		$this->assertTrue($requestEndCalled);
+		$this->assertSame($app, $requestEndApplication);
 	}
 }

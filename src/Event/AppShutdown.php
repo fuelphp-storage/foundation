@@ -12,15 +12,12 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation\Event;
 
-use Fuel\Foundation\Application;
-use League\Event\AbstractEvent;
-
 /**
- * Triggered when the application has finished setting up.
+ * Triggered when the application has finished all request processing and the app is shutting down.
  *
  * @package Fuel\Foundation\Event
  */
-class AppStarted extends AbstractAppEvent
+class AppShutdown extends AbstractAppEvent
 {
-	protected $name = 'fuel.application.started';
+	protected $name = 'fuel.application.shutdown';
 }

@@ -15,7 +15,12 @@ namespace Fuel\Foundation;
 use Fuel\Config\Container as ConfigContainer;
 use Fuel\Config\Container;
 use Fuel\Dependency\Container as DependencyContainer;
+use Fuel\Foundation\Event\AppShutdown;
 use Fuel\Foundation\Event\AppStarted;
+use Fuel\Foundation\Event\RequestFinished;
+use Fuel\Foundation\Event\RequestStarted;
+use Fuel\Foundation\Event\ResponseFinished;
+use Fuel\Foundation\Event\ResponseStarted;
 use Fuel\Foundation\Request\RequestInterface;
 use Fuel\Foundation\Response\ResponseInterface;
 use Fuel\Routing\Router;
@@ -93,19 +98,31 @@ class Application
 		$request = $this->dependencyContainer->get('fuel.application.request');
 		$response = $this->performRequest($request);
 
+		// trigger response started event
+		$this->dependencyContainer
+			->get('fuel.application.event')
+			->emit(new ResponseStarted($this));
+
 		http_response_code($response->getStatusCode());
 		echo $response->getBody();
 
-		// TODO: send shutdown event
+		// send shutdown event
+		$this->dependencyContainer
+			->get('fuel.application.event')
+			->emit(new ResponseFinished($this))
+			->emit(new AppShutdown($this));
 	}
 
 	public function performRequest(RequestInterface $request) : ResponseInterface
 	{
 		$this->dependencyContainer->add('fuel.application.request', $request);
 
-		// TODO: trigger request started event
+		// trigger request started event
+		$this->dependencyContainer
+			->get('fuel.application.event')
+			->emit(new RequestStarted($this));
 
-		// TODO: route to and call controller
+		// route to and call controller
 		// TODO: Handle 404 and 500?
 		/** @var Router $router */
 		$router = $this->dependencyContainer->get('fuel.application.router');
@@ -113,12 +130,13 @@ class Application
 
 		// TODO: Use dependency magic to create the controller instance
 		$controller = new $match->controller();
-		// TODO: Pass params through?
+		// TODO: Pass params through
 		$controller_result = $controller->{$match->action}();
 
-		// TODO: trigger request ended event
-
-		// TODO: trigger response started event
+		// trigger request ended event
+		$this->dependencyContainer
+			->get('fuel.application.event')
+			->emit(new RequestFinished($this));
 
 		// generate and send response
 		// If the controller response is a response object then just pass that back out

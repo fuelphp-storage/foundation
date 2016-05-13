@@ -16,11 +16,11 @@ use Fuel\Foundation\Application;
 use League\Event\AbstractEvent;
 
 /**
- * Triggered when the application has finished setting up.
+ * Triggered when a response has been started.
  *
  * @package Fuel\Foundation\Event
  */
-class AppStarted extends AbstractAppEvent
+class ResponseFinished extends AbstractAppEvent
 {
-	protected $name = 'fuel.application.started';
+	protected $name = 'fuel.response.finished';
 }
