@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Fuel\Foundation;
 
 use Fuel\Config\ContainerInterface;
+use Fuel\FileSystem\Finder;
 use Fuel\Foundation\Exception\ComponentLoad;
 
 /**
@@ -35,13 +36,13 @@ class ComponentManager implements ComponentManagerInterface
 	protected $loadedComponents = [];
 
 	/**
-	 * @var ContainerInterface
+	 * @var Finder
 	 */
-	protected $configContainer;
+	protected $finder;
 
-	public function __construct(ContainerInterface $configContainer)
+	public function __construct(Finder $finder)
 	{
-		$this->configContainer = $configContainer;
+		$this->finder = $finder;
 	}
 
 	/**
@@ -81,14 +82,14 @@ class ComponentManager implements ComponentManagerInterface
 
 		$this->loadedComponents[$name] = $component;
 
-		$this->addConfigPath($component);
+		$this->addPath($component);
 
 		return $component;
 	}
 
-	protected function addConfigPath(ComponentInterface $component)
+	protected function addPath(ComponentInterface $component)
 	{
-		$this->configContainer->addPath($component->getConfigPath());
+		$this->finder->addPath($component->getPath());
 	}
 
 	/**

@@ -26,5 +26,5 @@ interface ComponentInterface
 	 *
 	 * @return string
 	 */
-	public function getConfigPath() : string ;
+	public function getPath() : string ;
 }

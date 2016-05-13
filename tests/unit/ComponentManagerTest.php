@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace Fuel\Foundation\Test;
 
 use Codeception\TestCase\Test;
-use Fuel\Config\Container;
+use Fuel\FileSystem\Finder;
 use Fuel\Foundation\ComponentManager;
 
 class ComponentManagerTest extends Test
@@ -26,7 +26,7 @@ class ComponentManagerTest extends Test
 	protected function setUp()
 	{
 		parent::setUp();
-		$this->manager =  new ComponentManager(new Container());
+		$this->manager =  new ComponentManager(new Finder());
 	}
 
 	public function testLoading()

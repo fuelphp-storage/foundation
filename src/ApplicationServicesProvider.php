@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation;
 
+use Fuel\Config\Container;
 use Fuel\Foundation\Request\Http;
 use Fuel\Foundation\Request\RequestInterface;
 use Fuel\Foundation\Response\ResponseInterface;
@@ -32,7 +33,13 @@ class ApplicationServicesProvider extends AbstractServiceProvider
 		'Fuel\Foundation\Response\Cli',
 		'Fuel\Foundation\Response\Http',
 
+		'fuel.application.finder',
+
+		'fuel.config',
+
 		'fuel.application.component_manager',
+
+		'fuel.application.router',
 	];
 
 	/**
@@ -49,6 +56,11 @@ class ApplicationServicesProvider extends AbstractServiceProvider
 		$this->getContainer()->add('Fuel\Foundation\Response\Cli', 'Fuel\Foundation\Response\Cli', false);
 		$this->getContainer()->add('Fuel\Foundation\Response\Http', 'Fuel\Foundation\Response\Http', false);
 		$this->getContainer()->add('fuel.application.response', $this->constructResponse(), true);
+
+		$this->getContainer()->add('fuel.application.finder', 'Fuel\FileSystem\Finder', true);
+
+		// Also create a config container for our services
+		$this->getContainer()->add('fuel.config', new Container(null, $this->getContainer()->get('fuel.application.finder')), true);
 
 		$this->getContainer()->add('fuel.application.component_manager', $this->constructComponentManager(), true);
 
@@ -70,7 +82,7 @@ class ApplicationServicesProvider extends AbstractServiceProvider
 
 	protected function constructComponentManager() : ComponentManager
 	{
-		return new ComponentManager($this->getContainer()->get('fuel.config'));
+		return new ComponentManager($this->getContainer()->get('fuel.application.finder'));
 	}
 
 	/**

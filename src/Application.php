@@ -140,8 +140,6 @@ class Application
 		$this->dependencyContainer->add('fuel.application', $this);
 		// And our application config if needed
 		$this->dependencyContainer->add('fuel.application.config', $config);
-		// Also create a config container for our services
-		$this->dependencyContainer->add('fuel.config', new ConfigContainer());
 		// Finally add all our application level services
 		$this->dependencyContainer->addServiceProvider(new ApplicationServicesProvider());
 	}
