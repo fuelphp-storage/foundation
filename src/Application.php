@@ -109,7 +109,10 @@ class Application
 		// send shutdown event
 		$this->dependencyContainer
 			->get('fuel.application.event')
-			->emit(new ResponseFinished($this))
+			->emit(new ResponseFinished($this));
+
+		$this->dependencyContainer
+			->get('fuel.application.event')
 			->emit(new AppShutdown($this));
 	}
 
