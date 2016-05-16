@@ -209,7 +209,11 @@ class Application
 	 */
 	protected function getControllerResult(Match $match) : ResponseInterface
 	{
-		// TODO: Handle 404 and 500?
+		if ($match->controller === null) {
+			$response = $this->dependencyContainer->get('fuel.application.response');
+			return $response->withStatus(404);
+		}
+
 		$controller = $this->createController($match);
 		$controllerResult = $controller->{$match->action}();
 

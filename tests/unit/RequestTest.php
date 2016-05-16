@@ -33,4 +33,18 @@ class RequestTest extends Test
 		$this->assertEquals(200, $response->getStatusCode());
 		$this->assertEquals('got: foobar', (string) $response->getBody());
 	}
+
+	public function test404Request()
+	{
+		$app = Application::init([
+			'components' => [
+				'Basic',
+			],
+		]);
+
+		$request = new HttpRequest([], [], '/should/not/exist');
+		$response = $app->performRequest($request);
+
+		$this->assertEquals(404, $response->getStatusCode());
+	}
 }
