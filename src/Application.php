@@ -39,11 +39,6 @@ class Application
 	 */
 	protected $dependencyContainer;
 
-	/**
-	 * @var array
-	 */
-	protected $config;
-
 	public static function init(array $config) : Application
 	{
 		// Ensure the needed config entries exists
