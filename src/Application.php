@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation;
 
-use Fuel\Config\Container as ConfigContainer;
 use Fuel\Config\Container;
 use Fuel\Dependency\Container as DependencyContainer;
 use Fuel\Foundation\Controller\ControllerInterface;
@@ -28,9 +27,7 @@ use Fuel\Routing\Match;
 use Fuel\Routing\Router;
 use League\Container\ContainerInterface;
 use League\Event\Emitter;
-use Symfony\Component\BrowserKit\Response;
 use Zend\Diactoros\CallbackStream;
-use Zend\Diactoros\Stream;
 
 class Application
 {
