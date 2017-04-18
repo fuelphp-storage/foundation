@@ -136,7 +136,7 @@ class Application
 		$this->dependencyContainer->addServiceProvider(new ApplicationServicesProvider());
 	}
 
-	public function run()
+	public function run() : ResponseInterface
 	{
 		$request = $this->dependencyContainer->get('fuel.application.request');
 		$response = $this->performRequest($request);
@@ -146,9 +146,6 @@ class Application
 			->get('fuel.application.event')
 			->emit(new ResponseStarted($this));
 
-		http_response_code($response->getStatusCode());
-		echo $response->getBody();
-
 		// send shutdown event
 		$this->dependencyContainer
 			->get('fuel.application.event')
@@ -157,6 +154,8 @@ class Application
 		$this->dependencyContainer
 			->get('fuel.application.event')
 			->emit(new AppShutdown($this));
+
+		return $response;
 	}
 
 	public function performRequest(RequestInterface $request) : ResponseInterface

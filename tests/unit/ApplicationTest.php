@@ -14,9 +14,12 @@ namespace Fuel\Foundation\Test;
 
 use Codeception\TestCase\Test;
 use Fuel\Foundation\Application;
+use Fuel\Foundation\Event\AppShutdown;
 use Fuel\Foundation\Event\AppStarted;
 use Fuel\Foundation\Event\RequestFinished;
 use Fuel\Foundation\Event\RequestStarted;
+use Fuel\Foundation\Event\ResponseFinished;
+use Fuel\Foundation\Event\ResponseStarted;
 use Fuel\Foundation\Request\Http as HttpRequest;
 use Zend\Diactoros\Request;
 
@@ -119,7 +122,6 @@ class ApplicationTest extends Test
 		$requestEndCalled = false;
 		$requestEndApplication = null;
 
-
 		$app = Application::init([
 			'components' => [
 				'Basic',
@@ -153,5 +155,65 @@ class ApplicationTest extends Test
 
 		$this->assertTrue($requestEndCalled);
 		$this->assertSame($app, $requestEndApplication);
+	}
+
+	public function testRun()
+	{
+		$responseStartCalled = false;
+		$responseStartApplication = null;
+
+		$responseEndCalled = false;
+		$responseEndApplication = null;
+
+		$appShutdownCalled = false;
+		$appShutdownApplication = null;
+
+		$app = Application::init([
+			'components' => [
+				'Basic',
+			],
+			'events' => [
+				[
+					'name' => 'fuel.response.started',
+					'listener' => function (ResponseStarted $responseStarted) use (&$responseStartCalled, &$responseStartApplication) {
+						$responseStartCalled = true;
+						$responseStartApplication = $responseStarted->getApplication();
+					}
+				],
+				[
+					'name' => 'fuel.response.finished',
+					'listener' => function (ResponseFinished $responseFinished) use (&$responseEndCalled, &$responseEndApplication) {
+						$responseEndCalled = true;
+						$responseEndApplication = $responseFinished->getApplication();
+					}
+				],
+				[
+					'name' => 'fuel.application.shutdown',
+					'listener' => function (AppShutdown $appShutdown) use (&$appShutdownCalled, &$appShutdownApplication) {
+						$appShutdownCalled = true;
+						$appShutdownApplication = $appShutdown->getApplication();
+					}
+				],
+			],
+		]);
+
+		// Set up a custom request and inject that
+		$request = new HttpRequest([], [], '/testroute');
+		$app->getDependencyContainer()->add('fuel.application.request', $request);
+
+		$response = $app->run();
+
+		// Fire off the request and see if the expected events are fired.
+		$this->assertEquals(200, $response->getStatusCode());
+		$this->assertEquals('found me', (string) $response->getBody());
+
+		$this->assertTrue($responseStartCalled);
+		$this->assertSame($app, $responseStartApplication);
+
+		$this->assertTrue($responseEndCalled);
+		$this->assertSame($app, $responseEndApplication);
+
+		$this->assertTrue($appShutdownCalled);
+		$this->assertSame($app, $appShutdownApplication);
 	}
 }
