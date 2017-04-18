@@ -16,3 +16,8 @@ Thank you for considering contribution to FuelPHP framework. Please see [CONTRIB
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE) for more information.
+
+## Testing
+
+After running a composer install tests can be run with:
+`./vendor/bin/codecept run` or `./vendor/bin/codecept run --coverage-html` to generate a code coverage report.
