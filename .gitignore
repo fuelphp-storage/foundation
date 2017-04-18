@@ -26,4 +26,4 @@ Thumbs.db
 desktop.ini
 
 tests/_output/*
-tests/_output/*
+tests/_support/_generated/*
