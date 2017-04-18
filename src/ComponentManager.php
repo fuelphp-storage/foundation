@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Fuel\Foundation;
 
-use Fuel\Config\ContainerInterface;
 use Fuel\FileSystem\Finder;
 use Fuel\Foundation\Exception\ComponentLoad;
 
