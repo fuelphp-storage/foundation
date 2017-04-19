@@ -169,6 +169,9 @@ class Application
 
 		// route to and call controller
 		$match = $this->getRouteMatch($request);
+		$this->dependencyContainer
+			->add('fuel.application.routeMatch', $match);
+
 		$response = $this->getControllerResult($match);
 
 		// trigger request ended event

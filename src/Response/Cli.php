@@ -40,4 +40,9 @@ class Cli implements ResponseInterface
 		$this->statusCode = $status;
 		return $this;
 	}
+
+	public function withHeader($header, $value)
+	{
+		// TODO: Implement withHeader() method.
+	}
 }
