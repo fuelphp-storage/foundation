@@ -18,9 +18,27 @@ interface ResponseInterface
 {
 	public function getStatusCode();
 
+	/**
+	 * @param StreamInterface $body
+	 *
+	 * @return ResponseInterface
+	 */
 	public function withBody(StreamInterface $body);
 
 	public function getBody();
 
+	/**
+	 * @param int $status
+	 *
+	 * @return ResponseInterface
+	 */
 	public function withStatus($status);
+
+	/**
+	 * @param string       $header
+	 * @param array|string $value
+	 *
+	 * @return ResponseInterface
+	 */
+	public function withHeader($header, $value);
 }

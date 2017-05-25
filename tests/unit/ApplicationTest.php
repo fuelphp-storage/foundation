@@ -114,7 +114,7 @@ class ApplicationTest extends Test
 		$this->assertSame($app, $event->getApplication());
 	}
 
-	public function testMakeRequest()
+	public function testPerformRequest()
 	{
 		$requestStartCalled = false;
 		$requestStartApplication = null;
@@ -155,6 +155,11 @@ class ApplicationTest extends Test
 
 		$this->assertTrue($requestEndCalled);
 		$this->assertSame($app, $requestEndApplication);
+
+		$this->assertInstanceOf(
+			'\Fuel\Routing\Match',
+			$app->getDependencyContainer()->get('fuel.application.routeMatch')
+		);
 	}
 
 	public function testRun()

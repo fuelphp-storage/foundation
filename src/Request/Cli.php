@@ -25,4 +25,30 @@ class Cli implements RequestInterface
 	{
 		// TODO: Implement getMethod() method.
 	}
-}
+
+	public function getHeaders()
+	{
+		// TODO: Implement getHeaders() method.
+	}
+
+	/**
+	 * @param string $header
+	 *
+	 * @return bool
+	 */
+	public function hasHeader($header)
+	{
+		// TODO: Implement hasHeader() method.
+	}
+
+	/**
+	 * @param string $header Case-insensitive header field name.
+	 *
+	 * @return string[] An array of string values as provided for the given
+	 *    header. If the header does not appear in the message, this method MUST
+	 *    return an empty array.
+	 */
+	public function getHeader($header)
+	{
+		// TODO: Implement getHeader() method.
+}}
