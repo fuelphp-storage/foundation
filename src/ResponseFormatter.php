@@ -15,6 +15,7 @@ namespace Fuel\Foundation;
 use Fuel\Foundation\Exception\Formatter;
 use Fuel\Foundation\Exception\FormatterLoad;
 use Fuel\Foundation\Formatter\FormatterInterface;
+use League\Container\ContainerInterface;
 
 /**
  * Keeps track of active formatters and facilitates the formatting of a controller response.
@@ -27,15 +28,15 @@ class ResponseFormatter
 	protected $formatterClasses = [];
 
 	/**
-	 * @var \Fuel\Dependency\Container
+	 * @var ContainerInterface
 	 */
 	protected $dependencyContainer;
 
 	/**
 	 * ResponseFormatter constructor.
 	 *
-	 * @param string[]                   $formatters          List of class names or DIC instance names
-	 * @param \Fuel\Dependency\Container $dependencyContainer
+	 * @param string[]           $formatters          List of class names or DIC instance names
+	 * @param ContainerInterface $dependencyContainer
 	 */
 	public function __construct($formatters, $dependencyContainer)
 	{

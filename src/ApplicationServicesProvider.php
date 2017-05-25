@@ -13,11 +13,13 @@ declare(strict_types=1);
 namespace Fuel\Foundation;
 
 use Fuel\Config\Container;
+use Fuel\Foundation\Exception\Formatter;
 use Fuel\Foundation\Request\Http;
 use Fuel\Foundation\Request\RequestInterface;
 use Fuel\Foundation\Response\ResponseInterface;
 use Fuel\Routing\Router;
 use League\Container\ServiceProvider\AbstractServiceProvider;
+use Symfony\Component\DomCrawler\Form;
 
 class ApplicationServicesProvider extends AbstractServiceProvider
 {
@@ -40,6 +42,10 @@ class ApplicationServicesProvider extends AbstractServiceProvider
 		'fuel.application.component_manager',
 
 		'fuel.application.router',
+
+		'Fuel\Foundation\Formatter\Noop',
+		'Fuel\Foundation\Formatter\HttpAcceptJson',
+		'Fuel\Foundation\ResponseFormatter',
 	];
 
 	/**
@@ -65,6 +71,11 @@ class ApplicationServicesProvider extends AbstractServiceProvider
 		$this->getContainer()->add('fuel.application.component_manager', $this->constructComponentManager(), true);
 
 		$this->getContainer()->add('fuel.application.router', $this->constructRouter(), true);
+
+		// Add in the various formatters
+		$this->container->add('Fuel\Foundation\Formatter\Noop', 'Fuel\Foundation\Formatter\Noop', true);
+		$this->container->add('Fuel\Foundation\Formatter\HttpAcceptJson', 'Fuel\Foundation\Formatter\HttpAcceptJson', true);
+		$this->container->add('Fuel\Foundation\ResponseFormatter', $this->constructResponseFormatter(), true);
 	}
 
 	/**
@@ -107,6 +118,18 @@ class ApplicationServicesProvider extends AbstractServiceProvider
 		}
 
 		return $this->getContainer()->get('Fuel\Foundation\Response\Http');
+	}
+
+	protected function constructResponseFormatter() : ResponseFormatter
+	{
+		/** @var Container $config */
+		$config = $this->getContainer()->get('fuel.config');
+		$config->load('output_formatters', 'output_formatters');
+
+		return new ResponseFormatter(
+			$config->get('output_formatters', ['Fuel\Foundation\Formatter\Noop']),
+			$this->getContainer()
+		);
 	}
 
 	/**
