@@ -56,26 +56,69 @@ class ApplicationServicesProvider extends AbstractServiceProvider
 		$this->getContainer()->add('fuel.application.event', 'League\Event\Emitter', true);
 
 		$this->getContainer()->add('Fuel\Foundation\Request\Cli', 'Fuel\Foundation\Request\Cli', false);
-		$this->getContainer()->add('Fuel\Foundation\Request\Http', Http::forge(), false);
-		$this->getContainer()->add('fuel.application.request', $this->constructRequest(), true);
+		$this->getContainer()->add(
+			'Fuel\Foundation\Request\Http',
+			function() {
+				return Http::forge();
+			},
+			false
+		);
+
+		$this->getContainer()->add(
+			'fuel.application.request',
+			function() {
+				return $this->constructRequest();
+			},
+			true
+		);
 
 		$this->getContainer()->add('Fuel\Foundation\Response\Cli', 'Fuel\Foundation\Response\Cli', false);
 		$this->getContainer()->add('Fuel\Foundation\Response\Http', 'Fuel\Foundation\Response\Http', false);
-		$this->getContainer()->add('fuel.application.response', $this->constructResponse(), true);
+		$this->getContainer()->add(
+			'fuel.application.response',
+			function() {
+				return $this->constructResponse();
+				},
+			true
+		);
 
 		$this->getContainer()->add('fuel.application.finder', 'Fuel\FileSystem\Finder', true);
 
 		// Also create a config container for our services
-		$this->getContainer()->add('fuel.config', new Container(null, $this->getContainer()->get('fuel.application.finder')), true);
+		$this->getContainer()->add(
+			'fuel.config',
+			function() {
+				return new Container(null, $this->getContainer()->get('fuel.application.finder'));
+			},
+			true
+		);
 
-		$this->getContainer()->add('fuel.application.component_manager', $this->constructComponentManager(), true);
+		$this->getContainer()->add(
+			'fuel.application.component_manager',
+			function () {
+				return $this->constructComponentManager();
+			},
+			true
+		);
 
-		$this->getContainer()->add('fuel.application.router', $this->constructRouter(), true);
+		$this->getContainer()->add(
+			'fuel.application.router',
+			function() {
+				return $this->constructRouter();
+			},
+			true
+		);
 
 		// Add in the various formatters
-		$this->container->add('Fuel\Foundation\Formatter\Noop', 'Fuel\Foundation\Formatter\Noop', true);
-		$this->container->add('Fuel\Foundation\Formatter\HttpAcceptJson', 'Fuel\Foundation\Formatter\HttpAcceptJson', true);
-		$this->container->add('Fuel\Foundation\ResponseFormatter', $this->constructResponseFormatter(), true);
+		$this->getContainer()->add('Fuel\Foundation\Formatter\Noop', 'Fuel\Foundation\Formatter\Noop', true);
+		$this->getContainer()->add('Fuel\Foundation\Formatter\HttpAcceptJson', 'Fuel\Foundation\Formatter\HttpAcceptJson', true);
+		$this->getContainer()->add(
+			'Fuel\Foundation\ResponseFormatter',
+			function() {
+				return $this->constructResponseFormatter();
+			},
+			true
+		);
 	}
 
 	/**
